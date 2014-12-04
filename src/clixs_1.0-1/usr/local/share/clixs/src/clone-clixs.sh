@@ -20,11 +20,17 @@ function main(){
 	# clone or update
 	cd "${BASE}/${REPO}"
 	if [ -d "${BASE}/${REPO}/.git" ]; then
+		echo Refreshing repo. 1>&2
 		git pull
 		git fetch --all
 		git reset --hard origin/master
 	else
-		git clone "git@github.com:${GIT}/${REPO}.git" .
+		echo Cloning repo. 1>&2
+		git clone --no-ckeckout "git@github.com:${GIT}/${REPO}.git" tmp
+		mv tmp/.git .
+		git reset --hard origin/master
+		git pull
+		git fetch --all
 	fi
 	# update deb package from src directory
 	if ! [ -f "${BASE}/${REPO}/src/latest" ]; then
