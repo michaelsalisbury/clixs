@@ -1,0 +1,25 @@
+#!/bin/bash
+
+function main(){
+	local BASE='/usr/local/share'
+	local REPO='clixs'
+	local GIT='michaelsalisbury'
+
+	case "$1" in
+		configure)
+			echo "$1" :: `date`
+			"${BASE}/${REPO}/src/clone-${REPO}.sh"
+
+		;;
+		abort-upgrade|abort-remove|abort-deconfigure)
+			echo "$1" :: `date`
+
+		;;
+		*)
+		echo "postinst called with unknown argument \`\$1'" >&2
+		exit 0
+
+		;;
+	esac
+}
+main "$@"
