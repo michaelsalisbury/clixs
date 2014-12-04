@@ -26,7 +26,7 @@ function main(){
 		git reset --hard origin/master
 	else
 		echo Cloning repo. 1>&2
-		git clone --no-ckeckout "git@github.com:${GIT}/${REPO}.git" tmp
+		git clone --no-checkout "git@github.com:${GIT}/${REPO}.git" tmp
 		mv tmp/.git .
 		git reset --hard origin/master
 		git stash src/clone-clixs.sh
