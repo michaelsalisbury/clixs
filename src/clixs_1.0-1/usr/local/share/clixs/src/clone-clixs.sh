@@ -29,6 +29,7 @@ function main(){
 		git clone --no-ckeckout "git@github.com:${GIT}/${REPO}.git" tmp
 		mv tmp/.git .
 		git reset --hard origin/master
+		git stash src/clone-clixs.sh
 		git pull
 		git fetch --all
 	fi
