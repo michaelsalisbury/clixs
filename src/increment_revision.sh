@@ -9,11 +9,11 @@ GIT="git add .; git commit -m $(basename "$0")_${REPO}_${UPDATE}; git push"
 if [ -d "${ROOT}/${REPO}_${LATEST}" ]; then
 	echo $LATEST
 	echo $UPDATE
-	cp -rf "${ROOT}/${REPO}_${LATEST}" "${ROOT}/${REPO}_${UPDATE}"
-	echo ${UPDATE} > latest
-	ln -sf "${ROOT}/${REPO}_${UPDATE}/usr/local/share/clixs/src/clone-clixs.sh" "${ROOT}/".
-	${GIT}
-	echo $GIT
+	#cp -rf "${ROOT}/${REPO}_${LATEST}" "${ROOT}/${REPO}_${UPDATE}"
+	#echo ${UPDATE} > latest
+	#ln -sf "${ROOT}/${REPO}_${UPDATE}/usr/local/share/clixs/src/clone-clixs.sh" "${ROOT}/".
+	eval "${GIT}"
+	echo "${GIT}"
 else
 	echo Latest \"${ROOT}/${REPO}_${LATEST}\" missing. 1>&2
 	echo Exiting\! 1>&2
