@@ -39,7 +39,7 @@ function main(){
 		echo \"$(basename "$0")\" called from within dpkg. 1>&2
 		ps_reverse_tree $$ 4 -o pid,ppid,comm,cmd	
 		#echo No need to \! 1>&2
-		return
+		return 0
 	elif ! [ -f "${ROOT}/${REPO}/src/latest" ]; then
 		echo Missing \"${ROOT}/${REPO}/src/latest\"\! 1>&2
 		echo Cannot attempt to update \"${REPO}\" deb package. 1>&2
@@ -84,4 +84,5 @@ function ps_reverse_tree(){
 
 }
 main "$@"
+exit $?
 
