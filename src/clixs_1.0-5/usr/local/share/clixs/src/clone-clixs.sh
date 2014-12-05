@@ -40,12 +40,7 @@ function main(){
 		echo Exiting\! 1>&2
 		exit 3
 	fi
-        echo PID :: $PID
-        echo \$\$ :: $$
-	ps              -o pid,ppid,cmd -p $$
-	ps --no-heading -o pid,ppid,cmd -p $(ps --no-heading -o ppid -p $$)
-	ps --no-heading -o pid,ppid,cmd -p $(ps --no-heading -o ppid -p $(ps --no-heading -o ppid -p $$))
-	ps --no-heading -o pid,ppid,cmd -p $(ps --no-heading -o ppid -p $(ps --no-heading -o ppid -p $(ps --no-heading -o ppid -p $$)))
+	ps_reverse_tree $$ 4
 	local CURVER=$(dpkg -p clixs | awk '/^Version:/{print $2}')
 	echo CURVER :: ${CURVER}
 	local LATEST=$(echo $(cat "${ROOT}/${REPO}/src/latest")) 
@@ -62,6 +57,23 @@ function main(){
 		dpkg -i "${ROOT}/${REPO}/src/${REPO}_${LATEST}.deb"
 	fi
 	
+}
+function ps_reverse_tree(){
+	local CHILD=${1:-$$}
+	local DESCEND=${2:-2}
+	local PARENT
+	shift 2
+	if (( ${#@} )); then
+		local OPTS=$*
+	else
+		local OPTS="-o pid,ppid,comm,cmd"
+	fi
+	ps ${OPTS} -p ${CHILD}
+	while (( DESCEND-=1 )); do
+		PARENT=$(ps --no-heading -o ppid -p ${PARENT:-${CHILD}})
+		ps --no-heading ${OPTS/--no-heading/} -p ${PARENT}
+	done
+
 }
 main "$@"
 
