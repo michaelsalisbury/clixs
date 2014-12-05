@@ -45,17 +45,25 @@ function main(){
 
 	if echo $(ps_reverse_tree $$ 1 --no-heading -o comm) |
 	   grep -q "^$(basename "$0") ${REPO}.postinst dpkg"; then
-		echo \"$(basename "$0")\" called from within dpkg. 1>&2
-		ps_reverse_tree $$ 4 -o pid,ppid,comm,cmd
+		echo \"$(basename "$0")\" called from within a dpkg install process. 1>&2
 		local CURVER=$(ps_reverse_tree $$ 4 --no-heading -o comm,cmd |
 				awk '{if($1=="dpkg") print $NF}' |
 				xargs basename -s .deb |
 				sed "s/^${REPO}_//")
-		echo CURVER = $CURVER
-				
-		
-		#echo No need to \! 1>&2
-		return 0
+		if [ "${CURVER}" != "${LATEST}" ]; then
+			echo There is a newer version of \"${REPO}\" package available. 1>&2
+			echo Please update to version \"${LATEST}\". 1>&2
+			if [ -f "${ROOT}/${REPO}/src/${REPO}_${LATEST}.deb" ]; then
+				echo It looks like the newer package has already been downloaded to... 1>&2
+				echo \"${ROOT}/${REPO}/src/${REPO}_${LATEST}.deb\" 1>&2
+				echo please run \"sudo dpkg -i ${ROOT}/${REPO}/src/${REPO}_${LATEST}.deb\" 1>&2
+			elif [ -f "${ROOT}/${REPO}/src/clone-${REPO}.sh" ]; then
+				echo Something is amiss, the newest package has not been cloned. 1>&2
+				echo please run \"sudo ${ROOT}/${REPO}/src/clone-${REPO}.sh\" to rectify. 1>&2
+			fi
+			echo Exiting\!
+			exit 4
+		fi
 	else
 		local CURVER=$(dpkg -p clixs | awk '/^Version:/{print $2}')
 	fi
@@ -63,12 +71,12 @@ function main(){
 	if [ "${CURVER}" == "${LATEST}" ]; then
 		echo The most current version of the \"${REPO}\" package is already installed. 1>&2
 		echo DONE 1>&2
-		exit 0
+		return 0
 	elif ! [ -f "${ROOT}/${REPO}/src/${REPO}_${LATEST}.deb" ]; then
 		echo The latest version of the \"${REPO}\" package is missing\; ${ROOT}/${REPO}/src/${REPO}_${LATEST}.deb 1>&2
 		echo Maybe the repo did not clone or update without error? 1>&2
 		echo Exiting\! 1>&2
-		exit 4
+		exit 5
 	else
 		dpkg -i "${ROOT}/${REPO}/src/${REPO}_${LATEST}.deb"
 	fi
