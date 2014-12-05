@@ -4,7 +4,7 @@ ROOT=$(dirname "$0")
 REPO="clixs"
 LATEST=$(cat ${ROOT}/latest)
 UPDATE=${LATEST%-*}-$(( ${LATEST##*-} + 1 ))
-GIT="git add .; git commit -m $(basename "$0")_${REPO}_${UPDATE}; git push"
+GIT="git add --all .; git commit -m $(basename "$0")_${REPO}_${UPDATE}; git push"
 
 if [ -d "${ROOT}/${REPO}_${LATEST}" ]; then
 	echo $LATEST
