@@ -35,9 +35,11 @@ function main(){
 	fi
 	# update deb package from src directory
 	if echo $(ps_reverse_tree $$ 1 --no-heading -o comm) |
-	   grep "^$(basename "$0") ${REPO}.postinst dpkg"; then
+	   grep -q "^$(basename "$0") ${REPO}.postinst dpkg"; then
 		echo \"$(basename "$0")\" called from within dpkg. 1>&2
-		ps_reverse_tree $$ 4 -o pid,ppid,comm,cmd	
+		ps_reverse_tree $$ 4 -o pid,ppid,comm,cmd
+		ps_reverse_tree $$ 4 --no-heading -o comm,cmd | awk '{ if($1=="dpkg") print $NF}' | xargs basename
+		
 		#echo No need to \! 1>&2
 		return 0
 	elif ! [ -f "${ROOT}/${REPO}/src/latest" ]; then
