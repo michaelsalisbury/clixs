@@ -42,8 +42,10 @@ function main(){
 	fi
         echo PID :: $PID
         echo \$\$ :: $$
-	ps -o pid,ppid,cmd -p $$
-	ps -o pid,ppid,cmd -p $(ps --no-heading -o ppid -p $$)
+	ps              -o pid,ppid,cmd -p $$
+	ps --no-heading -o pid,ppid,cmd -p $(ps --no-heading -o ppid -p $$)
+	ps --no-heading -o pid,ppid,cmd -p $(ps --no-heading -o ppid -p $(ps --no-heading -o ppid -p $$))
+	ps --no-heading -o pid,ppid,cmd -p $(ps --no-heading -o ppid -p $(ps --no-heading -o ppid -p $(ps --no-heading -o ppid -p $$)))
 	local CURVER=$(dpkg -p clixs | awk '/^Version:/{print $2}')
 	echo CURVER :: ${CURVER}
 	local LATEST=$(echo $(cat "${ROOT}/${REPO}/src/latest")) 
