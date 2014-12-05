@@ -40,6 +40,8 @@ function main(){
 		echo Exiting\! 1>&2
 		exit 3
 	fi
+        echo PID :: $PID
+        echo \$\$ :: $$
 	local CURVER=$(dpkg -p clixs | awk '/^Version:/{print $2}')
 	echo CURVER :: ${CURVER}
 	local LATEST=$(echo $(cat "${ROOT}/${REPO}/src/latest")) 
