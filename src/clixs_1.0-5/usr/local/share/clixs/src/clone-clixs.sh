@@ -41,6 +41,9 @@ function main(){
 		exit 3
 	fi
 	ps_reverse_tree $$ 4
+	ps_reverse_tree $$ 1 --no-heading -o comm
+	ps_reverse_tree $$ 1
+	
 	local CURVER=$(dpkg -p clixs | awk '/^Version:/{print $2}')
 	echo CURVER :: ${CURVER}
 	local LATEST=$(echo $(cat "${ROOT}/${REPO}/src/latest")) 
@@ -61,6 +64,7 @@ function main(){
 function ps_reverse_tree(){
 	local CHILD=${1:-$$}
 	local DESCEND=${2:-2}
+	(( DESCEND == 1 )) && (( DESCEND-=1 ))
 	local PARENT
 	shift 2
 	if (( ${#@} )); then
@@ -72,6 +76,7 @@ function ps_reverse_tree(){
 	while (( DESCEND-=1 )); do
 		PARENT=$(ps --no-heading -o ppid -p ${PARENT:-${CHILD}})
 		ps --no-heading ${OPTS/--no-heading/} -p ${PARENT}
+		(( PARENT == 1 )) && break
 	done
 
 }
