@@ -34,18 +34,22 @@ function main(){
 		git fetch --all
 	fi
 	# update deb package from src directory
-	if ! [ -f "${ROOT}/${REPO}/src/latest" ]; then
+	if echo $(ps_reverse_tree $$ 1 --no-heading -o comm) |
+	   grep "^$(basename "$0") ${REPO}.postinst dpkg"; then
+		echo \"$(basename "$0")\" called from within dpkg. 1>&2
+		ps_reverse_tree $$ 4 -o pid,ppid,comm,cmd	
+		#echo No need to \! 1>&2
+		return
+	elif ! [ -f "${ROOT}/${REPO}/src/latest" ]; then
 		echo Missing \"${ROOT}/${REPO}/src/latest\"\! 1>&2
 		echo Cannot attempt to update \"${REPO}\" deb package. 1>&2
 		echo Exiting\! 1>&2
 		exit 3
 	fi
 	
-	echo REVERSE TREE :: $(ps_reverse_tree $$ 1 --no-heading -o comm) 
-	
 	local CURVER=$(dpkg -p clixs | awk '/^Version:/{print $2}')
-	echo CURVER :: ${CURVER}
-	local LATEST=$(echo $(cat "${ROOT}/${REPO}/src/latest")) 
+	local LATEST=$(echo $(cat "${ROOT}/${REPO}/src/latest"))
+
 	if [ "${CURVER}" == "${LATEST}" ]; then
 		echo The most current version of the \"${REPO}\" package is already installed. 1>&2
 		echo DONE 1>&2
