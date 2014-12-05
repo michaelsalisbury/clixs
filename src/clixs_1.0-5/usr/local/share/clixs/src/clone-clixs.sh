@@ -40,9 +40,8 @@ function main(){
 		echo Exiting\! 1>&2
 		exit 3
 	fi
-	ps_reverse_tree $$ 4
-	ps_reverse_tree $$ 1 --no-heading -o comm
-	ps_reverse_tree $$ 1
+	
+	echo REVERSE TREE :: $(ps_reverse_tree $$ 1 --no-heading -o comm) 
 	
 	local CURVER=$(dpkg -p clixs | awk '/^Version:/{print $2}')
 	echo CURVER :: ${CURVER}
