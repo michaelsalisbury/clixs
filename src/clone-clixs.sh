@@ -1,1 +1,1 @@
-./clixs_1.0-6/usr/local/share/clixs/src/clone-clixs.sh
+./clixs_1.0-7/usr/local/share/clixs/src/clone-clixs.sh
