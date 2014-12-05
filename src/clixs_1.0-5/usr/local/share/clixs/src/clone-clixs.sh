@@ -49,7 +49,7 @@ function main(){
 		ps_reverse_tree $$ 4 -o pid,ppid,comm,cmd
 		local CURVER=$(ps_reverse_tree $$ 4 --no-heading -o comm,cmd |
 				awk '{if($1=="dpkg") print $NF}' |
-				xargs -s .deb basename |
+				xargs basename -s .deb |
 				sed "s/^${REPO}_//")
 		echo CURVER = $CURVER
 				
