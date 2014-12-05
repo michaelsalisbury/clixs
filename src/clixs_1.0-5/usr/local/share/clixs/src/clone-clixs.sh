@@ -34,23 +34,31 @@ function main(){
 		git fetch --all
 	fi
 	# update deb package from src directory
-	if echo $(ps_reverse_tree $$ 1 --no-heading -o comm) |
-	   grep -q "^$(basename "$0") ${REPO}.postinst dpkg"; then
-		echo \"$(basename "$0")\" called from within dpkg. 1>&2
-		ps_reverse_tree $$ 4 -o pid,ppid,comm,cmd
-		ps_reverse_tree $$ 4 --no-heading -o comm,cmd | awk '{ if($1=="dpkg") print $NF}' | xargs basename
-		
-		#echo No need to \! 1>&2
-		return 0
-	elif ! [ -f "${ROOT}/${REPO}/src/latest" ]; then
+	if ! [ -f "${ROOT}/${REPO}/src/latest" ]; then
 		echo Missing \"${ROOT}/${REPO}/src/latest\"\! 1>&2
 		echo Cannot attempt to update \"${REPO}\" deb package. 1>&2
 		echo Exiting\! 1>&2
 		exit 3
+	else
+		local LATEST=$(echo $(cat "${ROOT}/${REPO}/src/latest"))
 	fi
-	
-	local CURVER=$(dpkg -p clixs | awk '/^Version:/{print $2}')
-	local LATEST=$(echo $(cat "${ROOT}/${REPO}/src/latest"))
+
+	if echo $(ps_reverse_tree $$ 1 --no-heading -o comm) |
+	   grep -q "^$(basename "$0") ${REPO}.postinst dpkg"; then
+		echo \"$(basename "$0")\" called from within dpkg. 1>&2
+		ps_reverse_tree $$ 4 -o pid,ppid,comm,cmd
+		local CURVER=$(ps_reverse_tree $$ 4 --no-heading -o comm,cmd |
+				awk '{if($1=="dpkg") print $NF}' |
+				xargs -s .deb basename |
+				sed "s/^${REPO}_//")
+		echo CURVER = $CURVER
+				
+		
+		#echo No need to \! 1>&2
+		return 0
+	else
+		local CURVER=$(dpkg -p clixs | awk '/^Version:/{print $2}')
+	fi
 
 	if [ "${CURVER}" == "${LATEST}" ]; then
 		echo The most current version of the \"${REPO}\" package is already installed. 1>&2
