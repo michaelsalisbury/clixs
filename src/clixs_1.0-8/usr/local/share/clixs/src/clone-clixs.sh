@@ -74,7 +74,6 @@ function main(){
 	if [ "${CURVER}" == "${LATEST}" ]; then
 		echo The most current version of the \"${REPO}\" package is already installed. 1>&2
 		tag "$@" <<< DONE
-		echo DONE 1>&2
 		return 0
 	elif ! [ -f "${ROOT}/${REPO}/src/${REPO}_${LATEST}.deb" ]; then
 		echo The latest version of the \"${REPO}\" package is missing\; ${ROOT}/${REPO}/src/${REPO}_${LATEST}.deb
