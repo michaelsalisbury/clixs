@@ -42,6 +42,7 @@ function scroll(){
 		"${ROOT}/${REPO}/bin/${FUNCNAME}.sh" "$@"
 	else
 		cat
+		echo cat
 	fi
 	echo "${ROOT}/${REPO}/bin/${FUNCNAME}.sh"
 }
