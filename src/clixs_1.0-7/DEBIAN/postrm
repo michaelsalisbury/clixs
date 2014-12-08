@@ -7,7 +7,7 @@ function main(){
 
 	case "$1" in
 		remove)
-			echo "$1" :: `date`
+			echo $0 :: $1 :: `date`
 			rm -rfv "${BASE}/${REPO}"
 
 		;;
@@ -16,11 +16,11 @@ function main(){
 
 		;;
 		purge|failed-upgrade|abort-install|abort-upgrade|disappear)
-			echo "$1" :: `date`
+			echo $0 :: $1 :: `date`
 
 		;;
 		*)
-		echo "postrm called with unknown argument \`\$1'" >&2
+		echo "$0 called with unknown argument \`\$1'" >&2
 		exit 0
 
 		;;
