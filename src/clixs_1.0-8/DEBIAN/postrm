@@ -1,0 +1,30 @@
+#!/bin/bash
+
+function main(){
+	echo "<$(basename "$0")>$1" :: `date`
+
+	local BASE='/usr/local/share'
+	local REPO='clixs'
+	local GIT='michaelsalisbury'
+
+	case "$1" in
+		remove)
+			rm -rfv "${BASE}/${REPO}"
+
+		;;
+		upgrade)
+			echo -n
+
+		;;
+		purge|failed-upgrade|abort-install|abort-upgrade|disappear)
+			echo -n
+
+		;;
+		*)
+		echo "$0 called with unknown argument \`\$1'" >&2
+		exit 0
+
+		;;
+	esac
+}
+main "$@"
