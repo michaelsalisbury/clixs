@@ -11,8 +11,8 @@ function main(){
 		remove)
 			tag "$@" <<< "Removing \"${ROOT}/${REPO}\""
 			ls -1 "${ROOT}/${REPO}/"
-			rm -rfv "${ROOT}/${REPO}/"{bin,doc,.git,lib,tmp}
-			#rm -rfv "${ROOT}/${REPO}/{bin,doc,.git,lib,tmp}" | scroll
+			#rm -rfv "${ROOT}/${REPO}/"{bin,doc,.git,lib,tmp}
+			rm -rfv "${ROOT}/${REPO}/{bin,doc,.git,lib,tmp}" | scroll
 
 		;;
 		upgrade)
