@@ -1,7 +1,11 @@
 #!/bin/bash
 
+function tag(){
+	local TAG="<$(basename "$0")>$1 ::"
+	sed "s/^/${TAG} /"
+}
 function main(){
-	echo "<$(basename "$0")>$1" :: `date`
+	date | tag "$@"
 
 	local BASE='/usr/local/share'
 	local REPO='clixs'

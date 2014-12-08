@@ -1,7 +1,11 @@
 #!/bin/bash
 
+function tag(){
+	local TAG="<$(basename "$0")>$1 ::"
+	sed "s/^/${TAG} /"
+}
 function main(){
-	echo "<$(basename "$0")>$1" :: `date`
+	date | tag "$@"
 
 	local BASE='/usr/local/share'
 	local REPO='clixs'
@@ -9,7 +13,8 @@ function main(){
 
 	case "$1" in
 		remove)
-			rm -rfv "${BASE}/${REPO}"
+			echo Removing \"${BASE}/${REPO}\" | tag "$@"
+			rm -rf "${BASE}/${REPO}/{bin,doc,.git,lib,tmp}"
 
 		;;
 		upgrade)
@@ -17,7 +22,8 @@ function main(){
 
 		;;
 		purge)
-			echo -n
+			Removing \"${BASE}/${REPO}\" | tag "$@"
+			rm -rf "${BASE}/${REPO}"
 
 		;;
 		failed-upgrade|abort-install|abort-upgrade|disappear)
