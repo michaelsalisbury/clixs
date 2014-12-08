@@ -7,33 +7,6 @@ function main(){
 	local REPO='clixs'
 	local GIT='michaelsalisbury'
 
-	case "$1" in
-		remove)
-			tag "$@" <<< "Removing \"${ROOT}/${REPO}\""
-			ls -1 "${ROOT}/${REPO}/"
-			#rm -rfv "${ROOT}/${REPO}/"{bin,doc,.git,lib,tmp}
-			#rm -rfv "${ROOT}/${REPO}/{bin,doc,.git,lib,tmp}" | scroll
-
-		;;
-		upgrade)
-			echo -n
-
-		;;
-		purge)
-			tag "$@" <<< "Removing \"${ROOT}/${REPO}\""
-			rm -rf "${ROOT}/${REPO}"
-
-		;;
-		failed-upgrade|abort-install|abort-upgrade|disappear)
-			echo -n
-
-		;;
-		*)
-			tag "$@" <<< "Called with unknown argument"
-			exit 0
-
-		;;
-	esac
 }
 function tag(){
 	local TAG="<$(basename "$0")> $1 ::"
