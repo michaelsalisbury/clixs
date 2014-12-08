@@ -12,6 +12,7 @@ function main(){
 			tag "$@" <<< "Removing \"${ROOT}/${REPO}\""
 			ls -l "${ROOT}/${REPO}/"
 			ls -l "${ROOT}/${REPO}/bin"
+			echo hi
 			#rm -rfv "${ROOT}/${REPO}/"{bin,doc,.git,lib,tmp}
 			#rm -rfv "${ROOT}/${REPO}/{bin,doc,.git,lib,tmp}" | scroll
 
