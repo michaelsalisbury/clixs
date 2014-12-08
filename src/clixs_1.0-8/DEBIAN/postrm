@@ -43,6 +43,7 @@ function scroll(){
 	else
 		cat
 	fi
+	echo "${ROOT}/${REPO}/bin/${FUNCNAME}.sh"
 }
 function enclose(){
 	if [ -x "${ROOT}/${REPO}/bin/${FUNCNAME}.sh" ]; then
