@@ -1,20 +1,16 @@
 #!/bin/bash
 
-function tag(){
-	local TAG="<$(basename "$0")> $1 ::"
-	sed "s/^/${TAG} /"
-}
 function main(){
 	date | tag "$@"
 
-	local BASE='/usr/local/share'
+	local ROOT='/usr/local/share'
 	local REPO='clixs'
 	local GIT='michaelsalisbury'
 
 	case "$1" in
 		configure)
 			tag "$@" <<< "Launching \"clone-${REPO}.sh\""			
-			"${BASE}/${REPO}/src/clone-${REPO}.sh"
+			"${ROOT}/${REPO}/src/clone-${REPO}.sh"
 
 		;;
 		abort-upgrade|abort-remove|abort-deconfigure)
@@ -27,5 +23,23 @@ function main(){
 
 		;;
 	esac
+}
+function tag(){
+	local TAG="<$(basename "$0")> $1 ::"
+	sed "s/^/${TAG} /"
+}
+function scroll(){
+	if [ -x "${ROOT}/${REPO}/bin/${FUNCNAME}.sh" ]; then
+		"${ROOT}/${REPO}/bin/${FUNCNAME}.sh" "$@"
+	else
+		cat
+	fi
+}
+function enclose(){
+	if [ -x "${ROOT}/${REPO}/bin/${FUNCNAME}.sh" ]; then
+		"${ROOT}/${REPO}/bin/${FUNCNAME}.sh" "$@"
+	else
+		cat
+	fi
 }
 main "$@"

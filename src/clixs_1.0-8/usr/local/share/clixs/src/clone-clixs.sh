@@ -34,7 +34,7 @@ function main(){
 		git stash clear
 		git pull
 		git fetch --all
-	fi 2>&1 | enclose_text -t '~' -H -s "[GIT]"
+	fi 2>&1 | enclose -t '~' -H -s "[GIT]"
 
 	# update deb package from src directory
 	if ! [ -f "${ROOT}/${REPO}/src/latest" ]; then
@@ -48,7 +48,7 @@ function main(){
 
 	if echo $(ps_reverse_tree $$ 1 --no-heading -o comm) |
 	   grep -q "^$(basename "$0") ${REPO}.postinst dpkg"; then
-		echo \"$(basename "$0")\" called from within a dpkg install process.
+		tag "$@" <<< "called from within a dpkg install process."
 		local CURVER=$(ps_reverse_tree $$ 4 --no-heading -o comm,cmd |
 				awk '{if($1=="dpkg") print $NF}' |
 				xargs basename -s .deb |
@@ -89,9 +89,16 @@ function tag(){
 	local TAG="<$(basename "$0")> $1 ::"
 	sed "s/^/${TAG} /"
 }
-function enclose_text(){
-	if [ -x "${ROOT}/${REPO}/bin/enclose.sh" ]; then
-		"${ROOT}/${REPO}/bin/enclose.sh" "$@"
+function scroll(){
+	if [ -x "${ROOT}/${REPO}/bin/${FUNCNAME}.sh" ]; then
+		"${ROOT}/${REPO}/bin/${FUNCNAME}.sh" "$@"
+	else
+		cat
+	fi
+}
+function enclose(){
+	if [ -x "${ROOT}/${REPO}/bin/${FUNCNAME}.sh" ]; then
+		"${ROOT}/${REPO}/bin/${FUNCNAME}.sh" "$@"
 	else
 		cat
 	fi
