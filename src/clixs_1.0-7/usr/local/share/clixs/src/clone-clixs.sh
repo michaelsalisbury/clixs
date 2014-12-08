@@ -17,22 +17,24 @@ function main(){
 		echo Exiting\! 1>&2
 		exit 2
 	fi
+
 	# clone or update
 	cd "${ROOT}/${REPO}"
 	if [ -d "${ROOT}/${REPO}/.git" ]; then
-		echo Refreshing repo. 1>&2
+		echo "Refreshing Repo"
+		git reset --hard origin/master
 		git pull
 		git fetch --all
-		git reset --hard origin/master
 	else
-		echo Cloning repo. 1>&2
+		echo Cloning Repo
 		git clone --no-checkout "git@github.com:${GIT}/${REPO}.git" tmp
 		mv tmp/.git .
 		git reset --hard origin/master
 		git stash src/clone-clixs.sh
 		git pull
 		git fetch --all
-	fi
+	fi | enclose_text -t '~' -H -s "[GIT]"
+
 	# update deb package from src directory
 	if ! [ -f "${ROOT}/${REPO}/src/latest" ]; then
 		echo Missing \"${ROOT}/${REPO}/src/latest\"\! 1>&2
@@ -81,6 +83,13 @@ function main(){
 		dpkg -i "${ROOT}/${REPO}/src/${REPO}_${LATEST}.deb"
 	fi
 	
+}
+function enclose_text(){
+	if [ -x "${ROOT}/bin/enclose.sh" ]; then
+		"${ROOT}/bin/enclose.sh" "$@"
+	else
+		cat
+	fi
 }
 function ps_reverse_tree(){
 	local CHILD=${1:-$$}
