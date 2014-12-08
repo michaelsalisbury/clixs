@@ -10,15 +10,13 @@ function main(){
 	case "$1" in
 		remove)
 			tag "$@" <<< "Listing \"${ROOT}/${REPO}\""
-			#ls -l "${ROOT}/${REPO}/"
-			#ls -l "${ROOT}/${REPO}/bin"
-			ls -R "${ROOT}/${REPO}" |
-			sed '/^total /d;/^$/d;/:$/!{s/^/   /}' |
-			scroll
+				ls -R "${ROOT}/${REPO}" |
+				sed '/^total /d;/^$/d;/:$/!{s/^/   /}' |
+				scroll
+
 			tag "$@" <<< "Removing \"${ROOT}/${REPO}\""
-			#echo hi
-			#rm -rfv "${ROOT}/${REPO}/"{bin,doc,.git,lib,tmp}
-			#rm -rfv "${ROOT}/${REPO}/{bin,doc,.git,lib,tmp}" | scroll
+				find "${ROOT}/${REPO}/src" -maxdepth 1 -type d -name "${REPO}*" -exec rm -rvf  '{}' ';' |
+				scroll
 
 		;;
 		upgrade)
@@ -27,11 +25,11 @@ function main(){
 		;;
 		purge)
 			tag "$@" <<< "Listing \"${ROOT}/${REPO}\""
-			ls -R "${ROOT}/${REPO}" |
-			sed '/^total /d;/^$/d;/:$/!{s/^/   /}' |
-			scroll
+				ls -R "${ROOT}/${REPO}" |
+				sed '/^total /d;/^$/d;/:$/!{s/^/   /}' |
+				scroll
 			tag "$@" <<< "Purging \"${ROOT}/${REPO}\""
-			rm -rf "${ROOT}/${REPO}"
+				rm -rf "${ROOT}/${REPO}"
 
 		;;
 		failed-upgrade|abort-install|abort-upgrade|disappear)
