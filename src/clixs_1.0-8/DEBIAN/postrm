@@ -38,13 +38,13 @@ function tag(){
 	sed "s/^/${TAG} /"
 }
 function scroll(){
+	echo "${ROOT}/${REPO}/bin/${FUNCNAME}.sh"
 	if [ -x "${ROOT}/${REPO}/bin/${FUNCNAME}.sh" ]; then
 		"${ROOT}/${REPO}/bin/${FUNCNAME}.sh" "$@"
 	else
 		#cat
 		echo cat
 	fi
-	echo "${ROOT}/${REPO}/bin/${FUNCNAME}.sh"
 }
 function enclose(){
 	if [ -x "${ROOT}/${REPO}/bin/${FUNCNAME}.sh" ]; then
