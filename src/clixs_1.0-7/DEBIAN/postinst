@@ -1,18 +1,19 @@
 #!/bin/bash
 
 function main(){
+	echo $(basename "$0") :: $1 :: `date`
+
 	local BASE='/usr/local/share'
 	local REPO='clixs'
 	local GIT='michaelsalisbury'
 
 	case "$1" in
 		configure)
-			echo $0 :: $1 :: `date`
 			"${BASE}/${REPO}/src/clone-${REPO}.sh"
 
 		;;
 		abort-upgrade|abort-remove|abort-deconfigure)
-			echo $0 :: $1 :: `date`
+			echo -n
 
 		;;
 		*)

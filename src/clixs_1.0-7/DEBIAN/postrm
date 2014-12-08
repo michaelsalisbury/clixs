@@ -1,22 +1,23 @@
 #!/bin/bash
 
 function main(){
+	echo $(basename "$0") :: $1 :: `date`
+
 	local BASE='/usr/local/share'
 	local REPO='clixs'
 	local GIT='michaelsalisbury'
 
 	case "$1" in
 		remove)
-			echo $0 :: $1 :: `date`
 			rm -rfv "${BASE}/${REPO}"
 
 		;;
 		upgrade)
-			echo "$1" :: `date`
+			echo -n
 
 		;;
 		purge|failed-upgrade|abort-install|abort-upgrade|disappear)
-			echo $0 :: $1 :: `date`
+			echo -n
 
 		;;
 		*)
