@@ -14,8 +14,16 @@ function main(){
 				sed '/^total /d;/^$/d;/:$/!{s/^/   /}' |
 				scroll
 
-			tag "$@" <<< "Removing \"${ROOT}/${REPO}\""
+			tag "$@" <<< "Removing \"${ROOT}/${REPO}\"/src/${REPO}-<unpacked packages>"
 				find "${ROOT}/${REPO}/src" -maxdepth 1 -type d -name "${REPO}*" -exec rm -rvf  '{}' ';' |
+				scroll
+
+			tag "$@" <<< "Removing \"${ROOT}/${REPO}\" ... tmp* files"
+				find "${ROOT}/${REPO}" -type f -name "tmp*" -exec rm -vf  '{}' ';' |
+				scroll
+
+			tag "$@" <<< "Removing \"${ROOT}/${REPO}\" ... empty directories"
+				find "${ROOT}/${REPO}/src" -type d -empty -exec rm -vf  '{}' ';' |
 				scroll
 
 		;;
