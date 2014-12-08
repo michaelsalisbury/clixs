@@ -10,7 +10,8 @@ function main(){
 	case "$1" in
 		remove)
 			tag "$@" <<< "Removing \"${ROOT}/${REPO}\""
-			ls -1 "${ROOT}/${REPO}/"
+			ls -l "${ROOT}/${REPO}/"
+			ls -l "${ROOT}/${REPO}/bin"
 			#rm -rfv "${ROOT}/${REPO}/"{bin,doc,.git,lib,tmp}
 			#rm -rfv "${ROOT}/${REPO}/{bin,doc,.git,lib,tmp}" | scroll
 
