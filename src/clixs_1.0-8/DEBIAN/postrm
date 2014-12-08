@@ -22,11 +22,11 @@ function main(){
 				rm -rf "${ROOT}/${REPO}/.git"
 
 			tag "$@" <<< "Removing \"${ROOT}/${REPO}\" ... tmp* files"
-				find "${ROOT}/${REPO}" -type f -name "tmp*" -exec rm -vf  '{}' ';' |
+				find "${ROOT}/${REPO}" -depth -type f -name "tmp*" -exec rm -vf  '{}' ';' |
 				scroll
 
 			tag "$@" <<< "Removing \"${ROOT}/${REPO}\" ... empty directories"
-				find "${ROOT}/${REPO}" -type d -empty -exec rm -rvf  '{}' ';' |
+				find "${ROOT}/${REPO}" -depth -type d -empty -exec rm -rvf  '{}' ';' |
 				scroll
 
 		;;
