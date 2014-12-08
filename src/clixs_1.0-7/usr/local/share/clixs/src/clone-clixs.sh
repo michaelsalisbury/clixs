@@ -85,8 +85,8 @@ function main(){
 	
 }
 function enclose_text(){
-	if [ -x "${ROOT}/bin/enclose.sh" ]; then
-		"${ROOT}/bin/enclose.sh" "$@"
+	if [ -x "${ROOT}/${REPO}/bin/enclose.sh" ]; then
+		"${ROOT}/${REPO}/bin/enclose.sh" "$@"
 	else
 		cat
 	fi
