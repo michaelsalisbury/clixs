@@ -23,7 +23,7 @@ function main(){
 				scroll
 
 			tag "$@" <<< "Removing \"${ROOT}/${REPO}\" ... empty directories"
-				find "${ROOT}/${REPO}" -type d -empty -exec rm -vf  '{}' ';' |
+				find "${ROOT}/${REPO}" -type d -empty -exec rm -rvf  '{}' ';' |
 				scroll
 
 		;;
