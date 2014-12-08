@@ -32,7 +32,6 @@ function main(){
 		git reset --hard origin/master
 		git stash list
 		git stash clear
-		#git stash src/clone-clixs.sh
 		git pull
 		git fetch --all
 	fi 2>&1 | enclose_text -t '~' -H -s "[GIT]"
