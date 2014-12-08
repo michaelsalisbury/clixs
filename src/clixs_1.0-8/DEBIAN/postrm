@@ -9,10 +9,14 @@ function main(){
 
 	case "$1" in
 		remove)
+			tag "$@" <<< "Listing \"${ROOT}/${REPO}\""
+			#ls -l "${ROOT}/${REPO}/"
+			#ls -l "${ROOT}/${REPO}/bin"
+			ls -R "${ROOT}/${REPO}" |
+			sed '/^total /d;/^$/d;/:$/!{s/^/   /}' |
+			scroll
 			tag "$@" <<< "Removing \"${ROOT}/${REPO}\""
-			ls -l "${ROOT}/${REPO}/"
-			ls -l "${ROOT}/${REPO}/bin"
-			echo hi
+			#echo hi
 			#rm -rfv "${ROOT}/${REPO}/"{bin,doc,.git,lib,tmp}
 			#rm -rfv "${ROOT}/${REPO}/{bin,doc,.git,lib,tmp}" | scroll
 
@@ -22,7 +26,11 @@ function main(){
 
 		;;
 		purge)
-			tag "$@" <<< "Removing \"${ROOT}/${REPO}\""
+			tag "$@" <<< "Listing \"${ROOT}/${REPO}\""
+			ls -R "${ROOT}/${REPO}" |
+			sed '/^total /d;/^$/d;/:$/!{s/^/   /}' |
+			scroll
+			tag "$@" <<< "Purging \"${ROOT}/${REPO}\""
 			rm -rf "${ROOT}/${REPO}"
 
 		;;
