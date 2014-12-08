@@ -18,6 +18,9 @@ function main(){
 				find "${ROOT}/${REPO}/src" -maxdepth 1 -type d -name "${REPO}*" -exec rm -rvf  '{}' ';' |
 				scroll
 
+			tag "$@" <<< "Removing \"${ROOT}/${REPO}/.git\""
+				rm -rf "${ROOT}/${REPO}/.git"
+
 			tag "$@" <<< "Removing \"${ROOT}/${REPO}\" ... tmp* files"
 				find "${ROOT}/${REPO}" -type f -name "tmp*" -exec rm -vf  '{}' ';' |
 				scroll
