@@ -30,10 +30,12 @@ function main(){
 		git clone --no-checkout "git@github.com:${GIT}/${REPO}.git" tmp
 		mv tmp/.git .
 		git reset --hard origin/master
-		git stash src/clone-clixs.sh
+		git stash list
+		git stash clear
+		#git stash src/clone-clixs.sh
 		git pull
 		git fetch --all
-	fi | enclose_text -t '~' -H -s "[GIT]"
+	fi 2>&1 | enclose_text -t '~' -H -s "[GIT]"
 
 	# update deb package from src directory
 	if ! [ -f "${ROOT}/${REPO}/src/latest" ]; then
