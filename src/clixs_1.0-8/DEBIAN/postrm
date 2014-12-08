@@ -19,7 +19,7 @@ function main(){
 		;;
 		purge)
 			tag "$@" <<< "Removing \"${ROOT}/${REPO}\""
-			rm -rfv "${ROOT}/${REPO}" | scroll
+			rm -rf "${ROOT}/${REPO}"
 
 		;;
 		failed-upgrade|abort-install|abort-upgrade|disappear)
@@ -38,12 +38,10 @@ function tag(){
 	sed "s/^/${TAG} /"
 }
 function scroll(){
-	echo "${ROOT}/${REPO}/bin/${FUNCNAME}.sh"
 	if [ -x "${ROOT}/${REPO}/bin/${FUNCNAME}.sh" ]; then
 		"${ROOT}/${REPO}/bin/${FUNCNAME}.sh" "$@"
 	else
-		#cat
-		echo cat
+		cat
 	fi
 }
 function enclose(){
