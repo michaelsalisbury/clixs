@@ -4,7 +4,7 @@
 MIRROR='/mnt/md0'
 MYBOOK='/MyBook/System_G88192RMXYK'
 #rsync -vaEhPu --inplace \
-rsync -vaAEHXPhu --inplace \
+rsync -vaEhPu --inplace \
 	--exclude=/mnt\
 	--exclude=/proc\
 	--exclude=/sys\
@@ -20,7 +20,7 @@ rsync -vaAEHXPhu --inplace \
 	--include=*.raw\
 	/ "${MIRROR}"
 
-rsync -vaAEHXPhu \
+rsync -vaEhPu \
 	--delete-before\
 	--exclude=/mnt\
 	--exclude=/proc\

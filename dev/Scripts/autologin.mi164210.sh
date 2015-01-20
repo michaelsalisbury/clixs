@@ -8,12 +8,12 @@
 
 # Auto Login User
 
-username='net\mi164210'
-password='X!tsanmyg77'
-vncpasswd='5678'
+username=
+password=
+vncpasswd=
 
-username='localcosadmin'
-password='COSTech2010!'
+username=
+password=
 
 
 function login(){
