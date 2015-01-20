@@ -1,0 +1,168 @@
+#!/bin/bash
+
+function prep_du(){
+	du -ckhd100 "$@" 2>/dev/null
+}
+function human_du(){
+	du -cksh "$@" 2>/dev/null
+}
+function sort_du(){
+	du -cks "$@" 2>/dev/null | sort -n
+}
+function input_du(){
+	echo %%%PREP%%%
+	prep_du "$@"
+	echo %%%HUMAN%%%
+	#human_du "$@"
+	echo %%%SORT%%%
+	#sort_du "$@"
+}
+
+function main(){
+	# max number of lines to scroll progress
+	local MAXL='13'
+	# if 1 input input argument and its a folder then compare child file/folders
+	(( ${#@} == 1 )) && [ -d "${1}" ] && set -- "${1}"/{.[a-zA-Z]*,*}
+
+	cat <<-AWK | awk -f <(cat) <(input_du "$@")
+		BEGIN{
+			for (l = "-1"; l < ${MAXL}; l++) print
+			printf "\033["(${MAXL} + 1)"A"
+		}
+		/^%%%(PREP|HUMAN|SORT)%%%$/{
+			_ = \$0
+			CNT = 0
+			next		
+		}
+		{	switch (_) {
+				case "%%%PREP%%%":
+					printf "\033[s"		# save cursor position
+					print CNT, \$0
+					printf "\033[u"		# restore cursor position
+					printf "\033["1"B"	# move cursor down one line
+					
+					CNT += 1
+					ARY[CNT] = \$0
+					if (CNT >= ${MAXL}) _ = "%%%SCROLL%%%"
+					next
+				case "%%%SCROLL%%%":
+					printf "\033[s"						# save cursor position
+					for (l = ${MAXL}; l > 1; l--) {
+						i = CNT - l + 1
+						printf "\033["l"A"				# move up "l" lines
+						printf "\033[K"					# clear to the end of the line
+						print i, ARY[i]
+						printf "\033[u"					# restore cursor position
+					}
+					# print new line
+					printf "\033["1"A"	# move up 1 line
+					printf "\033[K"		# clear to the end of the line
+					print CNT, \$0
+					printf "\033[u"		# restore cursor position
+					
+					CNT += 1
+					ARY[CNT] = \$0
+
+					next
+				case "%%%HUMAN%%%":
+					print \$0
+					break
+				case "%%%SORT%%%":
+					print \$0
+					break
+				default:
+				case -1:
+			}
+		}
+	AWK
+	return
+	cat <<-AWK | awk -f <(cat) <(human_du "$@") <(echo CLEAR) <(sort_du "$@")
+		#BEGIN { OFS="\t" }
+		\$1 ~ "CLEAR|SORT" {
+			_ = \$1
+		}
+		_ == "" {
+			SIZE = \$1
+			\$1 = ""
+			#\$4 = ""
+			\$0 = \$0
+			\$1 = \$1
+			print \$0
+			ARY[\$0] = SIZE
+			CNT += 1
+		}
+		_ == "CLEAR" {
+			printf "\033["CNT"A"
+			_ = "SORT"
+			next
+		}
+		_ == "SORT" {
+			\$1 = ""
+			\$0 = \$0
+			\$1 = \$1
+			printf "\033[K"
+			print ARY[\$0]"\t", \$0
+		}
+	AWK
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	return 
+	cat <<-AWK | awk -f <(cat) <(du -cksh "${1}"/{.[a-zA-Z]*,*} 2>/dev/null)
+		\$1 ~ "^[0-9\\\.]*$" {
+			\$1 = \$1"B"
+		}
+		\$1 ~ "^[0-9]+[BGKM]$" {
+			\$1 = gensub( /([0-9]+)([BGKM])/, "\\\1.0\\\2", "", \$1 )
+		}
+		{
+			\$1 = gensub( /([0-9\\\.]+)([BGKM])/, "\\\1 \\\2", "", \$1 )	
+			\$0 = \$0
+			S = \$1
+			M = \$2
+			T = gensub( 
+			
+
+			print M, \$1, \$0
+			CNT+=1
+			ARY[CNT] = \$0
+			#AR2[M""CNT] = \$0
+		}
+		END{
+			print "DONE",CNT
+			printf "\033["CNT"A"
+			for (x = 1; x <= CNT; x++)
+			{
+				#printf "\033[K"
+				#print "TADA", ARY[x]
+			}
+
+		}
+	AWK
+
+
+	#return 1
+
+
+
+}
+#function 
+
+
+main "$@"
+exit $?

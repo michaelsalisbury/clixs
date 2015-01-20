@@ -1,0 +1,58 @@
+#!/bin/bash
+MAXL='5'
+
+
+function process_args(){
+	echo -n
+
+
+
+}
+function awk_script(){
+	cat <<-AWK
+		BEGIN {
+			MAX_LINES = ${MAXL}
+			SLEEP = 0.5
+			#SLEEP = ""
+		}
+		{ if (SCROLL) {
+					INDEX += 1				# incrament INDEX
+					ARRAY[INDEX] = \$0		# save next line to ARRAY
+					INDEX -= MAX_LINES		# decrement INDEX to the line to be removed from memory
+					ARRAY[INDEX] = ""		# wipe old line from ARRAY
+
+					for (LINE = MAX_LINES; LINE != 0; LINE--) {
+						INDEX += 1									# incrament INDEX to the next visible line
+						#printf "\033[u\033[K\033["LINE"A\033[K"		# restore, clear, move up "LINE" lines, clear to the end of line
+						#print LINE, INDEX, ARRAY[INDEX]				# print line
+						printf "\033[u\033[K\033["LINE"A\033[K" LINE " " INDEX " " ARRAY[INDEX]				# print line
+					}
+
+					if (SLEEP) system("sleep "SLEEP)
+		} else {
+					INDEX += 1
+					ARRAY[INDEX] = \$0
+
+					#printf "\033[s"							# save cursor position
+					#print "P", INDEX, ARRAY[INDEX]			# print line
+					#printf "\033[u\033[1B\033[K"			# restore cursor position, move cursor down one line, clear to the end of line
+					printf "\033[s" "P " INDEX " " ARRAY[INDEX] "\n\033[u\033[1B\033[K"			# restore cursor position, move cursor down one line, clear to the end of line
+
+					if (INDEX >= ${MAXL}) {
+						print ""					# print blank line in case we are at the bottom of the screen and a line wraps
+						printf "\033[1A\033[s"		# move cursor up one line, save cursor position
+						SCROLL = "SCROLL"
+					}
+					if (SLEEP) system("sleep "SLEEP)
+			}
+		}
+		END {
+			printf "\n"
+		}
+	AWK
+}
+function main(){
+	process_args "$@"
+	awk -f <(awk_script)
+}
+main "$@"

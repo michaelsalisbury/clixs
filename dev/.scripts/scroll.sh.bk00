@@ -1,0 +1,60 @@
+#!/bin/bash
+MAXL='5'
+
+
+function process_args(){
+	echo -n
+
+
+
+}
+function awk_script(){
+	cat <<-AWK
+		BEGIN {
+			MAX_LINES = ${MAXL}
+		}
+		{	switch (_) {
+				case "%%%SCROLL%%%":
+					CNT += 1
+					ARY[CNT] = \$0
+					INDEX = CNT - MAX_LINES
+
+					for (L = MAX_LINES; L != 0; L--) {
+						INDEX += 1
+						#printf "\033[u\033["L"A\033[K"		# restore, move up "l" lines, clear to the end of line
+						printf "\033[u\033[K\033["L"A\033[K"		# restore, move up "l" lines, clear to the end of line
+						print L, INDEX, ARY[INDEX]
+					}
+
+					system("sleep 1")
+					next
+				default:
+					CNT += 1
+					ARY[CNT] = \$0
+
+					printf "\033[s"							# save cursor position
+					print "P", CNT, ARY[CNT]
+					#printf "\033[u\033[1B"					# restore cursor position, move cursor down one line
+					printf "\033[u\033[1B\033[K"			# restore cursor position, move cursor down one line
+
+					if (CNT >= ${MAXL}) {
+						#system("sleep 2")
+						#printf "\033[K\033[2B\033[2A\033[s" # clear to the end of the line, move down, move up, save cursor position
+						#printf "\033[1B\033[1A\033[s" # move down, move up, save cursor position
+						#print ""
+						#printf "\033[1A\033[s"					# restore cursor position, move cursor down one line
+						printf "\033[1B\033[1A\033[s"					# restore cursor position, move cursor down one line
+						
+						_ = "%%%SCROLL%%%"
+					}
+					system("sleep 0.5")
+					next
+			}
+		}
+	AWK
+}
+function main(){
+	process_args "$@"
+	awk -f <(awk_script)
+}
+main "$@"

@@ -1,0 +1,59 @@
+#!/bin/bash
+MAXL='5'
+
+
+function process_args(){
+	echo -n
+
+
+
+}
+function awk_script(){
+	cat <<-AWK
+		BEGIN {
+			MAX_LINES = ${MAXL}
+			SLEEP = 0.5
+			CLEAR   = "\033[K"
+			SAVE    = "\033[s"
+			RESTORE = "\033[u"
+			UP1     = "\033[1A"
+			DOWN1   = "\033[1B"
+			NEWLINE = "\n"
+			TAB     = "\t"
+			
+		}
+		{
+			INDEX += 1				# incrament INDEX
+			ARRAY[INDEX] = \$0		# save next line to ARRAY
+			
+			if (SCROLL) {
+					INDEX -= MAX_LINES		# decrement INDEX to the line to be removed from memory
+					ARRAY[INDEX] = ""		# wipe old line from ARRAY
+
+					for (LINE = MAX_LINES; LINE != 0; LINE--) {
+						INDEX += 1
+						printf ("%s%s%s%s%s%s%s", RESTORE, CLEAR, "\033["LINE"A", CLEAR, INDEX, TAB, ARRAY[INDEX])
+					}
+
+					if (SLEEP) system("sleep "SLEEP)
+			} else {
+					printf ("%s%s%s%s%s%s%s%s", SAVE, INDEX, TAB, ARRAY[INDEX], NEWLINE, RESTORE, DOWN1, CLEAR)
+
+					if (INDEX >= MAX_LINES) {
+						printf ("%s%s%s", NEWLINE, UP1, SAVE)
+						SCROLL = "SCROLL"
+					}
+
+					if (SLEEP) system("sleep "SLEEP)
+			}
+		}
+		END {
+			printf "\n"
+		}
+	AWK
+}
+function main(){
+	process_args "$@"
+	awk -f <(awk_script)
+}
+main "$@"
