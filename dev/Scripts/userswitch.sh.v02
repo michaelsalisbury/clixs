@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# remote suspend to fast user switch
+username='localcosadmin'
+#username='mi164210'
+
+
+#while read username; do
+	echo ${username}
+	cat <<-SU | su - ${username}
+		osascript <<-APPLESCRIPT
+			tell application "System Events"
+				keystroke "q" using command down
+				-- key code 53
+			end tell
+		APPLESCRIPT
+	SU
+#done < <(who | awk '/console/{print $1}')
+
+
+
+
+

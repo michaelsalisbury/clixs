@@ -1,0 +1,71 @@
+#!/bin/bash
+
+host=imac
+mac='\x00\x1e\xc2\x03\x07\xd4'
+ip='10.173.119.90'
+bcast='10.173.119.127'
+
+# send majic packet to wake system
+cat << PYTHON | sed 's/\t//' | /usr/bin/python
+	import socket
+	s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+	s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+
+	try:
+		s.sendto('\\xff' * 6 + '${mac}' * 16, ('${bcast}', 9))
+	except IOError as e:
+		print "Majic Packet Error :: " + e.strerror
+	else:
+		print "Majic Packet Sent Successfully"
+PYTHON
+
+# verify ICMP
+unset cnt && while ! fping -c 10 -p 30 -t 100 -q ${host} &>/dev/null
+	do
+		if (( $((cnt+=1)) > 40 )); then
+			exit 1
+		else
+			sleep .5
+			echo -n .
+		fi
+	done && echo ICMP up on host :: ${host}
+
+# verify SSH
+unset cnt && while ! ssh -o PasswordAuthentication=no -o ConnectTimeout=1 -q ${host} cat /dev/null
+	do
+		if (( $((cnt+=1)) > 40 )); then
+			exit 1
+		else
+			sleep .5
+			echo -n .
+		fi
+	done && echo SSH up on host :: ${host}
+
+# default commands
+ssh -o PasswordAuthentication=no -o ConnectTimeout=1 -q ${host} <<-CMDS
+	#whoami
+	#w
+	#finger
+CMDS
+
+# commands from linked files
+for file in $*; do
+	if [ -f "${file}" ]; then
+		# get interpreter from she-bang line
+		interpreter=$(head -1 "${file}" | sed -n 's/^#!//p')
+		# verify interpreter exists on remote file system
+		if cat <<-BASH | ssh -o PasswordAuthentication=no -o ConnectTimeout=1 -q ${host} cat \| /bin/bash
+			[ -e "${interpreter}" ]
+		BASH
+			then
+				echo INTERPRETER :: ${interpreter}
+				# cat script through SSH to correct interpreter 
+				cat "${file:-/dev/null}" |\
+				ssh -o PasswordAuthentication=no -o ConnectTimeout=1 -q ${host} cat \| ${interpreter}
+			fi
+	fi
+done
+
+exit 0
+
+

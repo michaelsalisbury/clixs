@@ -1,0 +1,20 @@
+#!/usr/bin/python
+import socket
+s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+# 00:1e:c2:03:07:d4
+mac='\x01\x23\x45\x67\x89\x0a'
+mac='\x00\x1e\xc2\x03\x07\xd4'
+ip='10.173.119.127'
+#s.sendto('\xff'*6+'\x01\x23\x45\x67\x89\x0a'*16, ('10.173.119.127', 80))
+
+try:
+	s.sendto('\xff' * 6 + mac * 16, (ip, 80))
+	#s.sendto('\xff' * 6 + '\x00\x1e\xc2\x03\x07\xd4' * 16, ('10.173.119.90', 80))
+except IOError as e:
+	print "Error :: " + e.strerror
+	#print (dir(e))
+	#print (dir(e.__dict__))
+	#print (dir(e.items))
+	#print (dir(e.__dict__.values))
+finally:
+	print "done"

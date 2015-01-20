@@ -1,0 +1,43 @@
+#!/bin/bash
+echo hi
+
+osascript <<-APPLESCRIPT
+	tell application "Finder" to quit
+	sleep 1
+	--tell application "Finder"
+	--	open location "cifs://mi164210@net1110.net.ucf.edu/profiles/mi164210"
+	--end tell
+APPLESCRIPT
+
+
+exit 0
+
+osascript <<-APPLESCRIPT
+	tell application "Finder" to close every window
+	tell application "Finder" to quit
+APPLESCRIPT
+
+sleep 1
+		
+while read key value; do
+	defaults write com.apple.finder ${key} "${value}"
+done <<-KEYS
+	ShowExternalHardDrivesOnDesktop 1
+	ShowHardDrivesOnDesktop		1
+	ShowMountedServersOnDesktop	1
+	ShowRemovableMediaOnDesktop	1
+	NewWindowTarget			PfCm
+	NewWindowTargetPath
+KEYS
+
+sleep 1
+
+osascript <<-APPLESCRIPT
+	tell application "Finder" to activate
+	tell application "Finder" to open home
+	activate application "Finder" --gives Finder focus
+APPLESCRIPT
+
+exit 0
+
+

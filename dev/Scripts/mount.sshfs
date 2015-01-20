@@ -1,0 +1,25 @@
+#!/bin/bash
+
+[ -n "[-n=enable]|[-z=disable]" ] && {
+	# mount sshfs
+	sshfs_opts=''
+	#sshfs_opts+='allow_other'
+	sshfs_opts+='allow_root'
+	#sshfs_opts+=',idmap=user'			# user|file
+	sshfs_opts+=',idmap=file'			# user|file
+	#sshfs_opts+=',nomap=user'
+	sshfs_opts+=',uidfile=/etc/sshfs/MACS.uidmap'
+	sshfs_opts+=',gidfile=/etc/sshfs/MACS.gidmap'
+	sshfs -o "${sshfs_opts}" C07G31B5DJY7:/Library/NetBoot \
+				/mnt/sshfs/C07G31B5DJY7/NetBoot
+	sshfs_opts=''
+	sshfs_opts+='allow_other'
+	sshfs_opts+=',idmap=user'			# user|file
+	sshfs -o "${sshfs_opts}" DLPBMM1:/home		/mnt/sshfs/DLPBMM1/home
+	sshfs -o "${sshfs_opts}" DLPBMM1:/var		/mnt/sshfs/DLPBMM1/var
+	sshfs -o "${sshfs_opts}" DLPBMM1:/mnt/sdb1	/mnt/sshfs/DLPBMM1/sdb1
+	sshfs -o "${sshfs_opts}" DLPBMM1:/mnt/sdc1	/mnt/sshfs/DLPBMM1/sdc1
+	sshfs -o "${sshfs_opts}" DLPBMM1:/mnt/sdd1	/mnt/sshfs/DLPBMM1/sdd1
+}
+
+exit 0

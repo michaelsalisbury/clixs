@@ -1,0 +1,5 @@
+#!/bin/bash
+
+SOURCE='DLPBMM1:/etc/'
+MIRROR='/backups/DLPBMM1/etc/'
+rsync -vaxEhPu --delete-before "${SOURCE}" "${MIRROR}"

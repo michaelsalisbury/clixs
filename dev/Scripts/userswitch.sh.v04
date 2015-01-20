@@ -1,0 +1,88 @@
+#!/bin/bash
+
+# remote suspend to fast user switch
+
+function securityagent_exists(){
+	ps -eo comm | grep -q SecurityAgent
+}
+function securityagent_respawn(){
+	local respawn_wait=${1:- 10}
+	local respawn_wait_int=${2:- 1}
+	if securityagent_exists; then
+		killall SecurityAgent &>/dev/null
+	fi
+	echo -n Waiting for process \"SecurityAgent\" to re-spawn.
+	for i in `seq ${respawn_wait_int}`; do
+		if securityagent_exists; then
+			echo
+			sleep ${respawn_wait_int}
+			return 0
+		else
+			sleep ${respawn_wait_int}
+			echo -n .
+		fi
+	done
+	echo Process \"SecurityAgent\" not available.
+	return 1
+}
+
+#if ! securityagent_exists; then
+#	echo Process \"SecurityAgent\" running\; Ready for login
+#	exit 0
+#fi
+
+cat <<-SUSPEND > /tmp/suspend.bash.sh
+	sleep 3
+	"/System/Library/CoreServices/Menu Extras/User.menu/Contents/Resources/CGSession" -suspend
+SUSPEND
+
+#username='localcosadmin'
+username='mi164210'
+while read username; do
+	#{
+	cat <<-SU | su - ${username}
+		osascript <<-APPLESCRIPT
+			tell application "System Events"
+				-- Command is 55, shift is 56, caps lock 57, option is 58, control is 59. 
+				-- escape key
+				key code 53
+				key code 53
+				delay 1
+				-- space bar
+				key code 49 using command down
+				delay 1
+				-- type
+				keystroke "Terminal"
+				delay 1
+				keystroke return
+				delay 1
+				keystroke "nohup /bin/bash /tmp/suspend.bash.sh &"
+				keystroke return
+				delay 1
+				-- exit command line
+				keystroke "exit 0"
+				keystroke return
+				delay 1
+				-- quit window
+				keystroke "q" using command down
+			end tell
+		APPLESCRIPT
+	SU
+	#} &> /dev/null &
+	#PIDS+=${PIDS:+ }$!
+#done < <(who | awk '/console/{print $1}')
+
+#if [ -n "${PIDS}" ]; then
+#	securityagent_respawn
+#	kill ${PIDS}
+#fi
+
+
+
+
+
+#rm /tmp/suspend.bash.sh
+
+
+
+

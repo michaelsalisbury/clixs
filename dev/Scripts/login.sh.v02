@@ -1,0 +1,24 @@
+#!/bin/bash
+echo hi
+
+# defaults write /Library/Preferences/com.apple.loginwindow SHOWFULLNAME -bool true
+# killall loginwindow
+# defaults write /Library/Preferences/.GlobalPreferences MultipleSessionEnabled -bool true
+# opensnoop -n cfprefsd
+
+
+touch /private/var/db/.AccessibilityAPIEnabled
+osascript <<-APPLESCRIPT
+	tell application "System Events"
+		repeat untill exists process "SecurityAgent"
+			delay 0.5
+		end repeat
+		tell window 1 of process "SecurityAgent"
+			--set value of text field 1 of window "Login" to "testing"
+			--set value of text field 2 of window "Login" to "testing"
+			keystroke return
+		end tell
+		--tell application "system events" to keystroke return
+		--tell application "system events" to keystroke return
+	end tell
+APPLESCRIPT

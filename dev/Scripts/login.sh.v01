@@ -1,0 +1,235 @@
+#!/bin/bash
+echo hi
+
+# defaults write /Library/Preferences/com.apple.loginwindow SHOWFULLNAME -bool true
+# killall loginwindow
+# defaults write /Library/Preferences/.GlobalPreferences MultipleSessionEnabled -bool true
+# opensnoop -n cfprefsd
+
+cat <<-SUSPEND > /tmp/suspend.bash.sh
+	sleep 3
+	"/System/Library/CoreServices/Menu Extras/User.menu/Contents/Resources/CGSession" -suspend
+SUSPEND
+
+cat <<-SU | su - localcosadmin
+	osascript <<-APPLESCRIPT
+		tell application "System Events"
+			-- Command is 55, shift is 56, caps lock 57, option is 58, control is 59. 
+			-- escape key
+			key code 53
+			key code 53
+			delay 1
+			-- space bar
+			key code 49 using command down
+			delay 1
+			-- type
+			keystroke "Terminal"
+			delay 1
+			keystroke return
+			delay 1
+			keystroke "nohup /bin/bash /tmp/suspend.bash.sh &"
+			keystroke return
+			delay 1
+			-- exit command line
+			keystroke "exit 0"
+			keystroke return
+			delay 1
+			-- quit window
+			keystroke "q" using command down
+		end tell
+	APPLESCRIPT
+SU
+
+rm /tmp/suspend.bash.sh
+
+
+exit 0
+
+
+
+cat <<-SU | su - localcosadmin
+	osascript <<-APPLESCRIPT
+		tell application "System Events"
+			-- Command is 55, shift is 56, caps lock 57, option is 58, control is 59. 
+			-- escape key
+			key code 53
+			key code 53
+			delay 1
+			-- space bar
+			key code 49 using command down
+			delay 1
+			-- type
+			keystroke "Terminal"
+			delay 1
+			keystroke return
+			delay 1
+			keystroke "nohup { sleep 4; \"/System/Library/CoreServices/Menu Extras/User.menu/Contents/Resources/CGSession\" -suspend; } &"
+			keystroke return
+			delay 1
+			keystroke "exit 0"
+			keystroke return
+			delay
+			key code 07 using command down
+		end tell
+		
+		
+		--tell application "System Events"
+			--tell process "Finder" to keystroke "t" using command down
+        	--end tell
+		--tell application "Terminal"
+			--activate
+			--do script "\"/System/Library/CoreServices/Menu Extras/User.menu/Contents/Resources/CGSession\" -suspend"
+			--quit
+		--end tell
+	APPLESCRIPT
+SU
+
+
+exit 0
+
+
+cat <<-SU | su - localcosadmin
+	osascript <<-APPLESCRIPT
+		tell application "System Events" to key code 53
+		tell application "System Events" to key code 53
+		delay 1
+		tell application "System Events" to key code 49 using command down
+		delay 1
+		tell application "System Events" to keystroke "Terminal"
+		tell application "System Events" to keystroke return
+		
+		
+		--tell application "System Events"
+			--tell process "Finder" to keystroke "t" using command down
+        	--end tell
+		--tell application "Terminal"
+			--activate
+			--do script "\"/System/Library/CoreServices/Menu Extras/User.menu/Contents/Resources/CGSession\" -suspend"
+			--quit
+		--end tell
+	APPLESCRIPT
+SU
+
+
+exit 0
+
+
+osascript <<-APPLESCRIPT
+	tell application "Finder" to close every window
+	tell application "Finder" to quit
+	delay 1
+	tell application "Finder"
+		open home
+		open location "cifs://mi164210@net1110.net.ucf.edu/profiles/mi164210"
+	end tell
+	delay 1
+	tell application "System Events"
+		tell process "Finder" to keystroke "t" using command down
+	end tell
+APPLESCRIPT
+
+
+
+#exit 0
+
+osascript <<-APPLESCRIPT
+	delay 1
+	tell application "Finder" to close every window
+	tell application "Finder" to quit
+APPLESCRIPT
+
+sleep 1
+		
+while read key value; do
+	defaults write com.apple.finder ${key} "${value}"
+done <<-KEYS
+	ShowExternalHardDrivesOnDesktop 1
+	ShowHardDrivesOnDesktop		1
+	ShowMountedServersOnDesktop	1
+	ShowRemovableMediaOnDesktop	1
+	NewWindowTarget			PfCm
+	NewWindowTargetPath
+KEYS
+
+sleep 1
+
+osascript <<-APPLESCRIPT
+	tell application "Finder" to activate
+	tell application "Finder" to open home
+	activate application "Finder" --gives Finder focus
+APPLESCRIPT
+
+exit 0
+
+
+KeyAppleScript key code
+esc53
+F1122
+F2120
+F399
+F4118
+F596
+F697
+F798
+F8100
+F9101
+F10109
+F11103
+tab48?
+`50
+118
+219
+320
+421
+523
+622
+726
+828
+925
+029
+[27
+]24
+delete51
+'12
+,13
+.14
+p15
+y17
+f16
+g32
+c34
+r31
+l35
+/33
+=30
+\42
+a0
+o1
+e2
+u3
+i5
+d4
+h38
+t40
+n37
+s41
+-39
+return36
+;6
+q7
+j8
+k9
+x11
+b45
+m46
+w43
+v47
+z44
+space49
+enter52
+left123
+up126
+down125
+right124
+
+
