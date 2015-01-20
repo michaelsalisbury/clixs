@@ -1,0 +1,23 @@
+#!/bin/bash
+
+profile=apps
+site=$1
+
+# Define search string to find open window ID
+case "${site}" in
+	webmail.ucf.edu)	window="Outlook Web App";;
+	evernote.com)		window="Evernote";;
+	gmail.com)		window="ERROR";;
+	*)			exit 0;;
+esac
+# Find open window
+if wmctrl -l | grep -q "${window}"; then
+	# if open bring to front
+	wmctrl -l |\
+	awk -v WINDOW="${window}" '$0~WINDOW{print "wmctrl -i -a "$1}' |\
+	bash
+else
+	# if not open launch
+	#firefox -P ${profile} -no-remote -new-window ${site} &
+	firefox -P ${profile} -new-window ${site} &
+fi

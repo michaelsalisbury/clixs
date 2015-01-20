@@ -1,0 +1,81 @@
+#!/bin/bash
+. ${BASH_SOURCE%/*}/firefox.common.sh
+
+dependencies="awk grep wmctrl"
+
+profile=${1//[\$\`]/}
+if grep -q "^Name=${profile}$" ~/.mozilla/firefox/profiles.ini; then
+	shift
+else
+	profile="${FIREFOX_TARGET_PROFILE:-${FIREFOX_DEFAULT_PROFILE:-apps}}"
+fi
+
+site=${1//[\$\`]/}
+#site=${1:-FIREFOX_TARGET_SITE:-${FIREFOX_DEFAULT_SITE:-google.com}}
+shift
+filter=$*
+
+#wget -q --spider --no-check-certificate address
+
+function is_window_open(){
+	cat <<-AWK | awk -vP="^${profile}$" -vF="${filter}" -f <(cat) <(wmctrl -l)
+		# -vP = P = ${profile} = Target Profile
+		# -vF = F = ${filter}  = Target Window Title
+		# NAME                 = Profile name from field 4 of "wmctrl" output
+		# DELIM                = Colon delim from field 5 of "wmctrl" output
+		# WINDOW_TITLE         = Parsed window title from "wmctrl" output 
+		# MATCH                = Tally of open windows that match the profile and title
+		{
+			NAME = \$4
+			DELIM = \$5
+			split(\$0, WINDOW_TITLE, NAME" : ")
+			NAME ~ P && DELIM == ":" && WINDOW_TITLE[2] ~ F && MATCH += 1
+		}
+		END{
+			#print "MATCH :: "MATCH
+			if (!MATCH) {
+				#print "ERROR"
+				exit 1
+			}
+		}
+	AWK
+}
+function launch_new_instance(){
+	firefox -P ${profile} -new-instance -new-window ${site} &>/dev/null &
+}
+function launch_new_window(){
+	# The firefox -remote command must be started up in a terminal to work.
+	gnome-terminal --geometry 1x1+1+1 -e "firefox -P ${profile} -remote \"openUrl(http://${site}, new-window)\""
+}
+
+function main(){
+	echo main
+	# Find open window
+	if ! script_dependency_check ${dependencies}; then
+		echo Dependency problem.  Exiting\! 1>&2
+		exit 1
+	elif ! profile_exists; then
+		echo No profile with name \"${profile}\". Exiting\! 1>&2
+		exit 2
+	elif is_profile_open && is_window_open; then
+		# if open bring to front
+		echo Switching to open window.
+		switch_to_window
+	elif ! (( ${#site} )); then
+		echo No site name provided. Exiting\! 1>^&2
+		exit 3
+	elif is_profile_open; then
+		# if site is now focus of an open window then launch new window
+		echo Launching new window.
+		launch_new_window
+	else
+		# if not open launch new instance
+		#echo launch :: ${profile} :: ${site} :: ${filter}
+		echo Launching new instance.
+		launch_new_instance
+	fi
+}
+main "$@"
+
+exit
+

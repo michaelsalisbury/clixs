@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "total": 1
+  },
+  "links": {},
+  "actions": [
+    {
+      "region": null,
+      "resource_type": "image",
+      "resource_id": 9785422,
+      "completed_at": "2015-01-08T15:28:09Z",
+      "started_at": "2015-01-08T15:28:08Z",
+      "type": "image_destroy",
+      "status": "completed",
+      "id": 40790980
+    }
+  ]
+}

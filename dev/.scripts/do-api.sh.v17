@@ -1,0 +1,522 @@
+#!/bin/bash
+# Dependencies: curl jq
+function main(){
+	TOKEN='50272476d2be2355933a3b2afef41dec99d9510f0ab1856af4a5863360eb8929'
+	HTTP_METHOD='https'
+	DO_API_URL_PREFIX='api.digitalocean.com/v2'
+	DROPLET_NAME="Oviedo-Wordpress"
+	#DROPLET_NAME="ubuntu-14-04-x64"
+	OBJECT=
+	JSON="Content-Type: application/json"
+	OAUTH="Authorization: Bearer $TOKEN"
+
+	local json_actions=
+	local json_images=
+	local json_droplets=
+
+	DO_API_GET_LIST <<-GET_LIST_END
+		json_images		do_images.json		#images
+		json_account	do_account.json		#account
+		json_droplets	do_droplets.json	#droplets
+	GET_LIST_END
+
+	DROPLET_LATEST_IMAGE="${DROPLET_NAME} Latest"
+	#DROPLET_LATEST_IMAGE_ID=$(FILTER_JSON_ELEMENT images name "${DROPLET_LATEST_IMAGE}" .id <<< "${json_images}")
+	#echo ${DROPLET_LATEST_IMAGE_ID}
+
+	URL="droplets"
+	DATA=( name region size image ssh_keys backups ipv6 user_data private_networking )
+	name="${DROPLET_NAME}"
+	#name="Oviedo-Wordpress"
+	region="nyc3"
+	size="512mb"
+	image="${DROPLET_LATEST_IMAGE_ID}"
+	ssh_keys=null
+	backups=false
+	ipv6=true
+	user_data=null
+	private_networking=null
+
+	#json_post=$(DO_API_POST URL DATA | jq . | tee do_post.json | tee >(cat) 1>&2)
+
+	#return
+
+
+	DROPLET_ID=$(    FILTER_JSON_ELEMENT droplets name "${DROPLET_NAME}" .id                          <<< "${json_droplets}")
+	DROPLET_STATUS=$(FILTER_JSON_ELEMENT droplets name "${DROPLET_NAME}" .status                      <<< "${json_droplets}")
+	DROPLET_IP=$(    FILTER_JSON_ELEMENT droplets name "${DROPLET_NAME}" ".networks.v4[0].ip_address" <<< "${json_droplets}")
+
+	DO_API_GET_LIST <<-GET_LIST_END
+		json_snapshots	do_snapshots.json	#droplets/${DROPLET_ID}/snapshots
+		json_actions	do_actions.json		#droplets/${DROPLET_ID}/actions
+		json_backups	do_backups.json		#droplets/${DROPLET_ID}/backups
+	GET_LIST_END
+
+	echo DROPLET_NAME ...: ${DROPLET_NAME} 
+	echo DROPLET_ID	.....: ${DROPLET_ID}
+	echo DROPLET_STATUS .: ${DROPLET_STATUS}
+	echo DROPLET_IP .....: ${DROPLET_IP}
+
+	#FILTER_JSON_ELEMENT actions id 39832443 ".id" <<< "${json_actions}"
+	#GET_JSON_ARRAY_OBJECT actions id 39832443 <<< "${json_actions}" | jq .
+
+	#local type="power_off"
+	#local type="power_on"
+	
+	local URL="droplets/${DROPLET_ID}/actions"
+	local type="shutdown"
+	#json_post=$(DO_API_POST URL type 2>/dev/null | jq . | tee do_post.json | tee >(cat) 1>&2)
+
+	local URL="droplets/${DROPLET_ID}/actions"
+	local type="power_on"
+	#json_post=$(DO_API_POST URL type 2>/dev/null | jq . | tee do_post.json | tee >(cat) 1>&2)
+
+	local URL="droplets/${DROPLET_ID}/actions"
+	local type="snapshot"
+	local name="${DROPLET_NAME}_$(date +%s)"
+	#json_post=$(DO_API_POST URL type name 2>/dev/null | jq . | tee do_post.json | tee >(cat) 1>&2)
+
+
+	#json_post=$(DO_API_DELETE "droplets/${DROPLET_ID}" 2>/dev/null | jq . | tee do_post.json | tee >(cat) 1>&2)
+
+
+	echo
+	echo POST ::
+	jq . <<< "${json_post}"
+
+
+	echo
+	echo ACTIONS :: In-Progress
+	jq '.actions[]|select(.status == "in-progress")' <<< "${json_actions}"
+	echo
+
+	#while DO_API_ACTION_IN_PROGRESS ${DROPLET_ID} json_actions || ( echo; false); do
+	#	echo -n .
+	#	sleep 1
+	#done
+
+	#DO_API_GET_LIST <<-GET_LIST_END
+	#	json_actions	do_actions.json		droplets/${DROPLET_ID}/actions
+	#GET_LIST_END
+
+	echo ACTIONS :: Completed + Time-Lapse
+	jq '.actions[]|select(.status == "completed")' <<< "${json_actions}" | DO_API_ACTION_LAPSE
+
+
+	echo
+	echo STATUS ::
+
+	#DO_API_DROPLET_WAIT_STATUS ${DROPLET_ID} off 15 json_droplets
+	DO_API_DROPLET_WAIT_STATUS ${DROPLET_ID} active 5 json_droplets
+	echo $?
+	FILTER_JSON_ELEMENT droplets name "${DROPLET_NAME}" .status <<< "${json_droplets}"
+	
+	echo
+	echo SNAPSHOT TEST :: 00
+	
+	DO_API_SNAPSHOT ${DROPLET_ID} json_images
+
+}
+function DO_API_ACTION_WAIT(){
+	local DROPLET_ID=$1
+	while DO_API_ACTION_IN_PROGRESS ${DROPLET_ID} || ( echo; false); do
+		echo -n .
+		sleep 1
+	done
+	
+
+
+
+}
+function DO_API_SNAPSHOT(){
+	local DROPLET_ID=$1
+	local SNAPSHOT_NAME=${2:-Latest}
+	local SNAPSHOT_DATE=$(date +%s)
+	local SNAPSHOT_RETENTION=${3:-2}
+	local DAS_JSON_IMAGES_REF=${4:-DAS_JSON_IMAGES}
+	local DAS_JSON_IMAGES=
+	local DAS_JSON_POST=
+	local DAS_JSON_ACTIONS=
+	local DAS_JSON_DROPLETS=
+	if (( ${!2+1} )); then
+		SNAPSHOT_NAME='Latest'
+		SNAPSHOT_RETENTION='2'
+		DAS_JSON_IMAGES_REF=$2
+	elif (( ${!3+1} )); then
+		SNAPSHOT_RETENTION='2'
+		DAS_JSON_IMAGES_REF=$3
+	fi
+	# update images
+	eval ${DAS_JSON_IMAGES_REF}='$(DO_API_GET images 2>/dev/null)'
+	# shutdown droplet
+		local URL="droplets/${DROPLET_ID}/actions"
+		local type="shutdown"
+		JSON_POST=$(DO_API_POST URL type 2>/dev/null | jq -c -M .)
+	# wait for action to finish
+		echo -n ACTION IN PROGRESS :: shutdown\ 
+		while DO_API_ACTION_IN_PROGRESS ${DROPLET_ID} DAS_JSON_ACTIONS || ( echo; false); do
+			echo -n .
+			sleep 1
+		done
+	# confirm shutdown
+		echo -n WAIT STATUS :: off\ 
+		while ! DO_API_DROPLET_WAIT_STATUS ${DROPLET_ID} off DAS_JSON_DROPLETS || ( echo; false); do
+			echo -n .
+			sleep 1
+		done
+	# take snapshot
+		local URL="droplets/${DROPLET_ID}/actions"
+		local type="snapshot"
+		local DROPLET_NAME=$(FILTER_JSON_ELEMENT droplets id "${DROPLET_ID}" .name <<< "${DAS_JSON_DROPLETS}")
+		local name="${DROPLET_NAME} ${SNAPSHOT_NAME} ${SNAPSHOT_DATE}"
+		#JSON_POST=$(DO_API_POST URL type name 2>/dev/null | jq -c -M .)
+	# wait for snapshot to finish
+		echo -n ACTION IN PROGRESS :: snapshot\ 
+		while DO_API_ACTION_IN_PROGRESS ${DROPLET_ID} DAS_JSON_ACTIONS || ( echo; false); do
+			echo -n .
+			sleep 4
+		done
+	# update json images
+	#eval ${DAS_JSON_IMAGES_REF}='$(DO_API_GET images 2>/dev/null)'
+	# get
+
+	local SNAPSHOT_IMAGE_NUM='0'
+	local SNAPSHOT_IMAGE_NAME_NEW=
+	local SNAPSHOT_IMAGE_NAME_OLD=
+	while true; do
+		case "${SNAPSHOT_IMAGE_NUM}" in
+			0)		SNAPSHOT_IMAGE_NAME_NEW="${DROPLET_NAME} ${SNAPSHOT_NAME} ${SNAPSHOT_DATE}"
+					SNAPSHOT_IMAGE_NAME_OLD="${DROPLET_NAME} ${SNAPSHOT_NAME}";;
+			1)		SNAPSHOT_IMAGE_NAME_NEW="${DROPLET_NAME} ${SNAPSHOT_NAME}"
+					SNAPSHOT_IMAGE_NAME_OLD="${DROPLET_NAME} ${SNAPSHOT_NAME} ${SNAPSHOT_IMAGE_NUM}";;
+			*)		SNAPSHOT_IMAGE_NAME_NEW="${DROPLET_NAME} ${SNAPSHOT_NAME} $(( SNAPSHOT_IMAGE_NUM - 1 ))"
+					SNAPSHOT_IMAGE_NAME_OLD="${DROPLET_NAME} ${SNAPSHOT_NAME} ${SNAPSHOT_IMAGE_NUM}";;
+		esac
+
+		if (( `FILTER_JSON_ELEMENT images name "${SNAPSHOT_IMAGE_NAME_OLD}" .id <<< "${!DAS_JSON_IMAGES_REF}"` )); then
+			if (( SNAPSHOT_IMAGE_NUM < SNAPSHOT_RETENTION )); then
+				# incrament SNAPSHOT_IMAGE_NUM and repeat
+				let -a SNAPSHOT_IMAGE_NUM+=1
+				continue
+			else
+				# delete SNAPSHOT_IMAGE_NAME_OLD
+				local SNAPSHOT_IMAGE_ID=$(FILTER_JSON_ELEMENT images name "${SNAPSHOT_IMAGE_NAME_OLD}" .id <<< "${!DAS_JSON_IMAGES_REF}")
+				local URL="images/${SNAPSHOT_IMAGE_ID}"
+				#local JSON_POST=$(DO_API_DELETE URL | tee >(cat) 1>&2)
+				echo DELETE :: ${SNAPSHOT_IMAGE_NAME_OLD}
+				# wait for action to finish
+				# update DASS_JSON_IMAGES_REF
+				exec 99<<-JSON
+					.images[]=(.images[]|select(.name!="${SNAPSHOT_IMAGE_NAME_OLD}"))
+				JSON
+				eval ${DAS_JSON_IMAGES_REF}='$(jq -c -M "`cat <&99 99<&-`" <<< "${!DAS_JSON_IMAGES_REF}")'
+			fi
+		fi
+		# move SNAPSHOT_IMAGE_NAME_NEW > SNAPSHOT_IMAGE_NAME_OLD
+		local SNAPSHOT_IMAGE_ID=$(FILTER_JSON_ELEMENT images name "${SNAPSHOT_IMAGE_NAME_NEW}" .id <<< "${!DAS_JSON_IMAGES_REF}")
+		local URL="images/${SNAPSHOT_IMAGE_ID}"
+		local name=${SNAPSHOT_IMAGE_NAME_OLD}
+		#local JSON_POST=$(DO_API_PUT URL name | tee >(cat) 1>&2)
+		echo MOVE :: ${SNAPSHOT_IMAGE_NAME_NEW} '>' ${SNAPSHOT_IMAGE_NAME_OLD}
+		# wait for action to finish
+
+		# if SNAPSHOT_IMAGE_NUM == 0 we are done
+		# else decrament SNAPSHOT_IMAGE_NUM and update DAS_JSON_IMAGES_REF and repeat
+		if (( SNAPSHOT_IMAGE_NUM > 0 )); then
+			let -a SNAPSHOT_IMAGE_NUM-=1
+			exec 99<<-JSON
+				(.images[]|select(.name=="${SNAPSHOT_IMAGE_NAME_NEW}").name)|="${SNAPSHOT_IMAGE_NAME_OLD}"
+			JSON
+			eval ${DAS_JSON_IMAGES_REF}='$(jq -c -M "`cat <&99 99<&-`" <<< "${!DAS_JSON_IMAGES_REF}")'
+			continue
+		else
+			break
+		fi
+	done
+
+	jq .images[].name <<< "${!DAS_JSON_IMAGES_REF}"
+	#echo STATUS :: $(FILTER_JSON_ELEMENT droplets id "${DROPLET_ID}" .status <<< "${DAS_JSON_DROPLETS}")
+	#echo ACTIONS :: Completed + Time-Lapse
+    #jq '.actions[]|select(.status == "completed")' <<< "${DAS_JSON_ACTIONS}" | DO_API_ACTION_LAPSE
+	
+}
+function DO_API_DROPLET_WAIT_STATUS(){
+	# arg 1 is manditory
+	local DROPLET_ID=$1
+	local DROPLET_STATUS=${2:-off}
+	local WAIT_STATUS_TIMEOUT=${3:-0}
+	local JSON_DROPLETS_REF=${4:-JSON_DROPLETS}
+	local JSON_DROPLETS=
+	if (( ${!2+1} )); then
+		# arg 2 has been detected as a variable reference
+		DROPLET_STATUS='off'
+		WAIT_STATUS_TIMEOUT='0'
+		JSON_DROPLETS_REF=$2
+	elif (( ${!3+1} )); then
+		# arg 3 has been detected as a variable reference
+		WAIT_STATUS_TIMEOUT='0'
+		JSON_DROPLETS_REF=$3
+	fi
+
+	let -a WAIT_STATUS_TIMEOUT+=$(date +%s)
+	while eval ${JSON_DROPLETS_REF}='$(DO_API_GET droplets 2>/dev/null)'; do
+		if FILTER_JSON_ELEMENT droplets id "${DROPLET_ID}" .status <<< "${!JSON_DROPLETS_REF}" |
+		   grep -q "^${DROPLET_STATUS,,}$"; then
+			# target status match
+			return 0
+		elif (( WAIT_STATUS_TIMEOUT > $(date +%s) )); then
+			# target status not matched and timeout not expired
+			sleep 1
+		else
+			# target status not matched and timeout expired
+			return 1
+		fi
+	done
+	# if the variable assignment fails...
+	return 1
+}
+
+function DO_API_ACTION_IN_PROGRESS(){
+	local DROPLET_ID=$1
+	local JSON_ACTIONS_REF=${2}
+	local JSON_ACTIONS=$(DO_API_GET "droplets/${DROPLET_ID}/actions" 2>/dev/null)
+	if (( ${!2+1} )); then
+		# JSON_ACTIONS_REF is set
+		eval ${JSON_ACTIONS_REF}=\${JSON_ACTIONS}
+	fi
+	jq '[.actions[]|select(.status=="in-progress")|1]|add > 0' 2>/dev/null <<< "${JSON_ACTIONS}" |
+	`cat`
+}
+
+
+function DO_API_ACTION_LAPSE(){
+	jq  -c -M '{ type, started_at, completed_at }|(to_entries[]|.key + " " + .value|tostring),""' |
+	sed 's/^"//;s/"$//' |
+	while read key value; do
+		if (( ${#key} )); then
+			eval ${key}=\${value}
+		else
+			started_at=$(date --date="${started_at}" +%s)
+			completed_at=$(date --date="${completed_at}" +%s)
+			echo $type :: $(( completed_at - started_at))
+		fi
+	done
+}
+function IS_REF(){
+	local REF=$1
+	# test 1: are their any special characters
+	# test 2: is first character a digit
+	# test 3: is reference set
+	! [[ "${REF//[^[:alpha:]_[:digit:]]/@}" =~ @ ]] &&
+	[[ "${REF:0:1}" =~ [[:alpha:]_] ]] &&
+	(( ${!REF+1} ))
+}
+function GET_REF(){
+	local VAR=$1
+	local REF=${2-${!VAR}}
+	eval unset ${VAR}
+	if IS_REF "${REF}"; then
+		# treat all references as arrays
+		eval ${VAR}=\( \"\${${REF}[@]}\" \)
+	else
+		# reference must be data
+		eval ${VAR}=\"\${REF}\"
+	fi
+}
+function GET_JSON_ARRAY_OBJECT(){
+	local JQ_FILTER PARRENT_ARRAY=$1
+	local UNIQUE_ELEMENT_KEY=$2
+	local UNIQUE_ELEMENT_VALUE=$3
+	read -d $'' JQ_FILTER <<-JQ
+		.${PARRENT_ARRAY}[] | select(.${UNIQUE_ELEMENT_KEY}|tostring == "${UNIQUE_ELEMENT_VALUE}")
+	JQ
+	jq -c -M "${JQ_FILTER}"
+}
+
+function FILTER_JSON_ELEMENT(){
+	local PARRENT_ARRAY=$1
+	local UNIQUE_ELEMENT_KEY=$2
+	local UNIQUE_ELEMENT_VALUE=$3
+	local JQ_FILTER=$4
+	local FILTER_RETURN=$(
+		GET_JSON_ARRAY_OBJECT ${PARRENT_ARRAY} ${UNIQUE_ELEMENT_KEY} "${UNIQUE_ELEMENT_VALUE}" |
+		jq -c -M "${JQ_FILTER}")
+	eval echo "${FILTER_RETURN}"
+}
+function DO_API_GET_LIST(){
+	local JSON_VAR JSON_FN DO_API_URL
+	while read JSON_VAR JSON_FN DO_API_URL; do
+		#echo ${FUNCNAME} :: ${DO_API_URL}
+		[ "${JSON_VAR:0:1}" == "#" ] && continue
+		[ "${DO_API_URL:0:1}" != "#" ] &&\
+		DO_API_GET "${DO_API_URL}" 2>/dev/null | jq . > "${JSON_FN}"
+		eval ${JSON_VAR}="\$(cat ${JSON_FN})"
+	done
+}
+function DO_API_PUT(){
+	DO_API_ PUT "$@"
+}
+function DO_API_GET(){
+	DO_API_ GET "$@"
+}
+function DO_API_DELETE(){
+	DO_API_ DELETE "$@"
+}
+function DO_API_POST(){
+	DO_API_ POST "$@"
+}
+function DO_API_(){
+	# if arg #1 or arg #2 is unset we should pobably throw an error
+	# arg #1 is a curl action GET|DELETE|POST
+	# arg #2 is a url entry 
+	# arg #3 sould be a json string or variable reference; POST action only otherwise ignored
+	local DO_API_X=${1^^}
+	local DO_API_URL=${2}
+	GET_REF DO_API_URL
+	local OAUTH="Authorization: Bearer $TOKEN"
+	local JSON="Content-Type: application/json"
+	local DO_API_URL="${HTTP_METHOD}://${DO_API_URL_PREFIX}/${DO_API_URL}"
+	case "${DO_API_X}" in
+		POST)
+			shift 2
+			# test arg #1 checking for a variable reference; if true build json from vars
+			if IS_REF "$1"; then
+				if [ "${1^^}" == "DATA" ]; then
+					local DO_API_DATA=`json_from_vars ${@} | jq -c -M .${1}`
+				else
+					local DO_API_DATA=`json_from_vars ${@}`
+				fi
+			elif (( ${#@} )); then
+				echo POST requires json data, DO_API_DATA was empty. 1>&2
+				return 1
+			else
+				local DO_API_DATA="$@"
+			fi
+			curl -X ${DO_API_X} -H "${JSON}" -H "${OAUTH}" -d "${DO_API_DATA}" "${DO_API_URL}" 
+			;;
+		GET|DELETE)
+			#curl -X ${DO_API_X} -H "${JSON}" -H "${OAUTH}" "${DO_API_URL}" 2>/dev/null
+			curl -X ${DO_API_X} -H "${JSON}" -H "${OAUTH}" "${DO_API_URL}"
+			;;
+		*)
+			echo Unknown curl arg \"-X ${DO_API_X}\"
+			return 2
+			;;
+	esac
+}
+function value_is_number(){
+	(( ${#1} )) || return 1
+	#local value=${1//[[:digit:].]/} # this strips out any characters that are not digits or decimal points
+	echo ${1//[\$\`]/} |
+	egrep '(^[[:digit:]]+$)|(^[[:digit:]]*[.][[:digit:]]*$)' |
+	egrep -q -v '^[.]$'
+	# the first egrep confirms that the number is formated as a number with or without a single decimal place
+	# the second egrep command eliminates the posibility of a value with only a decimal place (a dot)
+}
+function json_from_vars(){
+	local i
+	local VAR=$1
+	shift
+	# if multiple variables were presented join them into a single json object
+	if (( ${#@} )); then
+		jq -M -c -s '.[0] + .[1]' <(${FUNCNAME} ${VAR}) <(${FUNCNAME} "$@")
+		return	
+	fi
+	# get the contents of the variable VAR
+	eval local  VAL=( \"\${${VAR}[@]}\" )
+	# if the contents of VAR (VAL) are a list of variables then treat VAR as an object
+	while true; do
+		for i in `seq 0 $(( ${#VAL[*]} - 1 ))`; do
+			# test if contents contain special characters that would disqualify them as variables
+			if [[ "${VAL[$i]//[^[:alpha:]_[:digit:]]/@}" =~ @ ]]; then
+				break 2
+			# test if contents are a set variable
+			elif ! (( ${!VAL[$i]+1} )); then
+				break 2
+			fi
+		done
+		# recusivelly create the object and then nest it under the parent
+		${FUNCNAME} ${VAL[@]} | jq -s -M -c ".[] | { ${VAR}: . }"
+		return
+	done
+	# iterate threw each index
+	for i in `seq 0 $(( ${#VAL[*]} - 1 ))`; do
+		# escape escapes
+		VAL[$i]=${VAL[$i]//\\/\\\\}
+		# escape double quotes
+		VAL[$i]=${VAL[$i]//\"/\\\"}
+		# don't enclose numbers in double quotes
+		# don't enclose null|true|false in double quotes
+		value_is_number "${VAL[$i]}" ||
+		grep -q '^\(true\|false\|null\)$' <<< "${VAL[$i]}" ||
+		VAL[$i]=\"${VAL[$i]}\"
+		# don't append comma to last index
+		(( ${#VAL[*]} - 1 > i ))     && VAL[$i]=${VAL[$i]},
+	done
+	# generate JSON
+	if (( ${#VAL[*]} - 1 )); then
+		# if bash var was array
+		cat <<-JQ | jq -n -M -c "`cat`"
+			{
+				${VAR}: [ ${VAL[@]} ]
+			}
+		JQ
+	else
+		# if bash var was string
+		cat <<-JQ | jq -n -M -c "`cat`"
+			{
+				${VAR}: ${VAL}
+			}
+		JQ
+	fi
+}
+function json_add_parent(){
+	local parent=${1//[\$\`]/}
+	local parent=${parent//[^[:alpha:][:digit:]_]/}
+	jq -s -M -c ".[] | { ${parent}: . }"
+}
+function fdw(){
+	local fd=${1:-3}
+	eval "cat >&${fd}"
+}
+function fdc(){
+	local fd=${1:-3}
+	eval "exec ${fd}<&-"
+}
+function mkfdrw(){
+	local fd=${1:-3}
+	fdc ${fd}
+	eval "exec ${fd}<><(echo -n)"
+}
+function fdrw(){
+	local BREAK line fd=${1:-3}
+	read BREAK < <(tee >(fdw ${fd}) <<< BREAK${RANDOM}BREAK )
+	while read -u ${fd} line; do
+		[ "${line//[^BREAK[:digit:]]/}" == "${BREAK}" ] && break
+		tee >(fdw ${fd}) <<< "${line}"
+	done
+}
+function fdlc(){
+	local fd=${1:-3}
+	fdrw ${fw} | wc -l
+}
+function fdrl(){
+	# if arg #2 (line count) is unset then all lines in the fd are emptied to stout
+	# arg #2 will read from the top (positive integer) or bottom (negative integer) of the fd
+	# this function needs a global array: BOOL=( false true )
+	local BREAK line fd=${1:-3} lines=${2:-1} read_stack_from_top=${BOOL[(( ${2:-1} >= 0 ))]}
+	# to read lines at the bottom of the stack we need to know how many lines are in the stack
+	${read_stack_from_top} || local fdl_count=$(fdlc ${fd})
+	# we need to add a unique line to the bottom of the stack in order to know when to break the while loop
+	read BREAK < <(tee >(fdw ${fd}) <<< BREAK${RANDOM}BREAK )
+	while read -u ${fd} line; do
+		[ "${line//[^BREAK[:digit:]]/}" == "${BREAK}" ] && break
+		if ${read_stack_from_top}; then
+			(( lines${2:+--} > 0 )) && cat <<< "${line}" || fdw <<< "${line}"
+		else
+			(( lines + fdl_count-- > 0 )) && fdw <<< "${line}" || cat <<< "${line}"
+		fi
+	done
+}
+
+main "$@"

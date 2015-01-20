@@ -1,0 +1,12 @@
+{
+  "action": {
+    "region": "nyc3",
+    "resource_type": "droplet",
+    "resource_id": 3623570,
+    "completed_at": null,
+    "started_at": "2015-01-08T01:28:42Z",
+    "type": "shutdown",
+    "status": "in-progress",
+    "id": 40745633
+  }
+}

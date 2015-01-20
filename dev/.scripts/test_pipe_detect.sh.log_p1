@@ -1,0 +1,20 @@
+Mon Dec 1 12:28:42 EST 2014 :: p1 :: START
+Mon Dec 1 12:28:42 EST 2014 :: p1 :: INPUT -- alpha
+Mon Dec 1 12:28:42 EST 2014 :: p1 :: INPUT -- beta
+Mon Dec 1 12:28:42 EST 2014 :: p1 :: INPUT -- gama
+Mon Dec 1 12:28:42 EST 2014 :: p1 :: INPUT -- one111
+Mon Dec 1 12:28:42 EST 2014 :: p1 :: INPUT -- two
+Mon Dec 1 12:28:42 EST 2014 :: p1 :: INPUT -- three
+Mon Dec 1 12:28:42 EST 2014 :: p1 :: INPUT -- main :: STOP COPROC
+Mon Dec 1 12:28:42 EST 2014 :: p1 :: INPUT --
+Mon Dec 1 12:28:42 EST 2014 :: p1 :: INPUT -- line = howdy
+Mon Dec 1 12:28:42 EST 2014 :: p1 :: INPUT -- pipe_dt2 DITO TEST2
+Mon Dec 1 12:28:42 EST 2014 :: p1 :: INPUT -- line = some error data
+Mon Dec 1 12:28:42 EST 2014 :: p1 :: INPUT -- pipe_dt3 DITO TEST3
+Mon Dec 1 12:28:42 EST 2014 :: p1 :: INPUT -- READ :: line = DITO TEST4
+Mon Dec 1 12:28:42 EST 2014 :: p1 :: INPUT -- line = DITO TEST4
+Mon Dec 1 12:28:42 EST 2014 :: p1 :: INPUT -- READ :: NO-PIPE!!!
+Mon Dec 1 12:28:42 EST 2014 :: p1 :: INPUT -- main :: END DITO
+Mon Dec 1 12:28:42 EST 2014 :: p1 :: INPUT -- main :: LAST TEST
+Mon Dec 1 12:28:42 EST 2014 :: p1 :: INPUT -- zeta
+Mon Dec 1 12:28:45 EST 2014 :: p1 :: STOP

@@ -1,0 +1,2061 @@
+
+xwininfo: Window id: 0x2bf (the root window) (has no name)
+
+  Root window id: 0x2bf (the root window) (has no name)
+  Parent window id: 0x0 (none)
+     681 children:
+     0x4200e54 "Close Tab": ("Popup" "Firefox")  72x25+2998+60  +2998+60
+        1 child:
+        0x4200e55 (has no name): ()  1x1+-1+-1  +2997+59
+     0x4204171 "Firefox": ("Popup" "Firefox")  297x252+2493+326  +2493+326
+        1 child:
+        0x4204172 (has no name): ()  1x1+-1+-1  +2492+325
+     0x4200e15 "Jonas Salk's 100th Birthday": ("Popup" "Firefox")  190x25+2086+133  +2086+133
+        1 child:
+        0x4200e16 (has no name): ()  1x1+-1+-1  +2085+132
+     0x2000009 (has no name): ()  5756x2+2+1199  +2+1199
+     0x2000007 (has no name): ()  2x1196+5759+2  +5759+2
+     0x2000008 (has no name): ()  5756x2+2+-1  +2+-1
+     0x2000006 (has no name): ()  2x1196+-1+2  +-1+2
+     0x420394a "Firefox": ("Popup" "Firefox")  841x20+2703+88  +2703+88
+        1 child:
+        0x420394b (has no name): ()  1x1+-1+-1  +2702+87
+     0x4223dd9 "Firefox": ("Popup" "Firefox")  200x200+0+0  +0+0
+        1 child:
+        0x4223dda (has no name): ()  1x1+-1+-1  +-1+-1
+     0x4223dd6 "Firefox": ("Popup" "Firefox")  200x200+0+0  +0+0
+        1 child:
+        0x4223dd7 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x4223dd3 "Firefox": ("Popup" "Firefox")  200x200+0+0  +0+0
+        1 child:
+        0x4223dd4 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x4205e8b "Firefox": ("Popup" "Firefox")  455x123+2018+84  +2018+84
+        1 child:
+        0x4205e8c (has no name): ()  1x1+-1+-1  +2017+83
+     0x420b4f4 "Firefox": ("Popup" "Firefox")  234x446+2765+44  +2765+44
+        1 child:
+        0x420b4f5 (has no name): ()  1x1+-1+-1  +2764+43
+     0x3d49fb4 "Remmina": ("remmina" "Remmina")  107x100+115+1032  +115+1032
+        1 child:
+        0x3d49fb5 (has no name): ()  1x1+-1+-1  +114+1031
+     0x420bc11 "Firefox": ()  10x10+-100+-100  +-100+-100
+     0x42057d1 "Firefox": ("firefox" "Firefox")  1x1+-100+-100  +-100+-100
+        1 child:
+        0x42057d2 (has no name): ()  1x1+-1+-1  +-101+-101
+     0x1402a35 "unity-panel-service": ("unity-panel-service" "Unity-panel-service")  469x546+2586+129  +2586+129
+        1 child:
+        0x1402a36 (has no name): ()  1x1+-1+-1  +2585+128
+     0x140000b "unity-panel-service": ("unity-panel-service" "Unity-panel-service")  242x144+1678+24  +1678+24
+        1 child:
+        0x140000c (has no name): ()  1x1+-1+-1  +1677+23
+     0x500ccf2 "Firefox": ("Popup" "Firefox")  200x200+0+0  +0+0
+        1 child:
+        0x500ccf3 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x4201756 "Exit tab groups": ("Popup" "Firefox")  110x25+1810+57  +1810+57
+        1 child:
+        0x4201757 (has no name): ()  1x1+-1+-1  +1809+56
+     0x4200e5a "Firefox": ("firefox" "Firefox")  200x200+0+0  +0+0
+        1 child:
+        0x4200e5b (has no name): ()  1x1+-1+-1  +-1+-1
+     0x420032b "Firefox": ("firefox" "Firefox")  200x200+0+0  +0+0
+        1 child:
+        0x420032c (has no name): ()  1x1+-1+-1  +-1+-1
+     0x4200118 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x42000f0 "Firefox": ("firefox" "Firefox")  200x200+0+0  +0+0
+        1 child:
+        0x42000f1 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x42000d0 "Firefox": ("firefox" "Firefox")  200x200+0+0  +0+0
+        1 child:
+        0x42000d1 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x42000cf "Firefox": ()  10x10+-100+-100  +-100+-100
+     0x42000ce "Firefox": ()  10x10+-100+-100  +-100+-100
+     0x42000a2 (has no name): ("Toplevel" "Firefox")  200x200+0+0  +0+0
+        1 child:
+        0x42000a3 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x4200001 "Firefox": ("firefox" "Firefox")  10x10+10+10  +10+10
+        1 child:
+        0x4200002 (has no name): ()  1x1+-1+-1  +9+9
+     0x5009c56 "Firefox": ("Popup" "Firefox")  450x242+5225+176  +5225+176
+        1 child:
+        0x5009c57 (has no name): ()  1x1+-1+-1  +5224+175
+     0x5005462 "Firefox": ("Popup" "Firefox")  200x200+0+0  +0+0
+        1 child:
+        0x5005463 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x5004510 "Michael Salisbury.jpg": ("Popup" "Firefox")  149x25+4524+596  +4524+596
+        1 child:
+        0x5004511 (has no name): ()  1x1+-1+-1  +4523+595
+     0x5003ff5 "Firefox": ()  1x1+0+0  +0+0
+        1 child:
+        0x5003ff6 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x5002eb5 "Firefox": ("firefox" "Firefox")  200x200+0+0  +0+0
+        1 child:
+        0x5002eb6 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x5001407 "Firefox": ()  10x10+-100+-100  +-100+-100
+     0x50013f4 "Firefox": ("Popup" "Firefox")  200x200+0+0  +0+0
+        1 child:
+        0x50013f5 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x140275b "unity-panel-service": ("unity-panel-service" "Unity-panel-service")  285x254+3905+144  +3905+144
+        1 child:
+        0x140275c (has no name): ()  1x1+-1+-1  +3904+143
+     0x5000388 "Firefox": ("Popup" "Firefox")  200x200+0+0  +0+0
+        1 child:
+        0x5000389 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x5000385 "Firefox": ("Popup" "Firefox")  200x200+0+0  +0+0
+        1 child:
+        0x5000386 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x5000362 "Firefox": ("Popup" "Firefox")  200x200+0+0  +0+0
+        1 child:
+        0x5000363 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x500018f "Firefox": ("firefox" "Firefox")  200x200+0+0  +0+0
+        1 child:
+        0x5000190 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x5000129 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x50000f0 "Firefox": ("firefox" "Firefox")  200x200+0+0  +0+0
+        1 child:
+        0x50000f1 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x50000d0 "Firefox": ("firefox" "Firefox")  200x200+0+0  +0+0
+        1 child:
+        0x50000d1 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x50000cf "Firefox": ()  10x10+-100+-100  +-100+-100
+     0x50000ce "Firefox": ()  10x10+-100+-100  +-100+-100
+     0x50000a2 (has no name): ("Toplevel" "Firefox")  200x200+0+0  +0+0
+        1 child:
+        0x50000a3 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x5000001 "Firefox": ("firefox" "Firefox")  10x10+10+10  +10+10
+        1 child:
+        0x5000002 (has no name): ()  1x1+-1+-1  +9+9
+     0x140051c "unity-panel-service": ("unity-panel-service" "Unity-panel-service")  288x262+3552+24  +3552+24
+        1 child:
+        0x140051d (has no name): ()  1x1+-1+-1  +3551+23
+     0x1402702 "unity-panel-service": ("unity-panel-service" "Unity-panel-service")  528x270+1392+24  +1392+24
+        1 child:
+        0x1402703 (has no name): ()  1x1+-1+-1  +1391+23
+     0x14005ca "unity-panel-service": ("unity-panel-service" "Unity-panel-service")  291x261+1629+24  +1629+24
+        1 child:
+        0x14005cb (has no name): ()  1x1+-1+-1  +1628+23
+     0x1402646 "unity-panel-service": ("unity-panel-service" "Unity-panel-service")  372x1197+1501+3  +1501+3
+        1 child:
+        0x1402647 (has no name): ()  1x1+-1+-1  +1500+2
+     0x1400ddd "unity-panel-service": ("unity-panel-service" "Unity-panel-service")  215x270+1565+24  +1565+24
+        1 child:
+        0x1400dde (has no name): ()  1x1+-1+-1  +1564+23
+     0x1400de6 "unity-panel-service": ("unity-panel-service" "Unity-panel-service")  206x100+1650+24  +1650+24
+        1 child:
+        0x1400de7 (has no name): ()  1x1+-1+-1  +1649+23
+     0x1402590 "unity-panel-service": ("unity-panel-service" "Unity-panel-service")  528x270+1392+24  +1392+24
+        1 child:
+        0x1402591 (has no name): ()  1x1+-1+-1  +1391+23
+     0x2a1ce57 "nautilus": ("nautilus" "Nautilus")  174x37+5761+1201  +5761+1201
+        1 child:
+        0x2a1ce58 (has no name): ()  1x1+-1+-1  +5760+1200
+     0x2a3550e "nautilus": ("nautilus" "Nautilus")  257x324+367+455  +367+455
+        1 child:
+        0x2a3550f (has no name): ()  1x1+-1+-1  +366+454
+     0x600002f "gcalctool": ()  16x20+0+0  +0+0
+        1 child:
+        0x6000030 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x6000029 "gcalctool": ()  16x20+0+0  +0+0
+        1 child:
+        0x600002a (has no name): ()  1x1+-1+-1  +-1+-1
+     0x6000023 "gcalctool": ()  16x20+0+0  +0+0
+        1 child:
+        0x6000024 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x600001d "gcalctool": ()  16x20+0+0  +0+0
+        1 child:
+        0x600001e (has no name): ()  1x1+-1+-1  +-1+-1
+     0x6000004 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x6000001 "gcalctool": ("gcalctool" "Gcalctool")  10x10+10+10  +10+10
+        1 child:
+        0x6000002 (has no name): ()  1x1+-1+-1  +9+9
+     0x4aab3c2 "Firefox": ("firefox" "Firefox")  1x1+-100+-100  +-100+-100
+        1 child:
+        0x4aab3c3 (has no name): ()  1x1+-1+-1  +-101+-101
+     0x4a0418d "Firefox": ()  10x10+-100+-100  +-100+-100
+     0x4a0012b (has no name): ()  1x1+-1+-1  +-1+-1
+     0x4a000cf "Firefox": ()  10x10+-100+-100  +-100+-100
+     0x4a00001 "Firefox": ("firefox" "Firefox")  10x10+10+10  +10+10
+        1 child:
+        0x4a00002 (has no name): ()  1x1+-1+-1  +9+9
+     0x3e000e6 "terminator": ()  10x10+-100+-100  +-100+-100
+     0x3e00044 "terminator": ()  10x10+-100+-100  +-100+-100
+     0x3e0003a (has no name): ()  1x1+-1+-1  +-1+-1
+     0x3e00001 "terminator": ("terminator" "Terminator")  10x10+10+10  +10+10
+        1 child:
+        0x3e00002 (has no name): ()  1x1+-1+-1  +9+9
+     0x2a192e4 "nautilus": ("nautilus" "Nautilus")  256x154+673+544  +673+544
+        1 child:
+        0x2a192e5 (has no name): ()  1x1+-1+-1  +672+543
+     0x2a1983a "nautilus": ("nautilus" "Nautilus")  244x370+145+61  +145+61
+        1 child:
+        0x2a1983b (has no name): ()  1x1+-1+-1  +144+60
+     0x2a21e21 "nautilus": ()  16x20+0+0  +0+0
+        1 child:
+        0x2a21e22 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x2a21e1b "nautilus": ()  16x20+0+0  +0+0
+        1 child:
+        0x2a21e1c (has no name): ()  1x1+-1+-1  +-1+-1
+     0x2a1ce61 "nautilus": ()  16x20+0+0  +0+0
+        1 child:
+        0x2a1ce62 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x2a1ce5b "nautilus": ()  16x20+0+0  +0+0
+        1 child:
+        0x2a1ce5c (has no name): ()  1x1+-1+-1  +-1+-1
+     0x2a1b860 "nautilus": ("nautilus" "Nautilus")  167x23+586+402  +586+402
+        1 child:
+        0x2a1b861 (has no name): ()  1x1+-1+-1  +585+401
+     0x2a19119 "nautilus": ("nautilus" "Nautilus")  1x1+-99+-99  +-99+-99
+        1 child:
+        0x2a1911a (has no name): ()  1x1+-1+-1  +-100+-100
+     0x5200003 "mate-screensaver": ()  10x10+-100+-100  +-100+-100
+     0x5200001 "mate-screensaver": ("mate-screensaver" "Mate-screensaver")  10x10+10+10  +10+10
+        1 child:
+        0x5200002 (has no name): ()  1x1+-1+-1  +9+9
+     0x400004 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x5600001 (has no name): ()  10x10+-100+-100  +-100+-100
+     0x1a0000c (has no name): ()  1x1+-1+-1  +-1+-1
+     0x1a00009 (has no name): ()  1x1+-100+-100  +-100+-100
+     0x1a00001 "Videos": ("totem" "Totem")  10x10+10+10  +10+10
+        1 child:
+        0x1a00002 (has no name): ()  1x1+-1+-1  +9+9
+     0x1400dba "unity-panel-service": ("unity-panel-service" "Unity-panel-service")  164x139+1539+24  +1539+24
+        1 child:
+        0x1400dbb (has no name): ()  1x1+-1+-1  +1538+23
+     0x54000bc "gedit": ()  10x10+-100+-100  +-100+-100
+     0x54000ad "gedit": ()  16x20+0+0  +0+0
+        1 child:
+        0x54000ae (has no name): ()  1x1+-1+-1  +-1+-1
+     0x54000a7 "gedit": ()  16x20+0+0  +0+0
+        1 child:
+        0x54000a8 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x5400004 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x5400001 "gedit": ("gedit" "Gedit")  10x10+10+10  +10+10
+        1 child:
+        0x5400002 (has no name): ()  1x1+-1+-1  +9+9
+     0x4c0001c (has no name): ("TeamViewer.exe" "Wine")  1x1+1920+0  +1920+0
+     0x440004d "skype": ("skype" "Skype")  960x480+0+0  +0+0
+     0x4400045 "skype": ("skype" "Skype")  960x480+0+0  +0+0
+     0xc0000b (has no name): ()  1x1+0+0  +0+0
+     0x440003f (has no name): ()  1x1+0+0  +0+0
+     0x4600071 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x4600061 "skype": ("skype" "Skype")  200x200+0+0  +0+0
+        1 child:
+        0x4600062 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x4400004 (has no name): ()  1x1+0+0  +0+0
+     0x4400002 "skype": ("skype" "Skype")  960x480+0+0  +0+0
+        1 child:
+        0x440000f (has no name): ()  100x30+0+0  +0+0
+     0x4600003 "skype": ("skype" "Skype")  200x200+0+0  +0+0
+        1 child:
+        0x4600004 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x4600001 "skype": ("skype" "Skype")  10x10+10+10  +10+10
+        1 child:
+        0x4600002 (has no name): ()  1x1+-1+-1  +9+9
+     0x4c00013 (has no name): ()  1x1+0+0  +0+0
+     0x4c00006 (has no name): ("TeamViewer.exe" "Wine")  171x17+2907+666  +2907+666
+     0x4c0000c (has no name): ("TeamViewer.exe" "Wine")  1x1+1920+0  +1920+0
+     0x4c0000b (has no name): ("TeamViewer.exe" "Wine")  1x1+1920+0  +1920+0
+     0x4c00009 "TeamViewer Panel (minimized)": ("TeamViewer.exe" "Wine")  25x53+3815+1112  +3815+1112
+     0x4c00008 "TeamViewer Panel": ("TeamViewer.exe" "Wine")  280x126+3560+1074  +3560+1074
+     0x4c00007 (has no name): ("TeamViewer.exe" "Wine")  171x587+2906+554  +2906+554
+     0x4c00004 "TeamViewer - File Transfer Eventlog": ("TeamViewer.exe" "Wine")  374x316+2693+464  +2693+464
+     0x4c00003 "TVMainThreadCall": ("TeamViewer.exe" "Wine")  1x1+1920+0  +1920+0
+     0x1e0003a (has no name): ()  1x1+-1+-1  +-1+-1
+     0xc00008 (has no name): ()  1x1+0+0  +0+0
+     0x4c00002 (has no name): ()  1x1+0+0  +0+0
+     0xc00005 (has no name): ()  1x1+0+0  +0+0
+     0x2a026a8 "nautilus": ("nautilus" "Nautilus")  1x1+-99+-99  +-99+-99
+        1 child:
+        0x2a026a9 (has no name): ()  1x1+-1+-1  +-100+-100
+     0x2a02684 "nautilus": ("nautilus" "Nautilus")  1x1+-99+-99  +-99+-99
+        1 child:
+        0x2a02685 (has no name): ()  1x1+-1+-1  +-100+-100
+     0x3c006e2 "Remmina": ()  10x10+-100+-100  +-100+-100
+     0x3c00004 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x3c00001 "Remmina": ("remmina" "Remmina")  10x10+10+10  +10+10
+        1 child:
+        0x3c00002 (has no name): ()  1x1+-1+-1  +9+9
+     0x800007 "update-notifier": ()  10x10+-100+-100  +-100+-100
+     0x800004 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x800001 "update-notifier": ("update-notifier" "Update-notifier")  10x10+10+10  +10+10
+        1 child:
+        0x800002 (has no name): ()  1x1+-1+-1  +9+9
+     0x3a00001 "telepathy-indicator": ("telepathy-indicator" "Telepathy-indicator")  10x10+10+10  +10+10
+        1 child:
+        0x3a00002 (has no name): ()  1x1+-1+-1  +9+9
+     0xa00010 "IBus Panel": ("ibus-ui-gtk" "ibus-ui-gtk")  48x46+0+0  +0+0
+        1 child:
+        0xa00011 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x300000c "compiz": ()  10x10+-100+-100  +-100+-100
+     0x3000004 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x3600001 (has no name): ()  1x1+-100+-100  +-100+-100
+     0x2a000a4 "nautilus": ()  10x10+-100+-100  +-100+-100
+     0x20004c4 (has no name): ()  860x677+1975+14  +1975+14
+        1 child:
+        0x20004c5 (has no name): ()  840x629+10+38  +1985+52
+     0x2000a56 (has no name): ()  607x449+2576+389  +2576+389
+        1 child:
+        0x2000a57 (has no name): ()  587x401+10+38  +2586+427
+     0x20016b5 (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x20016b6 (has no name): ()  1855x1176+0+0  +1985+24
+     0x200203b (has no name): ()  303x169+808+529  +808+529
+        1 child:
+        0x200203c (has no name): ()  283x121+10+38  +818+567
+     0x20023cc (has no name): ()  1165x892+1975+14  +1975+14
+        1 child:
+        0x20023cd (has no name): ()  1145x844+10+38  +1985+52
+     0x2002213 (has no name): ()  1405x716+1975+14  +1975+14
+        1 child:
+        0x2002214 (has no name): ()  1385x668+10+38  +1985+52
+     0x2004f65 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x2004f66 (has no name): ()  1855x1056+0+0  +3905+144
+     0x20060ec (has no name): ()  860x677+3895+134  +3895+134
+        1 child:
+        0x20060ed (has no name): ()  840x629+10+38  +3905+172
+     0x200bdb9 (has no name): ()  911x465+2596+381  +2596+381
+        1 child:
+        0x200bdba (has no name): ()  891x417+10+38  +2606+419
+     0x200b823 (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x200b824 (has no name): ()  1855x1176+0+0  +1985+24
+     0x200c66e (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x200c66f (has no name): ()  1855x1176+0+0  +1985+24
+     0x200c9af (has no name): ()  519x360+2653+291  +2653+291
+        1 child:
+        0x200c9b0 (has no name): ()  499x312+10+38  +2663+329
+     0x200d53f (has no name): ()  519x360+2653+291  +2653+291
+        1 child:
+        0x200d540 (has no name): ()  499x312+10+38  +2663+329
+     0x200d8ea (has no name): ()  519x360+2653+291  +2653+291
+        1 child:
+        0x200d8eb (has no name): ()  499x312+10+38  +2663+329
+     0x200dbd8 (has no name): ()  1405x688+1038+389  +1038+389
+        1 child:
+        0x200dbd9 (has no name): ()  1385x640+10+38  +1048+427
+     0x200e516 (has no name): ()  620x528+1310+682  +1310+682
+        1 child:
+        0x200e517 (has no name): ()  600x480+10+38  +1320+720
+     0x200ea09 (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x200ea0a (has no name): ()  1855x1176+0+0  +1985+24
+     0x200eef2 (has no name): ()  860x677+3895+533  +3895+533
+        1 child:
+        0x200eef3 (has no name): ()  840x629+10+38  +3905+571
+     0x200f30c (has no name): ()  519x360+2653+291  +2653+291
+        1 child:
+        0x200f30d (has no name): ()  499x312+10+38  +2663+329
+     0x200f5e6 (has no name): ()  519x360+2653+291  +2653+291
+        1 child:
+        0x200f5e7 (has no name): ()  499x312+10+38  +2663+329
+     0x200ccc6 (has no name): ()  1304x990+195+103  +195+103
+        1 child:
+        0x200ccc7 (has no name): ()  1284x942+10+38  +205+141
+     0x200ee61 (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x200ee62 (has no name): ()  1855x1176+0+0  +1985+24
+     0x20108de (has no name): ()  303x169+808+529  +808+529
+        1 child:
+        0x20108df (has no name): ()  283x121+10+38  +818+567
+     0x2010c92 (has no name): ()  860x677+3895+533  +3895+533
+        1 child:
+        0x2010c93 (has no name): ()  840x629+10+38  +3905+571
+     0x2014dc2 (has no name): ()  617x482+2583+430  +2583+430
+        1 child:
+        0x2014dc3 (has no name): ()  597x434+10+38  +2593+468
+     0x2015822 (has no name): ()  397x209+2681+445  +2681+445
+        1 child:
+        0x2015823 (has no name): ()  377x161+10+38  +2691+483
+     0x2015dde (has no name): ()  505x188+2627+541  +2627+541
+        1 child:
+        0x2015ddf (has no name): ()  485x140+10+38  +2637+579
+     0x2015ff6 (has no name): ()  505x188+2627+541  +2627+541
+        1 child:
+        0x2015ff7 (has no name): ()  485x140+10+38  +2637+579
+     0x201554c (has no name): ()  559x448+2200+661  +2200+661
+        1 child:
+        0x201554d (has no name): ()  539x400+10+38  +2210+699
+     0x2016b95 (has no name): ()  397x209+2681+445  +2681+445
+        1 child:
+        0x2016b96 (has no name): ()  377x161+10+38  +2691+483
+     0x201750e (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x201750f (has no name): ()  1855x1056+0+0  +3905+144
+     0x2019a67 (has no name): ()  902x619+1028+591  +1028+591
+        1 child:
+        0x2019a68 (has no name): ()  882x571+10+38  +1038+629
+     0x201a922 (has no name): ()  401x429+759+399  +759+399
+        1 child:
+        0x201a923 (has no name): ()  381x381+10+38  +769+437
+     0x201a90b (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x201a90c (has no name): ()  1855x1176+0+0  +1985+24
+     0x20176d2 (has no name): ()  860x677+4354+328  +4354+328
+        1 child:
+        0x20176d3 (has no name): ()  840x629+10+38  +4364+366
+     0x201c954 (has no name): ()  756x158+2534+547  +2534+547
+        1 child:
+        0x201c955 (has no name): ()  736x110+10+38  +2544+585
+     0x201ef17 (has no name): ()  397x209+2681+445  +2681+445
+        1 child:
+        0x201ef18 (has no name): ()  377x161+10+38  +2691+483
+     0x201f3d6 (has no name): ()  1858x1196+1975+37  +1975+37
+        1 child:
+        0x201f3d7 (has no name): ()  1838x1148+10+38  +1985+75
+     0x201fe10 (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x201fe11 (has no name): ()  1855x1176+0+0  +1985+24
+     0x2000270 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x2000271 (has no name): ()  1855x1056+0+0  +3905+144
+     0x2021892 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x2021893 (has no name): ()  1855x1056+0+0  +3905+144
+     0x2021bd5 (has no name): ()  607x449+2576+389  +2576+389
+        1 child:
+        0x2021bd6 (has no name): ()  587x401+10+38  +2586+427
+     0x2021d80 (has no name): ()  607x449+2576+389  +2576+389
+        1 child:
+        0x2021d81 (has no name): ()  587x401+10+38  +2586+427
+     0x2022008 (has no name): ()  607x449+2576+389  +2576+389
+        1 child:
+        0x2022009 (has no name): ()  587x401+10+38  +2586+427
+     0x440002e "Skype™ 4.3 for Linux": ("skype" "Skype")  720x472+600+336  +600+336
+     0x2047f17 (has no name): ()  860x677+3895+533  +3895+533
+        1 child:
+        0x2047f18 (has no name): ()  840x629+10+38  +3905+571
+     0x204d405 (has no name): ()  860x677+3895+533  +3895+533
+        1 child:
+        0x204d406 (has no name): ()  840x629+10+38  +3905+571
+     0x204fc62 (has no name): ()  1405x688+525+522  +525+522
+        1 child:
+        0x204fc63 (has no name): ()  1385x640+10+38  +535+560
+     0x200dccd (has no name): ()  1405x688+2022+133  +2022+133
+        1 child:
+        0x200dcce (has no name): ()  1385x640+10+38  +2032+171
+     0x200b41d (has no name): ()  1405x716+460+242  +460+242
+        1 child:
+        0x200b41e (has no name): ()  1385x668+10+38  +470+280
+     0x204fea9 (has no name): ()  1405x716+525+14  +525+14
+        1 child:
+        0x204feaa (has no name): ()  1385x668+10+38  +535+52
+     0x205069e (has no name): ()  875x598+489+288  +489+288
+        1 child:
+        0x205069f (has no name): ()  855x550+10+38  +499+326
+     0x205076c (has no name): ()  875x598+394+181  +394+181
+        1 child:
+        0x205076d (has no name): ()  855x550+10+38  +404+219
+     0x2050cf2 (has no name): ()  607x488+2576+370  +2576+370
+        1 child:
+        0x2050cf3 (has no name): ()  587x440+10+38  +2586+408
+     0x2050fd7 (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x2050fd8 (has no name): ()  1855x1176+0+0  +1985+24
+     0x2050a1d (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x2050a1e (has no name): ()  1855x1176+0+0  +65+24
+     0x2068135 (has no name): ()  519x360+4604+333  +4604+333
+        1 child:
+        0x2068136 (has no name): ()  499x312+10+38  +4614+371
+     0x2068610 (has no name): ()  743x222+2541+515  +2541+515
+        1 child:
+        0x2068611 (has no name): ()  723x174+10+38  +2551+553
+     0x2068bef (has no name): ()  519x360+2653+291  +2653+291
+        1 child:
+        0x2068bf0 (has no name): ()  499x312+10+38  +2663+329
+     0x2068d3a (has no name): ()  519x360+2653+291  +2653+291
+        1 child:
+        0x2068d3b (has no name): ()  499x312+10+38  +2663+329
+     0x20681f6 (has no name): ()  1304x990+3895+134  +3895+134
+        1 child:
+        0x20681f7 (has no name): ()  1284x942+10+38  +3905+172
+     0x206963e (has no name): ()  607x576+2576+326  +2576+326
+        1 child:
+        0x206963f (has no name): ()  587x528+10+38  +2586+364
+     0x2023782 (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x2023783 (has no name): ()  1855x1176+0+0  +1985+24
+     0x2090e6b (has no name): ()  1875x1104+1975+14  +1975+14
+        1 child:
+        0x2090e6c (has no name): ()  1855x1056+10+38  +1985+52
+     0x2091016 (has no name): ()  1875x1104+1975+14  +1975+14
+        1 child:
+        0x2091017 (has no name): ()  1855x1056+10+38  +1985+52
+     0x2091aca (has no name): ()  1875x1104+1975+14  +1975+14
+        1 child:
+        0x2091acb (has no name): ()  1855x1056+10+38  +1985+52
+     0x2091d21 (has no name): ()  1875x1104+1975+14  +1975+14
+        1 child:
+        0x2091d22 (has no name): ()  1855x1056+10+38  +1985+52
+     0x2092003 (has no name): ()  1875x1104+1975+42  +1975+42
+        1 child:
+        0x2092004 (has no name): ()  1855x1056+10+38  +1985+80
+     0x2092551 (has no name): ()  1875x1104+1975+42  +1975+42
+        1 child:
+        0x2092552 (has no name): ()  1855x1056+10+38  +1985+80
+     0x2092724 (has no name): ()  1875x1104+1975+42  +1975+42
+        1 child:
+        0x2092725 (has no name): ()  1855x1056+10+38  +1985+80
+     0x20928d2 (has no name): ()  1875x1104+1975+42  +1975+42
+        1 child:
+        0x20928d3 (has no name): ()  1855x1056+10+38  +1985+80
+     0x2096862 (has no name): ()  860x677+2356+289  +2356+289
+        1 child:
+        0x2096863 (has no name): ()  840x629+10+38  +2366+327
+     0x2093f0f (has no name): ()  1875x1104+1975+42  +1975+42
+        1 child:
+        0x2093f10 (has no name): ()  1855x1056+10+38  +1985+80
+     0x20a13cb (has no name): ()  1875x1104+1975+42  +1975+42
+        1 child:
+        0x20a13cc (has no name): ()  1855x1056+10+38  +1985+80
+     0x20a1e2e (has no name): ()  1875x1104+1975+42  +1975+42
+        1 child:
+        0x20a1e2f (has no name): ()  1855x1056+10+38  +1985+80
+     0x20a169f (has no name): ()  862x482+4467+469  +4467+469
+        1 child:
+        0x20a16a0 (has no name): ()  842x434+10+38  +4477+507
+     0x20a55c0 (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x20a55c1 (has no name): ()  1855x1176+0+0  +1985+24
+     0x20a8073 (has no name): ()  666x548+2580+352  +2580+352
+        1 child:
+        0x20a8074 (has no name): ()  646x500+10+38  +2590+390
+     0x20a8bf7 (has no name): ()  464x367+728+430  +728+430
+        1 child:
+        0x20a8bf8 (has no name): ()  444x319+10+38  +738+468
+     0x20a967b (has no name): ()  255x175+674+413  +674+413
+        1 child:
+        0x20a967c (has no name): ()  235x127+10+38  +684+451
+     0x20a9742 (has no name): ()  255x175+674+413  +674+413
+        1 child:
+        0x20a9743 (has no name): ()  235x127+10+38  +684+451
+     0x20aa38a (has no name): ()  351x173+626+385  +626+385
+        1 child:
+        0x20aa38b (has no name): ()  331x125+10+38  +636+423
+     0x20abbc7 (has no name): ()  720x548+2580+352  +2580+352
+        1 child:
+        0x20abbc8 (has no name): ()  700x500+10+38  +2590+390
+     0x20abca3 (has no name): ()  548x160+2638+546  +2638+546
+        1 child:
+        0x20abca4 (has no name): ()  528x112+10+38  +2648+584
+     0x20a93ff (has no name): ()  470x298+567+295  +567+295
+        1 child:
+        0x20a9400 (has no name): ()  450x250+10+38  +577+333
+     0x20be492 (has no name): ()  1220x977+1975+14  +1975+14
+        1 child:
+        0x20be493 (has no name): ()  1200x929+10+38  +1985+52
+     0x20f2f08 (has no name): ()  519x360+2653+291  +2653+291
+        1 child:
+        0x20f2f09 (has no name): ()  499x312+10+38  +2663+329
+     0x20f4b04 (has no name): ()  519x360+2653+291  +2653+291
+        1 child:
+        0x20f4b05 (has no name): ()  499x312+10+38  +2663+329
+     0x20f506e (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x20f506f (has no name): ()  1855x1176+0+0  +1985+24
+     0x20f5051 (has no name): ()  1875x1196+1975+14  +1975+14
+        1 child:
+        0x20f5052 (has no name): ()  1855x1148+10+38  +1985+52
+     0x20f5666 (has no name): ()  519x360+2653+291  +2653+291
+        1 child:
+        0x20f5667 (has no name): ()  499x312+10+38  +2663+329
+     0x20f90a0 (has no name): ()  519x360+2653+291  +2653+291
+        1 child:
+        0x20f90a1 (has no name): ()  499x312+10+38  +2663+329
+     0x20f80f5 (has no name): ()  860x677+2536+203  +2536+203
+        1 child:
+        0x20f80f6 (has no name): ()  840x629+10+38  +2546+241
+     0x20fd5fe (has no name): ()  554x215+715+518  +715+518
+        1 child:
+        0x20fd5ff (has no name): ()  534x167+10+38  +725+556
+     0x20911e9 (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x20911ea (has no name): ()  1855x1176+0+0  +1985+24
+     0x20ff563 (has no name): ()  860x677+3895+134  +3895+134
+        1 child:
+        0x20ff564 (has no name): ()  840x629+10+38  +3905+172
+     0x20ff78a (has no name): ()  554x215+715+518  +715+518
+        1 child:
+        0x20ff78b (has no name): ()  534x167+10+38  +725+556
+     0x20fd916 (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x20fd917 (has no name): ()  1855x1176+0+0  +65+24
+     0x20fc3a1 (has no name): ()  1875x1104+1975+70  +1975+70
+        1 child:
+        0x20fc3a2 (has no name): ()  1855x1056+10+38  +1985+108
+     0x20ffe30 (has no name): ()  464x367+728+430  +728+430
+        1 child:
+        0x20ffe31 (has no name): ()  444x319+10+38  +738+468
+     0x210044e (has no name): ()  860x677+3895+134  +3895+134
+        1 child:
+        0x210044f (has no name): ()  840x629+10+38  +3905+172
+     0x210068a (has no name): ()  932x677+3895+134  +3895+134
+        1 child:
+        0x210068b (has no name): ()  912x629+10+38  +3905+172
+     0x2021ff8 (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x2021ff9 (has no name): ()  1855x1176+0+0  +1985+24
+     0x212a29d (has no name): ()  470x227+2645+500  +2645+500
+        1 child:
+        0x212a29e (has no name): ()  450x179+10+38  +2655+538
+     0x212a32a (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x212a32b (has no name): ()  1855x1176+0+0  +1985+24
+     0x212a38d (has no name): ()  607x424+2576+402  +2576+402
+        1 child:
+        0x212a38e (has no name): ()  587x376+10+38  +2586+440
+     0x214206a (has no name): ()  700x748+55+14  +55+14
+        1 child:
+        0x214206b (has no name): ()  680x700+10+38  +65+52
+     0x21424fd (has no name): ()  700x748+55+14  +55+14
+        1 child:
+        0x21424fe (has no name): ()  680x700+10+38  +65+52
+     0x2142c94 (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x2142c95 (has no name): ()  1855x1176+0+0  +1985+24
+     0x2145459 (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x214545a (has no name): ()  1855x1176+0+0  +1985+24
+     0x21475ae (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x21475af (has no name): ()  1855x1176+0+0  +1985+24
+     0x2147951 (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x2147952 (has no name): ()  1855x1176+0+0  +1985+24
+     0x200a628 (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x200a629 (has no name): ()  1855x1176+0+0  +65+24
+     0x214aef2 (has no name): ()  519x360+2653+291  +2653+291
+        1 child:
+        0x214aef3 (has no name): ()  499x312+10+38  +2663+329
+     0x21c4905 (has no name): ()  464x367+728+430  +728+430
+        1 child:
+        0x21c4906 (has no name): ()  444x319+10+38  +738+468
+     0x20c293f (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x20c2940 (has no name): ()  1855x1176+0+0  +1985+24
+     0x20109aa (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x20109ab (has no name): ()  1855x1176+0+0  +65+24
+     0x20c3860 (has no name): ()  303x169+808+529  +808+529
+        1 child:
+        0x20c3861 (has no name): ()  283x121+10+38  +818+567
+     0x20c2f30 (has no name): ()  1774x677+3943+214  +3943+214
+        1 child:
+        0x20c2f31 (has no name): ()  1754x629+10+38  +3953+252
+     0x2014cf7 (has no name): ()  870x728+2445+263  +2445+263
+        1 child:
+        0x2014cf8 (has no name): ()  850x680+10+38  +2455+301
+     0x20dcc25 (has no name): ()  756x158+2502+535  +2502+535
+        1 child:
+        0x20dcc26 (has no name): ()  736x110+10+38  +2512+573
+     0x20dce0f (has no name): ()  607x449+2576+389  +2576+389
+        1 child:
+        0x20dce10 (has no name): ()  587x401+10+38  +2586+427
+     0x20dcf50 (has no name): ()  1319x855+2152+259  +2152+259
+        1 child:
+        0x20dcf51 (has no name): ()  1299x807+10+38  +2162+297
+     0x20dd2b8 (has no name): ()  1318x753+2221+237  +2221+237
+        1 child:
+        0x20dd2b9 (has no name): ()  1298x705+10+38  +2231+275
+     0x20e66df (has no name): ()  1317x753+2221+237  +2221+237
+        1 child:
+        0x20e66e0 (has no name): ()  1297x705+10+38  +2231+275
+     0x20e6926 (has no name): ()  479x183+2640+522  +2640+522
+        1 child:
+        0x20e6927 (has no name): ()  459x135+10+38  +2650+560
+     0x20e68c4 (has no name): ()  1316x880+2222+174  +2222+174
+        1 child:
+        0x20e68c5 (has no name): ()  1296x832+10+38  +2232+212
+     0x20e879d (has no name): ()  443x229+1487+511  +1487+511
+        1 child:
+        0x20e879e (has no name): ()  423x181+10+38  +1497+549
+     0x20e88bf (has no name): ()  443x229+1487+511  +1487+511
+        1 child:
+        0x20e88c0 (has no name): ()  423x181+10+38  +1497+549
+     0x20e8c5b (has no name): ()  443x206+2848+441  +2848+441
+        1 child:
+        0x20e8c5c (has no name): ()  423x158+10+38  +2858+479
+     0x20e8ec3 (has no name): ()  443x206+2848+441  +2848+441
+        1 child:
+        0x20e8ec4 (has no name): ()  423x158+10+38  +2858+479
+     0x20e9142 (has no name): ()  443x206+2848+441  +2848+441
+        1 child:
+        0x20e9143 (has no name): ()  423x158+10+38  +2858+479
+     0x2069cf2 (has no name): ()  1405x716+2367+158  +2367+158
+        1 child:
+        0x2069cf3 (has no name): ()  1385x668+10+38  +2377+196
+     0x20e93c3 (has no name): ()  569x491+675+386  +675+386
+        1 child:
+        0x20e93c4 (has no name): ()  549x443+10+38  +685+424
+     0x20e95d5 (has no name): ()  569x491+675+386  +675+386
+        1 child:
+        0x20e95d6 (has no name): ()  549x443+10+38  +685+424
+     0x20e996e (has no name): ()  569x491+675+386  +675+386
+        1 child:
+        0x20e996f (has no name): ()  549x443+10+38  +685+424
+     0x20eb5d9 (has no name): ()  660x192+564+385  +564+385
+        1 child:
+        0x20eb5da (has no name): ()  640x144+10+38  +574+423
+     0x20eb5b7 (has no name): ()  660x192+461+632  +461+632
+        1 child:
+        0x20eb5b8 (has no name): ()  640x144+10+38  +471+670
+     0x20eb9ff (has no name): ()  569x491+675+386  +675+386
+        1 child:
+        0x20eba00 (has no name): ()  549x443+10+38  +685+424
+     0x20ebb17 (has no name): ()  540x628+992+14  +992+14
+        1 child:
+        0x20ebb18 (has no name): ()  520x580+10+38  +1002+52
+     0x20ebc5b (has no name): ()  569x491+675+386  +675+386
+        1 child:
+        0x20ebc5c (has no name): ()  549x443+10+38  +685+424
+     0x20ecc60 (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x20ecc61 (has no name): ()  1855x1176+0+0  +1985+24
+     0x20e5f3c (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x20e5f3d (has no name): ()  1855x1056+0+0  +3905+144
+     0x20f1fa6 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x20f1fa7 (has no name): ()  1855x1056+0+0  +3905+144
+     0x20f263b (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x20f263c (has no name): ()  1855x1056+0+0  +3905+144
+     0x20f2a88 (has no name): ()  519x360+4573+411  +4573+411
+        1 child:
+        0x20f2a89 (has no name): ()  499x312+10+38  +4583+449
+     0x20f2a71 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x20f2a72 (has no name): ()  1855x1056+0+0  +3905+144
+     0x20f2c96 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x20f2c97 (has no name): ()  1855x1056+0+0  +3905+144
+     0x20f2da4 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x20f2da5 (has no name): ()  1855x1056+0+0  +3905+144
+     0x20f2ecb (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x20f2ecc (has no name): ()  1855x1056+0+0  +3905+144
+     0x214d1fe (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x214d1ff (has no name): ()  1855x1056+0+0  +3905+144
+     0x214d398 (has no name): ()  1825x1148+1975+40  +1975+40
+        1 child:
+        0x214d399 (has no name): ()  1805x1100+10+38  +1985+78
+     0x214d334 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x214d335 (has no name): ()  1855x1056+0+0  +3905+144
+     0x214d5d8 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x214d5d9 (has no name): ()  1855x1056+0+0  +3905+144
+     0x214d6b1 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x214d6b2 (has no name): ()  1855x1056+0+0  +3905+144
+     0x214d80d (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x214d80e (has no name): ()  1855x1056+0+0  +3905+144
+     0x214d8cb (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x214d8cc (has no name): ()  1855x1056+0+0  +3905+144
+     0x214db87 (has no name): ()  756x158+2502+535  +2502+535
+        1 child:
+        0x214db88 (has no name): ()  736x110+10+38  +2512+573
+     0x214df2f (has no name): ()  756x158+2502+535  +2502+535
+        1 child:
+        0x214df30 (has no name): ()  736x110+10+38  +2512+573
+     0x214e012 (has no name): ()  898x870+4181+190  +4181+190
+        1 child:
+        0x214e013 (has no name): ()  878x822+10+38  +4191+228
+     0x214e624 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x214e625 (has no name): ()  1855x1056+0+0  +3905+144
+     0x214e9ab (has no name): ()  415x218+785+517  +785+517
+        1 child:
+        0x214e9ac (has no name): ()  395x170+10+38  +795+555
+     0x2147b0d (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x2147b0e (has no name): ()  1855x1176+0+0  +65+24
+     0x214e79f (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x214e7a0 (has no name): ()  1855x1176+0+0  +65+24
+     0x214ece7 (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x214ece8 (has no name): ()  1855x1176+0+0  +65+24
+     0x2150410 (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x2150411 (has no name): ()  1855x1176+0+0  +65+24
+     0x215049c (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x215049d (has no name): ()  1855x1176+0+0  +65+24
+     0x2150586 (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x2150587 (has no name): ()  1855x1176+0+0  +65+24
+     0x216f2ff (has no name): ()  860x677+2600+327  +2600+327
+        1 child:
+        0x216f300 (has no name): ()  840x629+10+38  +2610+365
+     0x2175789 (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x217578a (has no name): ()  1855x1176+0+0  +65+24
+     0x2175545 (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x2175546 (has no name): ()  1855x1176+0+0  +65+24
+     0x2174c58 (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x2174c59 (has no name): ()  1855x1176+0+0  +65+24
+     0x21748e9 (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x21748ea (has no name): ()  1855x1176+0+0  +65+24
+     0x21746e6 (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x21746e7 (has no name): ()  1855x1176+0+0  +65+24
+     0x21740df (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x21740e0 (has no name): ()  1855x1176+0+0  +65+24
+     0x217388d (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x217388e (has no name): ()  1855x1176+0+0  +65+24
+     0x2173018 (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x2173019 (has no name): ()  1855x1176+0+0  +65+24
+     0x2177a14 (has no name): ()  860x677+2387+183  +2387+183
+        1 child:
+        0x2177a15 (has no name): ()  840x629+10+38  +2397+221
+     0x3e06a32 "terminator": ("terminator" "Terminator")  21x68+1899+410  +1899+410
+        1 child:
+        0x3e06a33 (has no name): ()  1x1+-1+-1  +1898+409
+     0x217e88e (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x217e88f (has no name): ()  1855x1056+0+0  +3905+144
+     0x2183398 (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x2183399 (has no name): ()  1855x1176+0+0  +65+24
+     0x218492b (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x218492c (has no name): ()  1855x1176+0+0  +65+24
+     0x2151296 (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x2151297 (has no name): ()  1855x1176+0+0  +65+24
+     0x214db50 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x214db51 (has no name): ()  1855x1056+0+0  +3905+144
+     0x2186ed1 (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x2186ed3 (has no name): ()  1855x1176+0+0  +65+24
+     0x21892f0 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x21892f1 (has no name): ()  1855x1056+0+0  +3905+144
+     0x21898d4 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x21898d5 (has no name): ()  1855x1056+0+0  +3905+144
+     0x218cf2c (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x218cf2d (has no name): ()  1855x1176+0+0  +1985+24
+     0x218ed71 (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x218ed72 (has no name): ()  1855x1176+0+0  +1985+24
+     0x21902f1 (has no name): ()  860x677+3895+134  +3895+134
+        1 child:
+        0x21902f2 (has no name): ()  840x629+10+38  +3905+172
+     0x2192eed (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x2192eee (has no name): ()  1855x1176+0+0  +1985+24
+     0x21933e6 (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x21933e7 (has no name): ()  1855x1176+0+0  +1985+24
+     0x2186e38 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x2186e39 (has no name): ()  1855x1056+0+0  +3905+144
+     0x2187230 (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x2187231 (has no name): ()  1855x1176+0+0  +65+24
+     0x2195920 (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x2195921 (has no name): ()  1855x1176+0+0  +65+24
+     0x219570d (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x219570e (has no name): ()  1855x1056+0+0  +3905+144
+     0x2192fb3 (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x2192fb4 (has no name): ()  1855x1176+0+0  +1985+24
+     0x2196fb9 (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x2196fba (has no name): ()  1855x1176+0+0  +1985+24
+     0x219876c (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x219876d (has no name): ()  1855x1056+0+0  +3905+144
+     0x2198b68 (has no name): ()  1315x753+2222+237  +2222+237
+        1 child:
+        0x2198b69 (has no name): ()  1295x705+10+38  +2232+275
+     0x219a88a (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x219a88b (has no name): ()  1855x1056+0+0  +3905+144
+     0x21986c3 (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x21986c4 (has no name): ()  1855x1176+0+0  +1985+24
+     0x219ae0e (has no name): ()  742x286+3895+134  +3895+134
+        1 child:
+        0x219ae0f (has no name): ()  722x238+10+38  +3905+172
+     0x219ace6 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x219ace7 (has no name): ()  1855x1056+0+0  +3905+144
+     0x219b246 (has no name): ()  742x482+3895+134  +3895+134
+        1 child:
+        0x219b247 (has no name): ()  722x434+10+38  +3905+172
+     0x219b2e7 (has no name): ()  742x482+3895+134  +3895+134
+        1 child:
+        0x219b2e8 (has no name): ()  722x434+10+38  +3905+172
+     0x219b1d5 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x219b1d6 (has no name): ()  1855x1056+0+0  +3905+144
+     0x219b5db (has no name): ()  742x482+3895+134  +3895+134
+        1 child:
+        0x219b5dc (has no name): ()  722x434+10+38  +3905+172
+     0x219b686 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x219b687 (has no name): ()  1855x1056+0+0  +3905+144
+     0x219b7ed (has no name): ()  742x482+3895+134  +3895+134
+        1 child:
+        0x219b7ee (has no name): ()  722x434+10+38  +3905+172
+     0x219b5a2 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x219b5a3 (has no name): ()  1855x1056+0+0  +3905+144
+     0x219c486 (has no name): ()  756x505+992+14  +992+14
+        1 child:
+        0x219c487 (has no name): ()  736x457+10+38  +1002+52
+     0x219c56d (has no name): ()  756x505+992+14  +992+14
+        1 child:
+        0x219c56e (has no name): ()  736x457+10+38  +1002+52
+     0x219c691 (has no name): ()  756x505+992+14  +992+14
+        1 child:
+        0x219c692 (has no name): ()  736x457+10+38  +1002+52
+     0x219c771 (has no name): ()  756x505+992+14  +992+14
+        1 child:
+        0x219c772 (has no name): ()  736x457+10+38  +1002+52
+     0x219cc1f (has no name): ()  756x505+3895+134  +3895+134
+        1 child:
+        0x219cc20 (has no name): ()  736x457+10+38  +3905+172
+     0x219cd92 (has no name): ()  756x505+3895+134  +3895+134
+        1 child:
+        0x219cd93 (has no name): ()  736x457+10+38  +3905+172
+     0x3e093fe "terminator": ("terminator" "Terminator")  21x68+1835+740  +1835+740
+        1 child:
+        0x3e093ff (has no name): ()  1x1+-1+-1  +1834+739
+     0x219d06b (has no name): ()  756x505+3895+134  +3895+134
+        1 child:
+        0x219d06c (has no name): ()  736x457+10+38  +3905+172
+     0x219dbe0 (has no name): ()  742x482+3895+134  +3895+134
+        1 child:
+        0x219dbe1 (has no name): ()  722x434+10+38  +3905+172
+     0x219df69 (has no name): ()  1314x753+2223+237  +2223+237
+        1 child:
+        0x219df6a (has no name): ()  1294x705+10+38  +2233+275
+     0x219dc86 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x219dc87 (has no name): ()  1855x1056+0+0  +3905+144
+     0x219fb93 (has no name): ()  742x482+3895+134  +3895+134
+        1 child:
+        0x219fb94 (has no name): ()  722x434+10+38  +3905+172
+     0x21a03a6 (has no name): ()  756x505+3895+134  +3895+134
+        1 child:
+        0x21a03a7 (has no name): ()  736x457+10+38  +3905+172
+     0x21a0990 (has no name): ()  756x505+3895+134  +3895+134
+        1 child:
+        0x21a0991 (has no name): ()  736x457+10+38  +3905+172
+     0x21a09d9 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x21a09da (has no name): ()  1855x1056+0+0  +3905+144
+     0x21a18a7 (has no name): ()  742x482+3895+134  +3895+134
+        1 child:
+        0x21a18a8 (has no name): ()  722x434+10+38  +3905+172
+     0x21a1a81 (has no name): ()  756x505+992+14  +992+14
+        1 child:
+        0x21a1a82 (has no name): ()  736x457+10+38  +1002+52
+     0x21a1ae1 (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x21a1ae2 (has no name): ()  1855x1176+0+0  +65+24
+     0x21a22de (has no name): ()  756x505+3895+134  +3895+134
+        1 child:
+        0x21a22df (has no name): ()  736x457+10+38  +3905+172
+     0x21a23d4 (has no name): ()  742x482+3895+134  +3895+134
+        1 child:
+        0x21a23d5 (has no name): ()  722x434+10+38  +3905+172
+     0x21a24f8 (has no name): ()  756x505+992+14  +992+14
+        1 child:
+        0x21a24f9 (has no name): ()  736x457+10+38  +1002+52
+     0x21a2542 (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x21a2543 (has no name): ()  1855x1176+0+0  +65+24
+     0x21a242f (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x21a2430 (has no name): ()  1855x1056+0+0  +3905+144
+     0x21a5975 (has no name): ()  756x505+3895+134  +3895+134
+        1 child:
+        0x21a5976 (has no name): ()  736x457+10+38  +3905+172
+     0x21a59d8 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x21a59d9 (has no name): ()  1855x1056+0+0  +3905+144
+     0x21a5a83 (has no name): ()  756x505+3895+134  +3895+134
+        1 child:
+        0x21a5a84 (has no name): ()  736x457+10+38  +3905+172
+     0x21a5ae8 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x21a5ae9 (has no name): ()  1855x1056+0+0  +3905+144
+     0x21a7dbe (has no name): ()  742x482+3895+134  +3895+134
+        1 child:
+        0x21a7dbf (has no name): ()  722x434+10+38  +3905+172
+     0x21a7e70 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x21a7e71 (has no name): ()  1855x1056+0+0  +3905+144
+     0x21a7f23 (has no name): ()  756x505+3895+134  +3895+134
+        1 child:
+        0x21a7f24 (has no name): ()  736x457+10+38  +3905+172
+     0x21a86b9 (has no name): ()  742x482+3895+134  +3895+134
+        1 child:
+        0x21a86ba (has no name): ()  722x434+10+38  +3905+172
+     0x21a8766 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x21a8767 (has no name): ()  1855x1056+0+0  +3905+144
+     0x21a7f89 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x21a7f8a (has no name): ()  1855x1056+0+0  +3905+144
+     0x21a8c50 (has no name): ()  742x482+3895+134  +3895+134
+        1 child:
+        0x21a8c51 (has no name): ()  722x434+10+38  +3905+172
+     0x21a8d02 (has no name): ()  756x505+3895+134  +3895+134
+        1 child:
+        0x21a8d03 (has no name): ()  736x457+10+38  +3905+172
+     0x21a8f29 (has no name): ()  742x482+3895+134  +3895+134
+        1 child:
+        0x21a8f2a (has no name): ()  722x434+10+38  +3905+172
+     0x21a909a (has no name): ()  742x482+3895+134  +3895+134
+        1 child:
+        0x21a909b (has no name): ()  722x434+10+38  +3905+172
+     0x21a9402 (has no name): ()  756x505+3895+134  +3895+134
+        1 child:
+        0x21a9403 (has no name): ()  736x457+10+38  +3905+172
+     0x21a945b (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x21a945c (has no name): ()  1855x1056+0+0  +3905+144
+     0x21aa6dd (has no name): ()  742x482+55+14  +55+14
+        1 child:
+        0x21aa6de (has no name): ()  722x434+10+38  +65+52
+     0x21aa769 (has no name): ()  756x505+55+14  +55+14
+        1 child:
+        0x21aa76a (has no name): ()  736x457+10+38  +65+52
+     0x21aae5a (has no name): ()  756x158+2502+535  +2502+535
+        1 child:
+        0x21aae5b (has no name): ()  736x110+10+38  +2512+573
+     0x21aaf76 (has no name): ()  297x91+55+14  +55+14
+        1 child:
+        0x21aaf77 (has no name): ()  277x43+10+38  +65+52
+     0x21ab011 (has no name): ()  58x68+55+14  +55+14
+        1 child:
+        0x21ab012 (has no name): ()  38x20+10+38  +65+52
+     0x21abd5e (has no name): ()  1313x753+2223+237  +2223+237
+        1 child:
+        0x21abd5f (has no name): ()  1293x705+10+38  +2233+275
+     0x21ab08d (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x21ab08e (has no name): ()  1855x1056+0+0  +3905+144
+     0x21aafcb (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x21aafcc (has no name): ()  1855x1056+0+0  +3905+144
+     0x21aceb6 (has no name): ()  1312x753+2224+237  +2224+237
+        1 child:
+        0x21aceb7 (has no name): ()  1292x705+10+38  +2234+275
+     0x21acff6 (has no name): ()  297x91+55+14  +55+14
+        1 child:
+        0x21acff7 (has no name): ()  277x43+10+38  +65+52
+     0x21ad0b8 (has no name): ()  58x68+55+14  +55+14
+        1 child:
+        0x21ad0b9 (has no name): ()  38x20+10+38  +65+52
+     0x21ad167 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x21ad168 (has no name): ()  1855x1056+0+0  +3905+144
+     0x21ad6b5 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x21ad6b6 (has no name): ()  1855x1056+0+0  +3905+144
+     0x21ad91b (has no name): ()  687x642+2536+293  +2536+293
+        1 child:
+        0x21ad91c (has no name): ()  667x594+10+38  +2546+331
+     0x21adb4b (has no name): ()  687x642+4456+353  +4456+353
+        1 child:
+        0x21adb4c (has no name): ()  667x594+10+38  +4466+391
+     0x21adde4 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x21adde5 (has no name): ()  1855x1056+0+0  +3905+144
+     0x21af61c (has no name): ()  860x677+2227+216  +2227+216
+        1 child:
+        0x21af61d (has no name): ()  840x629+10+38  +2237+254
+     0x20ebdc4 (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x20ebdc5 (has no name): ()  1855x1176+0+0  +65+24
+     0x20b594e (has no name): ()  303x169+808+529  +808+529
+        1 child:
+        0x20b594f (has no name): ()  283x121+10+38  +818+567
+     0x20b557c (has no name): ()  860x677+3895+134  +3895+134
+        1 child:
+        0x20b557d (has no name): ()  840x629+10+38  +3905+172
+     0x2117213 (has no name): ()  860x677+3895+134  +3895+134
+        1 child:
+        0x2117214 (has no name): ()  840x629+10+38  +3905+172
+     0x211a052 (has no name): ()  332x248+833+521  +833+521
+        1 child:
+        0x211a053 (has no name): ()  312x200+10+38  +843+559
+     0x211b92d (has no name): ()  860x677+2295+270  +2295+270
+        1 child:
+        0x211b92e (has no name): ()  840x629+10+38  +2305+308
+     0x211d942 (has no name): ()  332x248+992+14  +992+14
+        1 child:
+        0x211d943 (has no name): ()  312x200+10+38  +1002+52
+     0x211ee2d (has no name): ()  860x677+3895+134  +3895+134
+        1 child:
+        0x211ee2e (has no name): ()  840x629+10+38  +3905+172
+     0x2118b9f (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x2118ba0 (has no name): ()  1855x1176+0+0  +65+24
+     0x2120ddc (has no name): ()  720x548+2580+352  +2580+352
+        1 child:
+        0x2120ddd (has no name): ()  700x500+10+38  +2590+390
+     0x2120f29 (has no name): ()  595x160+2620+546  +2620+546
+        1 child:
+        0x2120f2a (has no name): ()  575x112+10+38  +2630+584
+     0x2120feb (has no name): ()  1875x1104+1975+14  +1975+14
+        1 child:
+        0x2120fec (has no name): ()  1855x1056+10+38  +1985+52
+     0x2121235 (has no name): ()  860x677+3895+134  +3895+134
+        1 child:
+        0x2121236 (has no name): ()  840x629+10+38  +3905+172
+     0x2121363 (has no name): ()  860x677+3895+134  +3895+134
+        1 child:
+        0x2121364 (has no name): ()  840x629+10+38  +3905+172
+     0x2121a02 (has no name): ()  1875x1104+1975+42  +1975+42
+        1 child:
+        0x2121a03 (has no name): ()  1855x1056+10+38  +1985+80
+     0x2122890 (has no name): ()  1875x1104+1975+70  +1975+70
+        1 child:
+        0x2122891 (has no name): ()  1855x1056+10+38  +1985+108
+     0x2123037 (has no name): ()  872x678+4167+309  +4167+309
+        1 child:
+        0x2123038 (has no name): ()  852x630+10+38  +4177+347
+     0x2122d4d (has no name): ()  560x419+4323+410  +4323+410
+        1 child:
+        0x2122d4e (has no name): ()  540x371+10+38  +4333+448
+     0x2121460 (has no name): ()  860x677+2492+239  +2492+239
+        1 child:
+        0x2121461 (has no name): ()  840x629+10+38  +2502+277
+     0x212647a (has no name): ()  860x677+826+265  +826+265
+        1 child:
+        0x212647b (has no name): ()  840x629+10+38  +836+303
+     0x2127073 (has no name): ()  860x677+3895+533  +3895+533
+        1 child:
+        0x2127074 (has no name): ()  840x629+10+38  +3905+571
+     0x206a591 (has no name): ()  860x677+3895+533  +3895+533
+        1 child:
+        0x206a592 (has no name): ()  840x629+10+38  +3905+571
+     0x211e666 (has no name): ()  1875x1104+1975+14  +1975+14
+        1 child:
+        0x211e667 (has no name): ()  1855x1056+10+38  +1985+52
+     0x20b52b4 (has no name): ()  464x367+3119+443  +3119+443
+        1 child:
+        0x20b52b5 (has no name): ()  444x319+10+38  +3129+481
+     0x207c97a (has no name): ()  870x609+2445+263  +2445+263
+        1 child:
+        0x207c97b (has no name): ()  850x561+10+38  +2455+301
+     0x2079f61 (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x2079f62 (has no name): ()  1855x1176+0+0  +65+24
+     0x207f573 (has no name): ()  820x648+55+14  +55+14
+        1 child:
+        0x207f574 (has no name): ()  800x600+10+38  +65+52
+     0x207f6e9 (has no name): ()  577x322+2624+314  +2624+314
+        1 child:
+        0x207f6ea (has no name): ()  557x274+10+38  +2634+352
+     0x207fa8a (has no name): ()  782x705+2521+187  +2521+187
+        1 child:
+        0x207fa8b (has no name): ()  762x657+10+38  +2531+225
+     0x207fb7a (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x207fb7b (has no name): ()  1855x1176+0+0  +65+24
+     0x20801dc (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x20801dd (has no name): ()  1855x1176+0+0  +65+24
+     0x2080638 (has no name): ()  860x677+3895+134  +3895+134
+        1 child:
+        0x2080639 (has no name): ()  840x629+10+38  +3905+172
+     0x20809a3 (has no name): ()  860x677+3895+134  +3895+134
+        1 child:
+        0x20809a4 (has no name): ()  840x629+10+38  +3905+172
+     0x208179d (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x208179e (has no name): ()  1855x1056+0+0  +3905+144
+     0x2078154 (has no name): ()  414x147+2705+373  +2705+373
+        1 child:
+        0x2078155 (has no name): ()  394x99+10+38  +2715+411
+     0x20784f8 (has no name): ()  820x648+55+14  +55+14
+        1 child:
+        0x20784f9 (has no name): ()  800x600+10+38  +65+52
+     0x2079eda (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x2079edb (has no name): ()  1855x1176+0+0  +1985+24
+     0x207914d (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x207914e (has no name): ()  1855x1056+0+0  +3905+144
+     0x20cfba4 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x20cfba5 (has no name): ()  1855x1056+0+0  +3905+144
+     0x21ad0e4 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x21ad0e5 (has no name): ()  1855x1056+0+0  +3905+144
+     0x20d0d65 (has no name): ()  58x68+55+14  +55+14
+        1 child:
+        0x20d0d66 (has no name): ()  38x20+10+38  +65+52
+     0x20d0e84 (has no name): ()  1311x753+2224+237  +2224+237
+        1 child:
+        0x20d0e85 (has no name): ()  1291x705+10+38  +2234+275
+     0x20d0fcf (has no name): ()  58x68+55+14  +55+14
+        1 child:
+        0x20d0fd0 (has no name): ()  38x20+10+38  +65+52
+     0x20d10ce (has no name): ()  297x91+55+14  +55+14
+        1 child:
+        0x20d10cf (has no name): ()  277x43+10+38  +65+52
+     0x206c490 (has no name): ()  687x642+4456+353  +4456+353
+        1 child:
+        0x206c491 (has no name): ()  667x594+10+38  +4466+391
+     0x206e72f (has no name): ()  680x444+4492+464  +4492+464
+        1 child:
+        0x206e730 (has no name): ()  660x396+10+38  +4502+502
+     0x206e4b5 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x206e4b6 (has no name): ()  1855x1056+0+0  +3905+144
+     0x20d0d33 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x20d0d34 (has no name): ()  1855x1056+0+0  +3905+144
+     0x206e892 (has no name): ()  1875x1076+3895+134  +3895+134
+        1 child:
+        0x206e893 (has no name): ()  1855x1028+10+38  +3905+172
+     0x206f132 (has no name): ()  633x610+4483+369  +4483+369
+        1 child:
+        0x206f133 (has no name): ()  613x562+10+38  +4493+407
+     0x206e873 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x206e874 (has no name): ()  1855x1056+0+0  +3905+144
+     0x206fcf7 (has no name): ()  58x68+55+14  +55+14
+        1 child:
+        0x206fcf8 (has no name): ()  38x20+10+38  +65+52
+     0x207092b (has no name): ()  860x677+3895+134  +3895+134
+        1 child:
+        0x207092c (has no name): ()  840x629+10+38  +3905+172
+     0x2071d59 (has no name): ()  860x677+3895+134  +3895+134
+        1 child:
+        0x2071d5a (has no name): ()  840x629+10+38  +3905+172
+     0x207290e (has no name): ()  932x677+3895+533  +3895+533
+        1 child:
+        0x207290f (has no name): ()  912x629+10+38  +3905+571
+     0x2073154 (has no name): ()  860x677+312+387  +312+387
+        1 child:
+        0x2073155 (has no name): ()  840x629+10+38  +322+425
+     0x2073586 (has no name): ()  932x677+3895+533  +3895+533
+        1 child:
+        0x2073587 (has no name): ()  912x629+10+38  +3905+571
+     0x207393c (has no name): ()  860x677+3895+533  +3895+533
+        1 child:
+        0x207393d (has no name): ()  840x629+10+38  +3905+571
+     0x2073b07 (has no name): ()  932x677+3895+533  +3895+533
+        1 child:
+        0x2073b08 (has no name): ()  912x629+10+38  +3905+571
+     0x2073fa3 (has no name): ()  519x360+4604+333  +4604+333
+        1 child:
+        0x2073fa4 (has no name): ()  499x312+10+38  +4614+371
+     0x20753cc (has no name): ()  860x677+3895+533  +3895+533
+        1 child:
+        0x20753cd (has no name): ()  840x629+10+38  +3905+571
+     0x2075544 (has no name): ()  860x677+3895+533  +3895+533
+        1 child:
+        0x2075545 (has no name): ()  840x629+10+38  +3905+571
+     0x20756fc (has no name): ()  860x677+3895+533  +3895+533
+        1 child:
+        0x20756fd (has no name): ()  840x629+10+38  +3905+571
+     0x20759c9 (has no name): ()  860x677+3895+533  +3895+533
+        1 child:
+        0x20759ca (has no name): ()  840x629+10+38  +3905+571
+     0x2075b30 (has no name): ()  860x677+3895+533  +3895+533
+        1 child:
+        0x2075b31 (has no name): ()  840x629+10+38  +3905+571
+     0x2075ce2 (has no name): ()  932x677+3895+533  +3895+533
+        1 child:
+        0x2075ce3 (has no name): ()  912x629+10+38  +3905+571
+     0x2075e3e (has no name): ()  932x677+4075+463  +4075+463
+        1 child:
+        0x2075e3f (has no name): ()  912x629+10+38  +4085+501
+     0x2076027 (has no name): ()  932x677+3895+533  +3895+533
+        1 child:
+        0x2076028 (has no name): ()  912x629+10+38  +3905+571
+     0x2076176 (has no name): ()  932x677+3895+533  +3895+533
+        1 child:
+        0x2076177 (has no name): ()  912x629+10+38  +3905+571
+     0x212a4ce (has no name): ()  932x677+3895+533  +3895+533
+        1 child:
+        0x212a4cf (has no name): ()  912x629+10+38  +3905+571
+     0x212a643 (has no name): ()  932x677+3895+533  +3895+533
+        1 child:
+        0x212a644 (has no name): ()  912x629+10+38  +3905+571
+     0x212a8d0 (has no name): ()  932x677+3895+533  +3895+533
+        1 child:
+        0x212a8d1 (has no name): ()  912x629+10+38  +3905+571
+     0x212aa1d (has no name): ()  932x677+3895+533  +3895+533
+        1 child:
+        0x212aa1e (has no name): ()  912x629+10+38  +3905+571
+     0x212ab5a (has no name): ()  860x677+3895+533  +3895+533
+        1 child:
+        0x212ab5b (has no name): ()  840x629+10+38  +3905+571
+     0x212ad26 (has no name): ()  860x677+3895+533  +3895+533
+        1 child:
+        0x212ad27 (has no name): ()  840x629+10+38  +3905+571
+     0x212ae91 (has no name): ()  860x677+3895+533  +3895+533
+        1 child:
+        0x212ae92 (has no name): ()  840x629+10+38  +3905+571
+     0x20720a9 (has no name): ()  860x677+799+258  +799+258
+        1 child:
+        0x20720aa (has no name): ()  840x629+10+38  +809+296
+     0x212b1fd (has no name): ()  860x677+998+14  +998+14
+        1 child:
+        0x212b1fe (has no name): ()  840x629+10+38  +1008+52
+     0x212b441 (has no name): ()  860x677+998+14  +998+14
+        1 child:
+        0x212b442 (has no name): ()  840x629+10+38  +1008+52
+     0x212b5fd (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x212b5fe (has no name): ()  1855x1176+0+0  +65+24
+     0x212b70d (has no name): ()  332x248+1179+313  +1179+313
+        1 child:
+        0x212b70e (has no name): ()  312x200+10+38  +1189+351
+     0x212bc1d (has no name): ()  860x677+3895+134  +3895+134
+        1 child:
+        0x212bc1e (has no name): ()  840x629+10+38  +3905+172
+     0x212c0ad (has no name): ()  860x677+1975+14  +1975+14
+        1 child:
+        0x212c0ae (has no name): ()  840x629+10+38  +1985+52
+     0x3e148ac "terminator": ("terminator" "Terminator")  21x68+1069+329  +1069+329
+        1 child:
+        0x3e148ad (has no name): ()  1x1+-1+-1  +1068+328
+     0x215862c (has no name): ()  451x160+810+697  +810+697
+        1 child:
+        0x215862d (has no name): ()  431x112+10+38  +820+735
+     0x2159136 (has no name): ()  296x210+5474+629  +5474+629
+        1 child:
+        0x2159137 (has no name): ()  276x162+10+38  +5484+667
+     0x2158845 (has no name): ()  5760x1200+3840+120  +3840+120
+        1 child:
+        0x2158846 (has no name): ()  5760x1200+0+0  +3840+120
+     0x2158857 (has no name): ()  339x160+684+469  +684+469
+        1 child:
+        0x2158858 (has no name): ()  319x112+10+38  +694+507
+     0x2158451 (has no name): ()  1273x798+409+388  +409+388
+        1 child:
+        0x2158452 (has no name): ()  1253x750+10+38  +419+426
+     0x2158602 (has no name): ()  426x173+747+527  +747+527
+        1 child:
+        0x2158603 (has no name): ()  406x125+10+38  +757+565
+     0x21595ae (has no name): ()  426x173+747+527  +747+527
+        1 child:
+        0x21595af (has no name): ()  406x125+10+38  +757+565
+     0x215980b (has no name): ()  426x173+747+527  +747+527
+        1 child:
+        0x215980c (has no name): ()  406x125+10+38  +757+565
+     0x2159a50 (has no name): ()  426x173+747+527  +747+527
+        1 child:
+        0x2159a51 (has no name): ()  406x125+10+38  +757+565
+     0x2159f4a (has no name): ()  519x360+2653+291  +2653+291
+        1 child:
+        0x2159f4b (has no name): ()  499x312+10+38  +2663+329
+     0x215a14a (has no name): ()  303x169+808+529  +808+529
+        1 child:
+        0x215a14b (has no name): ()  283x121+10+38  +818+567
+     0x215ab26 (has no name): ()  322x236+875+659  +875+659
+        1 child:
+        0x215ab27 (has no name): ()  302x188+10+38  +885+697
+     0x3000013 "compiz": ("compiz" "Compiz")  200x200+0+0  +0+0
+        1 child:
+        0x3000014 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x300000f "compiz": ("compiz" "Compiz")  200x200+0+0  +0+0
+        1 child:
+        0x3000010 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x3000008 "compiz": ("compiz" "Compiz")  200x200+0+0  +0+0
+        1 child:
+        0x3000009 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x215ad0f (has no name): ()  5760x1200+3840+120  +3840+120
+        1 child:
+        0x215ad10 (has no name): ()  5760x1200+0+0  +3840+120
+     0x20001c6 (has no name): ()  65x1176+1920+24  +1920+24
+        1 child:
+        0x20001c7 (has no name): ()  65x1176+0+0  +1920+24
+           1 child:
+           0x3600010 "unity-launcher": ()  65x1176+0+0  +1920+24
+     0x20001c3 (has no name): ()  65x1176+0+24  +0+24
+        1 child:
+        0x20001c4 (has no name): ()  65x1176+0+0  +0+24
+           1 child:
+           0x3600009 "unity-launcher": ()  65x1176+0+0  +0+24
+     0x20001dd (has no name): ()  960x64+-1060+-164  +-1060+-164
+        1 child:
+        0x20001de (has no name): ()  960x64+0+0  +-1060+-164
+           1 child:
+           0x3600034 "Hud": ()  960x64+0+0  +-1060+-164
+     0x20001da (has no name): ()  1141x640+-1241+-740  +-1241+-740
+        1 child:
+        0x20001db (has no name): ()  1141x640+0+0  +-1241+-740
+           1 child:
+           0x3600033 "unity-dash": ()  1141x640+0+0  +-1241+-740
+     0x20001d7 (has no name): ()  1920x24+3840+120  +3840+120
+        1 child:
+        0x20001d8 (has no name): ()  1920x24+0+0  +3840+120
+           1 child:
+           0x360002c "unity-panel": ()  1920x24+0+0  +3840+120
+     0x20001d3 (has no name): ()  1920x24+1920+0  +1920+0
+        1 child:
+        0x20001d4 (has no name): ()  1920x24+0+0  +1920+0
+           1 child:
+           0x3600025 "unity-panel": ()  1920x24+0+0  +1920+0
+     0x20001cf (has no name): ()  1920x24+0+0  +0+0
+        1 child:
+        0x20001d0 (has no name): ()  1920x24+0+0  +0+0
+           1 child:
+           0x360001e "unity-panel": ()  1920x24+0+0  +0+0
+     0x20001c9 (has no name): ()  65x1056+3840+144  +3840+144
+        1 child:
+        0x20001ca (has no name): ()  65x1056+0+0  +3840+144
+           1 child:
+           0x3600017 "unity-launcher": ()  65x1056+0+0  +3840+144
+     0x20001c0 (has no name): ()  5760x1200+-5860+-1300  +-5860+-1300
+        1 child:
+        0x20001c1 (has no name): ()  5760x1200+0+0  +-5860+-1300
+           1 child:
+           0x3600002 "XdndCollectionWindowImp": ()  5760x1200+0+0  +-5860+-1300
+     0x215ad93 (has no name): ()  299x160+5471+654  +5471+654
+        1 child:
+        0x215ad94 (has no name): ()  279x112+10+38  +5481+692
+     0x215ba7b (has no name): ()  426x173+747+527  +747+527
+        1 child:
+        0x215ba7c (has no name): ()  406x125+10+38  +757+565
+     0x215c3d0 (has no name): ()  265x169+827+529  +827+529
+        1 child:
+        0x215c3d1 (has no name): ()  245x121+10+38  +837+567
+     0x215c45e (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x215c45f (has no name): ()  1855x1176+0+0  +65+24
+     0x215da99 (has no name): ()  860x677+3895+134  +3895+134
+        1 child:
+        0x215da9a (has no name): ()  840x629+10+38  +3905+172
+     0x215dce8 (has no name): ()  303x169+808+529  +808+529
+        1 child:
+        0x215dce9 (has no name): ()  283x121+10+38  +818+567
+     0x2162da0 (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x2162da1 (has no name): ()  1855x1176+0+0  +1985+24
+     0x21624b9 (has no name): ()  898x758+843+157  +843+157
+        1 child:
+        0x21624ba (has no name): ()  878x710+10+38  +853+195
+     0x20758cc (has no name): ()  860x677+3895+533  +3895+533
+        1 child:
+        0x20758cd (has no name): ()  840x629+10+38  +3905+571
+     0x206e88c (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x206e88d (has no name): ()  1855x1056+0+0  +3905+144
+     0x2166b6d (has no name): ()  58x68+55+14  +55+14
+        1 child:
+        0x2166b6e (has no name): ()  38x20+10+38  +65+52
+     0x2166c46 (has no name): ()  58x68+55+14  +55+14
+        1 child:
+        0x2166c47 (has no name): ()  38x20+10+38  +65+52
+     0x2166d52 (has no name): ()  58x68+55+14  +55+14
+        1 child:
+        0x2166d53 (has no name): ()  38x20+10+38  +65+52
+     0x2166e1e (has no name): ()  58x68+55+14  +55+14
+        1 child:
+        0x2166e1f (has no name): ()  38x20+10+38  +65+52
+     0x216708b (has no name): ()  58x68+55+14  +55+14
+        1 child:
+        0x216708c (has no name): ()  38x20+10+38  +65+52
+     0x21674b7 (has no name): ()  1310x753+2225+237  +2225+237
+        1 child:
+        0x21674b8 (has no name): ()  1290x705+10+38  +2235+275
+     0x2167ca7 (has no name): ()  58x68+55+14  +55+14
+        1 child:
+        0x2167ca8 (has no name): ()  38x20+10+38  +65+52
+     0x2167cd4 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x2167cd5 (has no name): ()  1855x1056+0+0  +3905+144
+     0x21682ac (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x21682ad (has no name): ()  1855x1056+0+0  +3905+144
+     0x2168388 (has no name): ()  58x68+55+14  +55+14
+        1 child:
+        0x2168389 (has no name): ()  38x20+10+38  +65+52
+     0x216850f (has no name): ()  1309x753+2225+237  +2225+237
+        1 child:
+        0x2168510 (has no name): ()  1289x705+10+38  +2235+275
+     0x2168ca3 (has no name): ()  519x224+4604+333  +4604+333
+        1 child:
+        0x2168ca4 (has no name): ()  499x176+10+38  +4614+371
+     0x216914e (has no name): ()  58x68+55+14  +55+14
+        1 child:
+        0x216914f (has no name): ()  38x20+10+38  +65+52
+     0x216a2f4 (has no name): ()  519x359+2653+291  +2653+291
+        1 child:
+        0x216a2f5 (has no name): ()  499x311+10+38  +2663+329
+     0x216acbb (has no name): ()  401x429+2679+399  +2679+399
+        1 child:
+        0x216acbc (has no name): ()  381x381+10+38  +2689+437
+     0x20ae257 (has no name): ()  303x169+808+529  +808+529
+        1 child:
+        0x20ae258 (has no name): ()  283x121+10+38  +818+567
+     0x3d2a9ea "Remmina": ("remmina" "Remmina")  21x68+999+735  +999+735
+        1 child:
+        0x3d2a9eb (has no name): ()  1x1+-1+-1  +998+734
+     0x20af21a (has no name): ()  1273x798+409+388  +409+388
+        1 child:
+        0x20af21b (has no name): ()  1253x750+10+38  +419+426
+     0x20bfd47 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x20bfd48 (has no name): ()  1855x1056+0+0  +3905+144
+     0x20bfd95 (has no name): ()  519x224+4604+333  +4604+333
+        1 child:
+        0x20bfd96 (has no name): ()  499x176+10+38  +4614+371
+     0x20ac72d (has no name): ()  647x464+713+527  +713+527
+        1 child:
+        0x20ac72e (has no name): ()  627x416+10+38  +723+565
+     0x20a53db (has no name): ()  553x399+751+528  +751+528
+        1 child:
+        0x20a53dc (has no name): ()  533x351+10+38  +761+566
+     0x20ae41a (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x20ae41b (has no name): ()  1855x1176+0+0  +65+24
+     0x20a735a (has no name): ()  303x169+808+529  +808+529
+        1 child:
+        0x20a735b (has no name): ()  283x121+10+38  +818+567
+     0x20a7429 (has no name): ()  426x173+747+527  +747+527
+        1 child:
+        0x20a742a (has no name): ()  406x125+10+38  +757+565
+     0x20a7526 (has no name): ()  303x169+808+529  +808+529
+        1 child:
+        0x20a7527 (has no name): ()  283x121+10+38  +818+567
+     0x20a2e3b (has no name): ()  1273x798+409+388  +409+388
+        1 child:
+        0x20a2e3c (has no name): ()  1253x750+10+38  +419+426
+     0x20a798c (has no name): ()  678x433+697+528  +697+528
+        1 child:
+        0x20a798d (has no name): ()  658x385+10+38  +707+566
+     0x20a7870 (has no name): ()  1273x798+409+388  +409+388
+        1 child:
+        0x20a7871 (has no name): ()  1253x750+10+38  +419+426
+     0x3e3dfb3 "terminator": ("terminator" "Terminator")  21x68+810+494  +810+494
+        1 child:
+        0x3e3dfb4 (has no name): ()  1x1+-1+-1  +809+493
+     0x20addea (has no name): ()  470x227+725+500  +725+500
+        1 child:
+        0x20addeb (has no name): ()  450x179+10+38  +735+538
+     0x20adeaa (has no name): ()  1306x715+2226+250  +2226+250
+        1 child:
+        0x20adeab (has no name): ()  1286x667+10+38  +2236+288
+     0x2168999 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x216899a (has no name): ()  1855x1056+0+0  +3905+144
+     0x20861f8 (has no name): ()  1273x798+409+388  +409+388
+        1 child:
+        0x20861f9 (has no name): ()  1253x750+10+38  +419+426
+     0x2086b5d (has no name): ()  492x619+714+304  +714+304
+        1 child:
+        0x2086b5e (has no name): ()  472x571+10+38  +724+342
+     0x20871ba (has no name): ()  471x457+724+413  +724+413
+        1 child:
+        0x20871bb (has no name): ()  451x409+10+38  +734+451
+     0x2087132 (has no name): ()  870x501+525+363  +525+363
+        1 child:
+        0x2087133 (has no name): ()  850x453+10+38  +535+401
+     0x20873be (has no name): ()  303x169+808+529  +808+529
+        1 child:
+        0x20873bf (has no name): ()  283x121+10+38  +818+567
+     0x20874a6 (has no name): ()  426x173+747+527  +747+527
+        1 child:
+        0x20874a7 (has no name): ()  406x125+10+38  +757+565
+     0x20875c1 (has no name): ()  303x169+808+529  +808+529
+        1 child:
+        0x20875c2 (has no name): ()  283x121+10+38  +818+567
+     0x20887ad (has no name): ()  370x360+841+555  +841+555
+        1 child:
+        0x20887ae (has no name): ()  350x312+10+38  +851+593
+     0x2085ad6 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x2085ad7 (has no name): ()  1855x1056+0+0  +3905+144
+     0x2087675 (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x2087676 (has no name): ()  1855x1176+0+0  +65+24
+     0x208b0aa (has no name): ()  1872x1073+55+14  +55+14
+        1 child:
+        0x208b0ab (has no name): ()  1852x1025+10+38  +65+52
+     0x208b968 (has no name): ()  1872x1073+55+137  +55+137
+        1 child:
+        0x208b969 (has no name): ()  1852x1025+10+38  +65+175
+     0x208ccd2 (has no name): ()  367x293+776+467  +776+467
+        1 child:
+        0x208ccd3 (has no name): ()  347x245+10+38  +786+505
+     0x208ce53 (has no name): ()  492x619+714+304  +714+304
+        1 child:
+        0x208ce54 (has no name): ()  472x571+10+38  +724+342
+     0x208cfc2 (has no name): ()  303x169+808+529  +808+529
+        1 child:
+        0x208cfc3 (has no name): ()  283x121+10+38  +818+567
+     0x20a30ce (has no name): ()  303x169+808+529  +808+529
+        1 child:
+        0x20a30cf (has no name): ()  283x121+10+38  +818+567
+     0x20a31a9 (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x20a31aa (has no name): ()  1855x1176+0+0  +65+24
+     0x20a4777 (has no name): ()  1044x816+886+303  +886+303
+        1 child:
+        0x20a4778 (has no name): ()  1024x768+10+38  +896+341
+     0x20a4900 (has no name): ()  1044x816+886+303  +886+303
+        1 child:
+        0x20a4901 (has no name): ()  1024x768+10+38  +896+341
+     0x20a4d00 (has no name): ()  1044x816+600+232  +600+232
+        1 child:
+        0x20a4d01 (has no name): ()  1024x768+10+38  +610+270
+     0x20a4e53 (has no name): ()  1044x816+886+303  +886+303
+        1 child:
+        0x20a4e54 (has no name): ()  1024x768+10+38  +896+341
+     0x20a4f15 (has no name): ()  1044x816+886+303  +886+303
+        1 child:
+        0x20a4f16 (has no name): ()  1024x768+10+38  +896+341
+     0x209855e (has no name): ()  1044x816+886+303  +886+303
+        1 child:
+        0x209855f (has no name): ()  1024x768+10+38  +896+341
+     0x2098f53 (has no name): ()  1044x816+2280+259  +2280+259
+        1 child:
+        0x2098f54 (has no name): ()  1024x768+10+38  +2290+297
+     0x209ad98 (has no name): ()  5780x1248+217+134  +217+134
+        1 child:
+        0x209ad99 (has no name): ()  5760x1200+10+38  +227+172
+     0x209b1b1 (has no name): ()  2867x636+55+14  +55+14
+        1 child:
+        0x209b1b2 (has no name): ()  2847x588+10+38  +65+52
+     0x209b2c4 (has no name): ()  2867x636+55+14  +55+14
+        1 child:
+        0x209b2c5 (has no name): ()  2847x588+10+38  +65+52
+     0x209b3c2 (has no name): ()  1899x436+55+14  +55+14
+        1 child:
+        0x209b3c3 (has no name): ()  1879x388+10+38  +65+52
+     0x3e44a62 "terminator": ("terminator" "Terminator")  21x68+1899+1009  +1899+1009
+        1 child:
+        0x3e44a63 (has no name): ()  1x1+-1+-1  +1898+1008
+     0x214ebf1 (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x214ebf2 (has no name): ()  1855x1176+0+0  +65+24
+           1 child:
+           0x3e00004 "localcosadmin@DLPBMM1: ~/.scripts": ("terminator" "Terminator")  1855x1176+0+0  +65+24
+              1 child:
+              0x3e00005 (has no name): ()  1x1+-1+-1  +64+23
+     0x20adee8 (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x20adee9 (has no name): ()  1855x1176+0+0  +1985+24
+           1 child:
+           0x42000c9 "tabgroups : linux get window size pixels - Google Search - Mozilla Firefox": ("Navigator" "Firefox")  1855x1176+0+0  +1985+24
+              1 child:
+              0x42000ca (has no name): ()  1x1+-1+-1  +1984+23
+     0x3e43d21 "terminator": ("terminator" "Terminator")  21x68+1899+442  +1899+442
+        1 child:
+        0x3e43d22 (has no name): ()  1x1+-1+-1  +1898+441
+     0x2001f98 (has no name): ()  947x1196+65+14  +65+14
+        2 children:
+        0x2001f99 (has no name): ()  927x1148+10+38  +75+52
+           1 child:
+           0x3c00007 "Remmina Remote Desktop Client": ("remmina" "Remmina")  927x1148+0+0  +75+52
+              3 children:
+              0x3c00020 (has no name): ()  3x1079+924+40  +999+92
+              0x3c0001f (has no name): ()  3x1079+924+40  +999+92
+              0x3c00008 (has no name): ()  1x1+-1+-1  +74+51
+        0x2001f9b (has no name): ()  947x1196+0+0  +65+14
+     0x20165e4 (has no name): ()  559x448+2011+310  +2011+310
+        2 children:
+        0x20165e5 (has no name): ()  539x400+10+38  +2021+348
+           1 child:
+           0x4c00005 "TeamViewer": ("TeamViewer.exe" "Wine")  539x400+0+0  +2021+348
+        0x20165e6 (has no name): ()  559x448+0+0  +2011+310
+     0x208d0a1 (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x208d0a2 (has no name): ()  1855x1176+0+0  +65+24
+     0x21682fc (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x21682fd (has no name): ()  1855x1056+0+0  +3905+144
+           1 child:
+           0x50000c9 "apps : Michael Salisbury - Outlook Web App - Mozilla Firefox": ("Navigator" "Firefox")  1855x1056+0+0  +3905+144
+              1 child:
+              0x50000ca (has no name): ()  1x1+-1+-1  +3904+143
+     0x3e40374 "terminator": ("terminator" "Terminator")  21x68+1899+411  +1899+411
+        1 child:
+        0x3e40375 (has no name): ()  1x1+-1+-1  +1898+410
+     0x2086709 (has no name): ()  1273x798+409+388  +409+388
+        1 child:
+        0x208670a (has no name): ()  1253x750+10+38  +419+426
+     0x20a7617 (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x20a7618 (has no name): ()  1855x1176+0+0  +65+24
+     0x20b1e3c (has no name): ()  1273x798+409+388  +409+388
+        1 child:
+        0x20b1e3d (has no name): ()  1253x750+10+38  +419+426
+     0x2168502 (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x2168503 (has no name): ()  1855x1176+0+0  +1985+24
+     0x2168e8a (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x2168e8b (has no name): ()  1855x1056+0+0  +3905+144
+           1 child:
+           0x5003fdd "Library": ("Places" "Firefox")  1855x1056+0+0  +3905+144
+              1 child:
+              0x5003fde (has no name): ()  1x1+-1+-1  +3904+143
+     0x216883a (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x216883b (has no name): ()  1855x1056+0+0  +3905+144
+           1 child:
+           0x5001207 "apps : Download Overview - Mozilla Firefox": ("Navigator" "Firefox")  1855x1056+0+0  +3905+144
+              1 child:
+              0x5001208 (has no name): ()  1x1+-1+-1  +3904+143
+     0x2a332ce "nautilus": ("nautilus" "Nautilus")  21x68+1899+622  +1899+622
+        1 child:
+        0x2a332cf (has no name): ()  1x1+-1+-1  +1898+621
+     0x20e9ecd (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x20e9ece (has no name): ()  1855x1176+0+0  +65+24
+           1 child:
+           0x2a1c904 "Downloads": ("nautilus" "Nautilus")  1855x1176+0+0  +65+24
+              2 children:
+              0x2a1cd2e (has no name): ()  1666x1137+189+39  +254+63
+                 4 children:
+                 0x2a2e82b (has no name): ()  3x1135+1662+1  +1916+64
+                 0x2a2e82a (has no name): ()  3x1135+1662+1  +1916+64
+                 0x2a2e82d (has no name): ()  1x1+0+0  +254+63
+                 0x2a2e82c (has no name): ()  1x1+0+0  +254+63
+              0x2a1c905 (has no name): ()  1x1+-1+-1  +64+23
+     0x215ddb5 (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x215ddb6 (has no name): ()  1855x1176+0+0  +65+24
+     0x21691dd (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x21691de (has no name): ()  1855x1056+0+0  +3905+144
+           1 child:
+           0x5004d85 "apps : Trello - Mozilla Firefox": ("Navigator" "Firefox")  1855x1056+0+0  +3905+144
+              1 child:
+              0x5004d86 (has no name): ()  1x1+-1+-1  +3904+143
+     0x216840d (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x216840e (has no name): ()  1855x1056+0+0  +3905+144
+           1 child:
+           0x50009b7 "apps : Sign in to Office 365 - Mozilla Firefox": ("Navigator" "Firefox")  1855x1056+0+0  +3905+144
+              1 child:
+              0x50009b8 (has no name): ()  1x1+-1+-1  +3904+143
+     0x2166b9b (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x2166b9c (has no name): ()  1855x1056+0+0  +3905+144
+     0x2166ccb (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x2166ccc (has no name): ()  1855x1056+0+0  +3905+144
+     0x21670bc (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x21670bd (has no name): ()  1855x1056+0+0  +3905+144
+     0x2069dba (has no name): ()  1304x990+1975+14  +1975+14
+        2 children:
+        0x2069dbb (has no name): ()  1284x942+10+38  +1985+52
+           1 child:
+           0x5400085 "sm.new3.txt (~/Downloads) - gedit": ("gedit" "Gedit")  1284x942+0+0  +1985+52
+              2 children:
+              0x54000b5 (has no name): ()  1284x880+0+40  +1985+92
+                 4 children:
+                 0x54000bb (has no name): ()  1x1+0+0  +1985+92
+                 0x54000b9 (has no name): ()  1x1+0+0  +1985+92
+                 0x54000ba (has no name): ()  1x1+0+0  +1985+92
+                 0x54000b8 (has no name): ()  1x1+0+0  +1985+92
+              0x5400086 (has no name): ()  1x1+-1+-1  +1984+51
+        0x2069dbd (has no name): ()  1304x990+0+0  +1975+14
+     0x2166eaa (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x2166eab (has no name): ()  1855x1056+0+0  +3905+144
+     0x2166d80 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x2166d81 (has no name): ()  1855x1056+0+0  +3905+144
+     0x21667d6 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x21667d7 (has no name): ()  1855x1056+0+0  +3905+144
+     0x21644e1 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x21644e2 (has no name): ()  1855x1056+0+0  +3905+144
+     0x206e890 (has no name): ()  911x381+3895+219  +3895+219
+        1 child:
+        0x206e891 (has no name): ()  891x333+10+38  +3905+257
+     0x2158223 (has no name): ()  303x169+808+529  +808+529
+        1 child:
+        0x2158224 (has no name): ()  283x121+10+38  +818+567
+     0x3e2a1e9 "terminator": ("terminator" "Terminator")  21x68+1899+124  +1899+124
+        1 child:
+        0x3e2a1ea (has no name): ()  1x1+-1+-1  +1898+123
+     0x3e2e99b "terminator": ("terminator" "Terminator")  21x68+1899+578  +1899+578
+        1 child:
+        0x3e2e99c (has no name): ()  1x1+-1+-1  +1898+577
+     0x206e88e (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x206e88f (has no name): ()  1855x1056+0+0  +3905+144
+     0x206fd25 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x206fd26 (has no name): ()  1855x1056+0+0  +3905+144
+     0x20d1131 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x20d1132 (has no name): ()  1855x1056+0+0  +3905+144
+     0x20d1064 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x20d1065 (has no name): ()  1855x1056+0+0  +3905+144
+     0x20d0de1 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x20d0de2 (has no name): ()  1855x1056+0+0  +3905+144
+     0x2076436 (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x2076437 (has no name): ()  1855x1176+0+0  +65+24
+     0x21acfa4 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x21acfa5 (has no name): ()  1855x1056+0+0  +3905+144
+     0x21ad03a (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x21ad03b (has no name): ()  1855x1056+0+0  +3905+144
+     0x3e00325 "terminator": ("terminator" "Terminator")  21x68+1899+551  +1899+551
+        1 child:
+        0x3e00326 (has no name): ()  1x1+-1+-1  +1898+550
+     0x21277c4 (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x21277c5 (has no name): ()  1855x1176+0+0  +1985+24
+           1 child:
+           0x1a0000f "Otherworld (1985) - S01E03 - Paradise Lost.mp4": ("totem" "Totem")  1855x1176+0+0  +1985+24
+              3 children:
+              0x1a0002a (has no name): ()  269x1147+1586+0  +3571+24
+                 2 children:
+                 0x1a00029 (has no name): ()  267x3+1+1109  +3572+1133
+                 0x1a00028 (has no name): ()  267x3+1+1109  +3572+1133
+              0x1a000aa (has no name): ()  1580x1075+0+0  +1985+24
+              0x1a00010 (has no name): ()  1x1+-1+-1  +1984+23
+     0x3e19f66 "terminator": ("terminator" "Terminator")  21x68+1899+790  +1899+790
+        1 child:
+        0x3e19f67 (has no name): ()  1x1+-1+-1  +1898+789
+     0x21229b4 (has no name): ()  1875x1104+0+47  +0+47
+        1 child:
+        0x21229b5 (has no name): ()  1855x1056+10+38  +10+85
+     0x211e81c (has no name): ()  332x248+686+75  +686+75
+        2 children:
+        0x211e81d (has no name): ()  312x200+10+38  +696+113
+           1 child:
+           0x6000007 "Calculator": ("gcalctool" "Gcalctool")  312x200+0+0  +696+113
+              1 child:
+              0x6000008 (has no name): ()  1x1+-1+-1  +695+112
+        0x211e81f (has no name): ()  332x248+0+0  +686+75
+     0x2117af3 (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x2117af4 (has no name): ()  1855x1176+0+0  +65+24
+     0x20b5a32 (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x20b5a33 (has no name): ()  1855x1176+0+0  +65+24
+     0x20165c7 (has no name): ()  242x446+3398+420  +3398+420
+        2 children:
+        0x20165c8 (has no name): ()  222x398+10+38  +3408+458
+           1 child:
+           0x4c0000a "Computers & Contacts": ("TeamViewer.exe" "Wine")  222x398+0+0  +3408+458
+        0x20165c9 (has no name): ()  242x446+0+0  +3398+420
+     0x20c393c (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x20c393d (has no name): ()  1855x1176+0+0  +65+24
+     0x21aaf3b (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x21aaf3c (has no name): ()  1855x1056+0+0  +3905+144
+     0x21aa7a7 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x21aa7a8 (has no name): ()  1855x1056+0+0  +3905+144
+     0x21aa738 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x21aa739 (has no name): ()  1855x1056+0+0  +3905+144
+     0x21a2323 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x21a2324 (has no name): ()  1855x1056+0+0  +3905+144
+     0x21a193e (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x21a193f (has no name): ()  1855x1056+0+0  +3905+144
+     0x21a0404 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x21a0405 (has no name): ()  1855x1056+0+0  +3905+144
+     0x219fc3f (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x219fc40 (has no name): ()  1855x1056+0+0  +3905+144
+     0x219c0be (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x219c0bf (has no name): ()  1855x1056+0+0  +3905+144
+     0x219d0ca (has no name): ()  1875x1076+3895+134  +3895+134
+        1 child:
+        0x219d0cb (has no name): ()  1855x1028+10+38  +3905+172
+     0x217b2e1 (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x217b2e2 (has no name): ()  1855x1056+0+0  +3905+144
+     0x20219ec (has no name): ()  1855x1056+3905+144  +3905+144
+        1 child:
+        0x20219ed (has no name): ()  1855x1056+0+0  +3905+144
+     0x20856ce (has no name): ()  1855x1176+1985+24  +1985+24
+        1 child:
+        0x20856cf (has no name): ()  1855x1176+0+0  +1985+24
+     0x20fe632 (has no name): ()  332x248+1975+14  +1975+14
+        1 child:
+        0x20fe633 (has no name): ()  312x200+10+38  +1985+52
+     0x20fcdcb (has no name): ()  332x248+1975+14  +1975+14
+        1 child:
+        0x20fcdcc (has no name): ()  312x200+10+38  +1985+52
+     0x20f4a8d (has no name): ()  1875x1196+1975+14  +1975+14
+        1 child:
+        0x20f4a8e (has no name): ()  1855x1148+10+38  +1985+52
+     0x2015611 (has no name): ()  242x446+3398+420  +3398+420
+        1 child:
+        0x2015612 (has no name): ()  222x398+10+38  +3408+458
+     0x2002117 (has no name): ()  1855x1176+65+24  +65+24
+        1 child:
+        0x2002118 (has no name): ()  1855x1176+0+0  +65+24
+     0x3000001 "compiz": ("compiz" "Compiz")  10x10+10+10  +10+10
+        1 child:
+        0x3000002 (has no name): ()  1x1+-1+-1  +9+9
+     0x20000b2 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x2a00007 "nautilus": ()  10x10+-100+-100  +-100+-100
+     0x2a00004 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x2600004 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x2400004 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x2a00001 "nautilus": ("nautilus" "Nautilus")  10x10+10+10  +10+10
+        1 child:
+        0x2a00002 (has no name): ()  1x1+-1+-1  +9+9
+     0x2600001 "NetworkManager Applet": ("nm-applet" "Nm-applet")  10x10+10+10  +10+10
+        1 child:
+        0x2600002 (has no name): ()  1x1+-1+-1  +9+9
+     0x2800001 "polkit-gnome-authentication-agent-1": ("polkit-gnome-authentication-agent-1" "Polkit-gnome-authentication-agent-1")  10x10+10+10  +10+10
+        1 child:
+        0x2800002 (has no name): ()  1x1+-1+-1  +9+9
+     0x2400001 "NetworkManager Applet": ("nm-applet" "Nm-applet")  10x10+10+10  +10+10
+        1 child:
+        0x2400002 (has no name): ()  1x1+-1+-1  +9+9
+     0x2c00001 "blueman-applet": ("blueman-applet" "Blueman-applet")  10x10+10+10  +10+10
+        1 child:
+        0x2c00002 (has no name): ()  1x1+-1+-1  +9+9
+     0x2000091 "Compiz": ()  1x1+-100+-100  +-100+-100
+     0x2200001 "unity-fallback-mount-helper": ("unity-fallback-mount-helper" "Unity-fallback-mount-helper")  10x10+10+10  +10+10
+        1 child:
+        0x2200002 (has no name): ()  1x1+-1+-1  +9+9
+     0x200000d (has no name): ()  2x2+5759+1199  +5759+1199
+     0x200000c (has no name): ()  2x2+-1+1199  +-1+1199
+     0x200000b (has no name): ()  2x2+5759+-1  +5759+-1
+     0x200000a (has no name): ()  2x2+-1+-1  +-1+-1
+     0x2000005 "Compiz": ()  1x1+-100+-100  +-100+-100
+     0x2000004 "Compiz": ()  1x1+-100+-100  +-100+-100
+     0x1800001 "indicator-printers-service": ("indicator-printers-service" "Indicator-printers-service")  10x10+10+10  +10+10
+        1 child:
+        0x1800002 (has no name): ()  1x1+-1+-1  +9+9
+     0xe00008 (has no name): ()  10x10+0+0  +0+0
+     0x100003f "hud-service": ("hud-service" "Hud-service")  200x200+0+0  +0+0
+        1 child:
+        0x1000040 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x1600001 "indicator-keyboard-service": ("indicator-keyboard-service" "Indicator-keyboard-service")  10x10+10+10  +10+10
+        1 child:
+        0x1600002 (has no name): ()  1x1+-1+-1  +9+9
+     0xe00004 (has no name): ()  10x10+0+0  +0+0
+     0x1400004 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x1400001 "unity-panel-service": ("unity-panel-service" "Unity-panel-service")  10x10+10+10  +10+10
+        1 child:
+        0x1400002 (has no name): ()  1x1+-1+-1  +9+9
+     0x100002b "hud-service": ("hud-service" "Hud-service")  200x200+0+0  +0+0
+        1 child:
+        0x100002c (has no name): ()  1x1+-1+-1  +-1+-1
+     0x1200001 "gnome-session": ("gnome-session" "Gnome-session")  10x10+10+10  +10+10
+        1 child:
+        0x1200002 (has no name): ()  1x1+-1+-1  +9+9
+     0x1000003 "hud-service": ("hud-service" "Hud-service")  200x200+0+0  +0+0
+        1 child:
+        0x1000004 (has no name): ()  1x1+-1+-1  +-1+-1
+     0x1000001 "hud-service": ("hud-service" "Hud-service")  10x10+10+10  +10+10
+        1 child:
+        0x1000002 (has no name): ()  1x1+-1+-1  +9+9
+     0xe00001 "unity-settings-daemon": ("unity-settings-daemon" "Unity-settings-daemon")  10x10+10+10  +10+10
+        1 child:
+        0xe00002 (has no name): ()  1x1+-1+-1  +9+9
+     0xa00004 (has no name): ()  1x1+-1+-1  +-1+-1
+     0xc00003 "ibus-xim": ()  1x1+0+0  +0+0
+        1 child:
+        0xc00004 (has no name): ()  1x1+-1+-1  +-1+-1
+     0xc00001 "ibus-x11": ("ibus-x11" "Ibus-x11")  10x10+10+10  +10+10
+        1 child:
+        0xc00002 (has no name): ()  1x1+-1+-1  +9+9
+     0xa00001 "ibus-ui-gtk3": ("ibus-ui-gtk3" "Ibus-ui-gtk3")  10x10+10+10  +10+10
+        1 child:
+        0xa00002 (has no name): ()  1x1+-1+-1  +9+9
+     0x400001 "bamfdaemon": ("bamfdaemon" "Bamfdaemon")  10x10+10+10  +10+10
+        1 child:
+        0x400002 (has no name): ()  1x1+-1+-1  +9+9
+     0x20001bd (has no name): ()  5760x1200+0+0  +0+0
+        1 child:
+        0x20001be (has no name): ()  5760x1200+0+0  +0+0
+           1 child:
+           0x2a0000a "Desktop": ("desktop_window" "Nautilus")  5760x1200+0+0  +0+0
+              1 child:
+              0x2a0000b (has no name): ()  1x1+-1+-1  +-1+-1
+
+  Absolute upper-left X:  0
+  Absolute upper-left Y:  0
+  Relative upper-left X:  0
+  Relative upper-left Y:  0
+  Width: 5760
+  Height: 1200
+  Depth: 24
+  Visual: 0x21
+  Visual Class: TrueColor
+  Border width: 0
+  Class: InputOutput
+  Colormap: 0x20 (installed)
+  Bit Gravity State: NorthWestGravity
+  Window Gravity State: NorthWestGravity
+  Backing Store State: NotUseful
+  Save Under State: no
+  Map State: IsViewable
+  Override Redirect State: no
+  Corners:  +0+0  -0+0  -0-0  +0-0
+  -geometry 5760x1200+0+0
+
+  Bit gravity: NorthWestGravity
+  Window gravity: NorthWestGravity
+  Backing-store hint: NotUseful
+  Backing-planes to be preserved: 0xffffffff
+  Backing pixel: 0
+  Save-unders: No
+
+  Someone wants these events:
+      KeyPress
+      KeyRelease
+      ButtonPress
+      ButtonRelease
+      EnterWindow
+      LeaveWindow
+      KeymapState
+      Exposure
+      StructureNotify
+      SubstructureNotify
+      SubstructureRedirect
+      FocusChange
+      PropertyChange
+  Do not propagate these events:
+  Override redirection?: No
+
+  No window manager hints defined
+  Window manager hints:
+      Process id: (unknown)
+
+  No normal window size hints defined
+  No zoom window size hints defined
+
+  No window shape defined
+  No border shape defined
+

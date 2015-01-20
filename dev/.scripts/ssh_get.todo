@@ -1,0 +1,18 @@
+
+
+5  0  255  10.171.117.68   5B83QS1.cos.ucf.edu           dr-islas                                                    
+5  0  255  10.171.92.86    statistics2.cos.ucf.edu                                                                   
+5  0  255  10.173.161.111  FGW1002.net.ucf.edu           dr-bochen-freenas                                           
+5  0  255  10.173.156.190  2UA20814VX.cos.ucf.edu        dr-jameshopper-nmr  Agilent-NMR         #redhat             
+subscription                                                                                                                  
+5  0  255  10.171.92.38    cos-webfun.cos.ucf.edu        fun                                                         
+5  0  255  10.173.204.42   Discovery.i2lab.ucf.edu       discovery           #un=msalisbury      pw=1qaz@WSX         
+5  0  255  10.190.194.197  stokes.ist.ucf.edu            stokes                                                      
+5  0  255  10.173.152.121  5K4B2D1.cos.ucf.edu           dr-richardson-freenasnmrdata             #root:$pinG0D       
+5  0  255  10.173.204.41   hilbert.i2lab.ucf.edu         hilbert             #un=mucciolo        pw=ut47!mlq         
+5  0  255  10.173.161.240  dr-saha-SUN10                 SUN10                                                       
+5  0  255  10.173.160.33   guass.math.ucf.edu            gauss               #login=mi164210     su                  
+pw "math@cs"                                                                                                               
+5  0  255  10.173.158.149  dr-saha-SUN3                  SUN3                #su=mitra$7         hari=#U*P?S9        
+5  0  255  10.173.158.27   dr-saha-SUN2                  SUN2                #su=mitra$7         hari=               
+5  0  255  10.173.152.91   USE943N5HQ.cos.ucf.edu        qi-zhang                                                    

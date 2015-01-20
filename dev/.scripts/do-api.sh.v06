@@ -1,0 +1,120 @@
+#!/bin/bash
+# Dependencies: curl jq
+function main(){
+	TOKEN='50272476d2be2355933a3b2afef41dec99d9510f0ab1856af4a5863360eb8929'
+	HTTP_METHOD='https'
+	DO_API_URL_PREFIX='api.digitalocean.com/v2'
+	OBJECT=
+	JSON="Content-Type: application/json"
+	OAUTH="Authorization: Bearer $TOKEN"
+
+	bob="123\ 456"
+	sam=( 1 2 3 4 5 6 )
+	sam=( 1 s2 3 4 5 "6 6 6" )
+	sam[${#sam[*]}]='maybe "this" works'
+	mark='worst cat'
+
+	my_parent=( my_object bob )
+	my_object=( bob sam mark )
+	json_from_vars sam bob mark
+	json_from_vars sam bob mark | json_add_parent top | jq .
+	json_from_vars my_object | jq .
+	json_from_vars my_parent | jq .
+	
+
+
+	GET account  | jq . > do_account.json
+	GET droplets | jq . > do_droplets.json
+	
+	json_account=`cat do_account.json`
+	json_droplets=`cat do_droplets.json`
+	jq .account.uuid <<< "${json_account}"
+	jq .meta.total <<< "${json_droplets}"
+	jq .droplets[0].image <<< "${json_droplets}"
+	jq .droplets[0].image.name <<< "${json_droplets}"
+	jq .droplets[0].name <<< "${json_droplets}"
+	jq .droplets[0].status <<< "${json_droplets}"
+	echo
+	jq .droplets[0] < do_droplets.json
+
+
+
+}
+function GET(){
+	local OAUTH="Authorization: Bearer $TOKEN"
+	local JSON="Content-Type: application/json"
+	local URL="${HTTP_METHOD}://${DO_API_URL_PREFIX}"
+	curl -X GET -H "${JSON}" -H "${OAUTH}" "${URL}/$@" 2>/dev/null
+	#tr [{},] \\\n |
+	#sed 's/^"//;s/":/=/'
+}
+function value_is_number(){
+	(( ${#1} )) || return 1
+	#local value=${1//[[:digit:].]/} # this strips out any characters that are not digits or decimal points
+	echo ${1//[\$\`]/} |
+	egrep '(^[[:digit:]]+$)|(^[[:digit:]]*[.][[:digit:]]*$)' |
+	egrep -q -v '^[.]$'
+	# the first egrep confirms that the number is formated as a number with or without a single decimal place
+	# the second egrep command eliminates the posibility of a value with only a decimal place (a dot)
+}
+function json_from_vars(){
+	local i
+	local VAR=$1
+	shift
+	# if multiple variables were presented join them into a single json object
+	if (( ${#@} )); then
+		jq -M -c -s '.[0] + .[1]' <(${FUNCNAME} ${VAR}) <(${FUNCNAME} "$@")
+		return	
+	fi
+	# get the contents of the variable VAR
+	eval local  VAL=( \"\${${VAR}[@]}\" )
+	# if the contents of VAR (VAL) are a list of variables then treat VAR as an object
+	while true; do
+		for i in `seq 0 $(( ${#VAL[*]} - 1 ))`; do
+			# test if contents contain special characters that would disqualify them as variables
+			if [[ "${VAL[$i]//[^[:alpha:]_[:digit:]]/@}" =~ @ ]]; then
+				break 2
+			# test if contents are a set variable
+			elif ! (( ${!VAL[$i]+1} )); then
+				break 2
+			fi
+		done
+		# recusivelly create the object and then nest it under the parent
+		${FUNCNAME} ${VAL[@]} | jq -s -M -c ".[] | { ${VAR}: . }"
+		return
+	done
+	# iterate threw each index
+	for i in `seq 0 $(( ${#VAL[*]} - 1 ))`; do
+		# escape escapes
+		VAL[$i]=${VAL[$i]//\\/\\\\}
+		# escape double quotes
+		VAL[$i]=${VAL[$i]//\"/\\\"}
+		# don't enclose numbers in double quotes
+		value_is_number "${VAL[$i]}" || VAL[$i]=\"${VAL[$i]}\"
+		# don't append comma to last index
+		(( ${#VAL[*]} - 1 > i ))     && VAL[$i]=${VAL[$i]},
+	done
+	# generate JSON
+	if (( ${#VAL[*]} - 1 )); then
+		# if bash var was array
+		cat <<-JQ | jq -n -M -c "`cat`"
+			{
+				${VAR}: [ ${VAL[@]} ]
+			}
+		JQ
+	else
+		# if bash var was string
+		cat <<-JQ | jq -n -M -c "`cat`"
+			{
+				${VAR}: ${VAL}
+			}
+		JQ
+	fi
+}
+function json_add_parent(){
+	local parent=${1//[\$\`]/}
+	local parent=${parent//[^[:alpha:][:digit:]_]/}
+	jq -s -M -c ".[] | { ${parent}: . }"
+}
+
+main "$@"

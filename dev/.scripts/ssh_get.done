@@ -1,0 +1,39 @@
+
+
+5  0  0    6.1       10.173.152.117  2UA2270X6V.cos.ucf.edu        dr-bochen-nmr       SSNMR               #redhat subscription
+5  0  0    6.4       10.171.252.95   5T2TNC1.cos.ucf.edu           dr-richardson-ch1   mercury300                              
+5  0  0    5.4       10.173.153.12   cluster.chemistry.cos.ucf.edu cc                                                          
+5  0  0    12.04     10.171.117.146  1431QS1.cos.ucf.edu           dr-schober                                                  
+5  0  0    14.04     10.173.158.75   60LX1N1.cos.ucf.edu           dr-mucciolo-desktop                                         
+5  0  0    4.0r9     10.173.152.91   USE943N5HQ.cos.ucf.edu        qi-zhang                                                    
+5  0  0    6.4       10.171.252.38   BTMZRW1.cos.ucf.edu           dr-richardson-ch0   vnmrs500                                
+5  0  0    5.3       10.173.160.31   lagrange.research.math.ucf.edulagrange                                                    
+5  0  0    6.4       10.173.152.119  BTN0SW1.cos.ucf.edu           dr-richardson-ps    avance400                               
+5  5  0    14.04     10.173.119.78   G88192RMXYK.cos.ucf.edu       G88192RMXYK         MACS2                                   
+5  0  0    6.6       10.171.92.123   research-license-01.cos.ucf.eduresearch-license-01                                         
+5  0  0    5.3       10.173.160.22   fermat.research.math.ucf.edu  fermat                                                      
+5  0  0    5         10.173.160.23   pascal.research.math.ucf.edu  pascal                                                      
+5  0  0    12.10     10.173.156.165  3QPH2F1.cos.ucf.edu           pejman              #mucciolo           student PS310       
+5  0  0    14.04     10.173.156.60   1QG5TW1.cos.ucf.edu           dr-schelling-abrar  abrar               #schelling student PS321
+5  0  0    5.3       10.173.160.24   euclid.research.math.ucf.edu  euclid                                                      
+5  0  0    NA        10.173.153.11   client.chemistry.cos.ucf.edu  zf                                                          
+5  0  0    NA        10.171.92.55    shoutcast.cos.ucf.edu         shoutcast                                                   
+5  0  0    NA        10.173.119.72   c07G31B5DJY7.cos.ucf.edu      C07G31B5DJY7        MACS                                    
+5  0  0    5.3       10.173.160.30   jacobi.research.math.ucf.edu  jacobi                                                      
+5  0  0    5.3       10.173.153.14   zou.chemistry.cos.ucf.edu     zc                                                          
+5  0  0    14.04     10.173.161.109  69RXBX1.cos.ucf.edu           dr-montgomery-alienware                                        
+5  0  0    5.3       10.173.160.21   laplace.research.math.ucf.edu laplace                                                     
+5  0  0    14.04     10.173.158.162  JQQ5PS1.cos.ucf.edu           dr-rahman                                                   
+5  5  0    13.10     10.173.161.79   60D4001E.cos.ucf.edu          dr-kara-origin                                              
+5  5  0    14.04     127.0.0.1       DLPBMM1.cos.ucf.edu           DLPBMM1             localhost                               
+5  0  0    10.04     10.173.158.120  uhura.physics.ucf.edu         dr-colwell-ubuntu   microgravity.physics.ucf.eduuhura	microgravity  
+5  0  0    14.04     10.173.161.110  FX2ZQD1.cos.ucf.edu           dr-montgomery-exoplanetsexoplanets                              
+5  0  0    13.04     10.173.158.206  D4RPDX1.cos.ucf.edu           dr-klemm                                                    
+5  0  0    5.5       10.173.153.13   zou-i7.chemistry.cos.ucf.edu  z7                                                          
+5  0  0    6.3       10.173.161.45   BhattCluster.physics.ucf.edu  dr-aniket-rocks     aniket                                  
+5  0  0    5.8       10.173.161.80   luna.physics.ucf.edu          dr-kara-luna        luna                                    
+5  0  0    5.5       10.173.161.50   mucciolocluster2.physics.ucf.edudr-mucciolo-mc2     mc2                                     
+5  0  0    13.04     10.173.161.34   FF8Q321.cos.ucf.edu           dr-ortigoza         marisol                                 
+5  0  0    10.04     10.173.158.150  9X1X231.cos.ucf.edu           dr-saha-ubuntu                                              
+5  0  0    11.10     10.173.153.10   zou-lab.chemistry.cos.ucf.edu zl                                                          
+5  0  0    12.04     10.171.117.58   5B72QS1.cos.ucf.edu           dr-reid-optiplex990                                         

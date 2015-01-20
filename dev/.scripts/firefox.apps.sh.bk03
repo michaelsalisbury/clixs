@@ -1,0 +1,31 @@
+#!/bin/bash
+
+profile=apps
+site=$1
+shift
+window=$*
+
+# exit if input missing
+[ -z "${site}" ] && exit 0
+
+function is_window_open(){
+	local window=$*
+	wmctrl -l | grep -q "${window}"
+}
+function get_window_id(){
+	local window=$*
+	wmctrl -l | awk -v WINDOW="${window}" '$0~WINDOW{print $1}'
+}
+function switch_to_window(){
+	local id=$1
+	wmctrl -i -a ${id}
+}
+
+# Find open window
+if is_window_open "${window}"; then
+	# if open bring to front
+	switch_to_window $(get_window_id "${window}")
+else
+	# if not open launch
+	firefox -P ${profile} -new-window ${site} &
+fi

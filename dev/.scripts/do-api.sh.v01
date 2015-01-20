@@ -1,0 +1,37 @@
+#!/bin/bash
+# Dependencies: curl jq
+
+function main(){
+	TOKEN='50272476d2be2355933a3b2afef41dec99d9510f0ab1856af4a5863360eb8929'
+	HTTP_METHOD='https'
+	DO_API_URL_PREFIX='api.digitalocean.com/v2'
+	OBJECT=
+	JSON="Content-Type: application/json"
+	OAUTH="Authorization: Bearer $TOKEN"
+
+
+	#GET account  > do_account.json
+	#GET droplets > do_droplets.json
+	
+	json_account=`cat do_account.json`
+	json_droplets=`cat do_droplets.json`
+	jq .account.uuid <<< "${json_account}"
+	jq .meta.total <<< "${json_droplets}"
+	jq .droplets[0].image <<< "${json_droplets}"
+	jq .droplets[0].image.name <<< "${json_droplets}"
+	jq .droplets[0].name <<< "${json_droplets}"
+
+
+
+}
+function GET(){
+	local OAUTH="Authorization: Bearer $TOKEN"
+	local JSON="Content-Type: application/json"
+	local URL="${HTTP_METHOD}://${DO_API_URL_PREFIX}"
+	curl -X GET -H "${JSON}" -H "${OAUTH}" "${URL}/$@" 2>/dev/null
+	#tr [{},] \\\n |
+	#sed 's/^"//;s/":/=/'
+}
+
+
+main "$@"

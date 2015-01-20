@@ -1,0 +1,182 @@
+#!/bin/bash
+function get_window_list(){
+	# field 1 = name of command (ps comm field)
+	# field 2 = ppid
+	# field 3 = window id
+	# field 5 = pid
+	# field 12 = profile name
+	# field 13+ = window title
+	local WMCTRL
+	local WID SCREEN WPID g g g g NAME HOST PROFILE C TITLE
+	local COMM WPPID
+	while read WMCTRL; do
+		read WID SCREEN WPID g g g g NAME HOST PROFILE C TITLE <<< "${WMCTRL}"
+		COMM="ERROR"
+		WPPID="NONE"
+		read COMM WPPID < <(ps --no-heading -o comm,ppid -p ${WPID})
+		echo ${COMM} ${WPPID} "${WMCTRL}"
+	done < <(wmctrl -l -p -x -G)
+	#wmctrl -l -p -x -G |
+	#awk '{line="ERROR"; "ps --no-heading -o uid,comm,ppid -e"|getline line; print line, $0}'
+	
+	#while read WMCTRL; do
+
+	#done
+	return	
+
+
+	wmctrl -l -p -x -G |
+	awk '{line="ERROR"; "ps --no-heading -o comm,ppid -e"|getline line; print line, $0}'
+	#awk '{line="ERROR"; "ps --no-heading -o comm,ppid -e"|getline line; print line, $0}'
+	#awk '{"ps --no-heading -o comm,ppid -p "$5|getline line; print line, $0}'
+}
+function get_window_id(){
+	global_var_status 1>&2
+	cat <<-AWK | awk -f <(cat) <(get_window_list)
+		BEGIN{
+			FILTER="${filter}"
+			TARGET_PROFILE="${profile}"
+			DELIM=" ${profile} : "
+		}
+		{
+			COMM = \$1
+			ID = \$3
+			PROFILE = \$12
+			split(\$0, WINDOW_TITLE, DELIM)
+			if (COMM == "firefox" && PROFILE == TARGET_PROFILE && WINDOW_TITLE[2] ~ FILTER) print ID
+		}
+	AWK
+}
+function is_window_open(){
+	get_window_list 1>&2
+	global_var_status 1>&2
+	cat <<-AWK | awk -f <(cat) <(get_window_list) 1>&2
+		BEGIN{
+			FILTER="${filter}"
+			TARGET_PROFILE="${profile}"
+			DELIM=" ${profile} : "
+			MATCH=0
+		}
+		{
+			COMM = \$1
+			PROFILE = \$12
+			split(\$0, WINDOW_TITLE, DELIM)
+			COMM == "firefox" && PS=1 || PS=0
+			COMM == "firefox" && PROFILE == TARGET_PROFILE && WINDOW_TITLE[2] ~ FILTER && MATCH += 1
+			print "${FUNCNAME} ::", (COMM == "firefox"), (PROFILE == TARGET_PROFILE), (WINDOW_TITLE[2] ~ FILTER), COMM, "::", WINDOW_TITLE[2] 
+		}
+		END{
+			if (!MATCH) exit 1
+		}
+	AWK
+}
+function is_profile_open(){
+	cat <<-AWK | awk -f <(cat) <(get_window_list)
+		BEGIN{
+			TARGET_PROFILE="${profile}"
+		}
+		{
+			COMM = \$1
+			PROFILE = \$12
+			COMM == "firefox" && PROFILE == TARGET_PROFILE && MATCH += 1
+		}
+		END{
+			if (!MATCH) exit 1
+		}
+	AWK
+}
+function switch_to_window(){
+	local id
+	while read id; do
+		wmctrl -i -a ${id}
+	done < <(get_window_id)
+}
+function firefox_profile_exists(){
+	if (( ${#1} )); then
+		local profile=${1//[\$\`]/}
+	elif (( ${#profile} )); then
+		echo ERROR: $0 :: ${FUNCNAME} :: \"\$profile\" not supplied or defined\!  Test not performed. 1>&2
+		exit 1
+	fi
+	grep -q "^Name=${profile}$" ~/.mozilla/firefox/profiles.ini
+}
+function profile_exists2(){
+	(( ${#profile} )) || return 1
+	find ~/.mozilla/firefox/*  -maxdepth 0 -type d -name \*.\* |
+	awk -F. '{print $NF}' |
+	grep -q "^${profile}$" && return 0
+	# https://developer.gnome.org/notification-spec/
+	local urgency expire_time app_name icon category summary body
+	urgency="critical"
+	expire_time="60000"	# 1 minute in miliseconds
+	app_name="firefox"
+	icon="firefox"
+	summary="Firefox Custom Launcher Failed"
+	read -d $'' body <<-BODY
+		~/.scripts/firefox.apps.sh
+		Script tried to use a missing profile:
+		`bullet_args - "${profile}"`
+	BODY
+	notify-send -u "${urgency}" -t "${expire_time}" -a "${app_name}" -i "${icon}" "${summary}" "${body}"
+	return 1
+}
+function script_dependency_check(){
+	# if notify-send is a dependency and is installed than use to notify the user
+	if which "$@" &>/dev/null; then
+		return 0
+	elif egrep -q -v '[[:space:]]notify-send[[:space:]]' <<< " $@ "; then
+		return 1
+	elif ! which notify-send &>/dev/null; then
+		return 1
+	fi
+	
+	# https://developer.gnome.org/notification-spec/
+	local urgency expire_time app_name icon category summary body
+	urgency="critical"
+	expire_time="60000"	# 1 minute in miliseconds
+	app_name="firefox"
+	icon="firefox"
+	summary="Firefox Custom Launcher Failed"
+	read -d $'' body <<-BODY
+		$0 :: ${FUNCNAME}
+		Script has the following dependencies:
+		`bullet_args - "$@"`
+	BODY
+	notify-send -u "${urgency}" -t "${expire_time}" -a "${app_name}" -i "${icon}" "${summary}" "${body}"
+	return 1
+}
+function bullet_args(){
+	set -- "${@/#/${1} }"
+	set -- "${@/%/\\\n}"
+	shift	
+	echo -e "$@" | sed 's/^ //'
+}
+function url_is_valid(){
+	if (( ${#2} )) && value_is_number_in_range0 ${1//[\$\`]/}; then
+		local timeout=${1//[\$\`]/}
+		local url=${2//[\$\`]/}
+	elif (( ${#1} )); then
+		local timeout=0.3
+		local url=${1//[\$\`]/}
+	else
+		return 1
+	fi
+	curl --connect-timeout ${timeout} -k -o /dev/null --silent --head "${url}"
+}
+function value_is_number_in_range0(){
+	# the egrep command limit the posible valid input to 0.1 through 9.9 excluding 0/.0/0./0.0
+	(( ${#1} )) || return 1
+	echo ${1//[\$\`]/} |
+	egrep '(^[[:digit:]]$)|(^[[:digit:]]?\.[[:digit:]]?$)' |
+	egrep -q -v '(^[0.]$)|(^0?\.0?$)'
+}
+function strip_http_from_url(){
+	sed 's/^http[s]\{0,1\}:\/\///I' <<< ${1//[\$\`]/}
+}
+function global_var_status(){
+	echo ${FUNCNAME[1]} :: ""profile :: ${profile}
+	echo ${FUNCNAME[1]} :: "   "site :: ${site}
+	echo ${FUNCNAME[1]} :: " "filter :: ${filter}
+}
+
+

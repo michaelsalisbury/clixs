@@ -1,0 +1,47 @@
+{
+  "meta": {
+    "total": 3
+  },
+  "links": {},
+  "snapshots": [
+    {
+      "min_disk_size": 20,
+      "created_at": "2015-01-08T16:13:00Z",
+      "regions": [
+        "nyc3",
+        "nyc3"
+      ],
+      "public": false,
+      "slug": null,
+      "distribution": "Ubuntu",
+      "name": "Oviedo-Wordpress Latest 2",
+      "id": 9799509
+    },
+    {
+      "min_disk_size": 20,
+      "created_at": "2015-01-08T16:21:31Z",
+      "regions": [
+        "nyc3",
+        "nyc3"
+      ],
+      "public": false,
+      "slug": null,
+      "distribution": "Ubuntu",
+      "name": "Oviedo-Wordpress Latest 1",
+      "id": 9799666
+    },
+    {
+      "min_disk_size": 20,
+      "created_at": "2015-01-12T20:14:38Z",
+      "regions": [
+        "nyc3",
+        "nyc3"
+      ],
+      "public": false,
+      "slug": null,
+      "distribution": "Ubuntu",
+      "name": "Oviedo-Wordpress Latest",
+      "id": 9914535
+    }
+  ]
+}

@@ -1,4 +1,7 @@
 #!/usr/bin/expect -f
+# Use this to diagnose why expect statements arn't matching
+#exp_internal 1
+
 proc cred_format {} {
 	puts "----------------------------------------------------"
 	puts "username = \[NID\]"
@@ -85,7 +88,7 @@ if { [string length $username] == 0 ||
      [string length $password] == 0 ||
      [string length $group] == 0    ||
      [string length $url] == 0      } {
-	puts "The correct credentials file format is as fololows"
+	puts "The correct credentials file format is as follows"
 	cred_format
 	puts ""
 	flush stdout
@@ -142,16 +145,26 @@ if {$force_conservative} {
 # -Don
 
 set timeout -1
+set query_loop true
+
+set test_cert_prompt	"\nEnter 'yes' to accept,.*:"
+set test_group_prompt	"\nGROUP:.*"
+set test_user_prompt	"\nUsername:"
+set test_pass_prompt	"\nPassword:"
+set test_con_estab	"\n.*You are now connected.*"
+
 spawn sudo openconnect $url
 match_max 100000
-expect *
-send -- "yes\r"
-expect *
-send -- "$group\r"
-expect *
-send -- "$username\r"
-expect *
-send -- "$password\r"
-expect *
-expect eof
+while { $query_loop } {
+	expect {
+		-re $test_cert_prompt	{ send "yes\r" }
+		-re $test_group_prompt	{ send "$group\r" }
+		-re $test_user_prompt	{ send "$username\r" }
+		-re $test_pass_prompt	{ send "$password\r" }
+		-re $test_con_estab	{ set query_loop false }
+	}
+}
 
+expect *
+sleep 10
+exit

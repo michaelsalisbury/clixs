@@ -1,0 +1,45 @@
+#!/bin/bash
+. ${BASH_SOURCE%/*}/firefox.common.sh
+
+profile=$1
+shift
+filter=$*
+
+function is_profile_open(){
+	wmctrl -l |
+	awk '$5 == ":" {print $4}' |
+	grep -q "^${profile}$"
+}
+function get_window_id(){
+	cat <<-AWK | awk -vP="^${profile}$" -vF="${filter}" -f <(cat) <(wmctrl -l)
+		{ split(\$0,TITLE,\$4" : ") }
+		\$4 ~ P && \$5 == ":" && TITLE[2] ~ F { print \$1 }
+	AWK
+}
+function switch_to_window(){
+	local id
+	while read id; do
+		wmctrl -i -a ${id}
+	done < <(get_window_id)
+}
+function profile_exists(){
+	(( ${#profile} )) || return 1
+	find ~/.mozilla/firefox/*  -maxdepth 0 -type d -name \*.\* |
+	awk -F. '{print $NF}' |
+	grep -q "^${profile}$"
+}
+function launch(){
+	firefox -new-instance -P ${profile} -new-window &
+}
+
+# Find open window
+if ! profile_exists; then
+	echo No profile with name \"${profile}\". Exiting\! 1>&2
+	exit 1
+elif is_profile_open; then
+	# if open bring all instances to front
+	switch_to_window
+else
+	# if not open launch
+	launch
+fi

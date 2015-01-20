@@ -1,0 +1,108 @@
+#!/bin/bash
+function main(){
+	if [ -f "${1}" ]; then
+		local GET_SELECTIONS="${1}"
+	elif [ -f "dpkg.get-selections" ]; then
+		local GET_SELECTIONS="dpkg.get-selections"
+	else
+		exit 1
+	fi
+
+	echo seperate selection list to those installed and not installed
+	local INSTALLED="/dev/shm/dpkg.installed"
+	local NOT_INSTALLED="/dev/shm/dpkg.not-installed"
+	local ALREADY_INSTALLED="/dev/shm/dpkg.already-installed"
+	rm "${NOT_INSTALLED}"
+	rm "${ALREADY_INSTALLED}"
+	dpkg --get-selections | cut -f1 > "${INSTALLED}"
+	while read PKG STATUS; do
+		if grep -q "^${PKG}$" "${INSTALLED}"; then
+			echo ${PKG} >> "${ALREADY_INSTALLED}"	
+		else
+			echo ${PKG} >> "${NOT_INSTALLED}"	
+		fi
+		echo -n .
+	done < "${GET_SELECTIONS}"
+	echo
+
+	echo seperating not-installed into not-available while generating dependencies for those available
+	local CACHE_DEPENDS="/dev/shm/dpkg.not-installed-cache"
+	local NOT_FOUND="/dev/shm/dpkg.not-installed-not-found"
+	local AVAILABLE="/dev/shm/dpkg.not-installed-available"
+	local FANTOM="/dev/shm/dpkg.not-installed-available-fantom"
+	local DEPENDS="/dev/shm/dpkg.not-installed-depends"
+	local SORT="/dev/shm/dpkg.sort"
+	local LIST
+	rm "${NOT_FOUND}"
+	rm "${AVAILABLE}"
+	rm "${DEPENDS}"
+	rm "${SORT}"
+	rm "${FANTOM}"
+
+	sort -u "${NOT_INSTALLED}" |
+	xargs apt-cache depends |
+	tee "${CACHE_DEPENDS}" |
+	grep "^[[:alpha:]]" |
+	grep -v "^$" |
+	tee "${AVAILABLE}"
+
+	echo seperate fantom available packages scrapped from apt-cache depends command
+	while read PKG; do
+		if grep -q "^${PKG}$" "${NOT_INSTALLED}"; then
+			echo ${PKG} >> "${SORT}"
+		else
+			echo ${PKG} >> "${FANTOM}"
+		fi
+	done < "${AVAILABLE}"
+	mv -v "${SORT}" "${AVAILABLE}"
+
+	echo generating a list of unavailable packages
+	while read PKG; do
+		if ! grep -q "^${PKG}$" "${AVAILABLE}"; then
+			echo "${PKG}" >> "${NOT_FOUND}"
+		fi
+	done < "${NOT_INSTALLED}"
+	
+	echo generating a list of parent and child packages \(has or is dependcies\)
+	while read TYPE DEP; do
+		#if [ "${TYPE}" == "Depends:" ] || [ "${TYPE}" == "Recommends:" ]; then
+		if [ "${TYPE}" == "Depends:" ] ||
+		   [ "${TYPE}" == "Recommends:" ] ||
+		   [ "${TYPE}" == "Replaces:" ]; then
+			echo ${DEP} >> "${DEPENDS}"
+		else
+			echo -n .
+		fi
+	done < "${CACHE_DEPENDS}"
+	echo
+
+	echo sorting lists
+	for LIST in "${NOT_FOUND}" "${AVAILABLE}" "${DEPENDS}"; do
+		sort "${LIST}" > "${SORT}"
+		mv -v "${SORT}" "${LIST}"
+	done
+
+	echo seperate not-installed available into items with and without dependencies
+	local IS_DEPENDS="/dev/shm/dpkg.not-installed-available-is-depends"
+	local HAS_DEPENDS="/dev/shm/dpkg.not-installed-available-has-depends"
+	rm "${IS_DEPENDS}"
+	rm "${HAS_DEPENDS}"
+
+	while read PKG; do
+		if grep -q "^${PKG}$" "${DEPENDS}"; then
+			echo ${PKG} >> "${IS_DEPENDS}"
+		else
+			echo ${PKG} >> "${HAS_DEPENDS}"
+		fi
+	done < "${AVAILABLE}"
+
+	echo "      Verify lists :: `cat "${GET_SELECTIONS}"    | wc -l | xargs printf %5s` :: ${GET_SELECTIONS}"
+	echo
+	echo " Already Installed :: `cat "${ALREADY_INSTALLED}" | wc -l | xargs printf %5s` :: ${ALREADY_INSTALLED}"
+	echo "         Not Found :: `cat "${NOT_FOUND}"         | wc -l | xargs printf %5s` :: ${NOT_FOUND}"
+	echo "  Available Is Dep :: `cat "${IS_DEPENDS}"        | wc -l | xargs printf %5s` :: ${IS_DEPENDS}"
+	echo "Available Has Deps :: `cat "${HAS_DEPENDS}"       | wc -l | xargs printf %5s` :: ${HAS_DEPENDS}"
+	echo "             TOTAL :: `cat "${ALREADY_INSTALLED}" "${NOT_FOUND}" "${IS_DEPENDS}" "${HAS_DEPENDS}" | wc -l | xargs printf %5s`"
+}
+
+main "$@"

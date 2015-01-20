@@ -1,0 +1,78 @@
+#!/bin/bash
+. ${BASH_SOURCE%/*}/firefox.common.sh
+
+dependencies="awk grep wmctrl"
+profile="apps"
+site=$1
+shift
+filter=$*
+
+function is_window_open(){
+	cat <<-AWK | awk -vP="^${profile}$" -vF="${filter}" -f <(cat) <(wmctrl -l)
+		# -vP = P = ${profile} = Target Profile
+		# -vF = F = ${filter}  = Target Window Title
+		# NAME                 = Profile name from field 4 of "wmctrl" output
+		# DELIM                = Colon delim from field 5 of "wmctrl" output
+		# WINDOW_TITLE         = Parsed window title from "wmctrl" output 
+		# MATCH                = Tally of open windows that match the profile and title
+		{
+			NAME = \$4
+			DELIM = \$5
+			split(\$0, WINDOW_TITLE, NAME" : ")
+			NAME ~ P && DELIM == ":" && WINDOW_TITLE[2] ~ F && MATCH += 1
+		}
+		END{
+			print "MATCH :: "MATCH
+			if (!MATCH) {
+				print "ERROR"
+				exit 1
+			}
+		}
+	AWK
+	return $?
+	cat <<-AWK | awk -vP="^${profile}$" -vF="${filter}" -f <(cat) <(wmctrl -l) |
+		{ split(\$0,TITLE,\$4" : ") }
+		\$4 ~ P && \$5 == ":" && TITLE[2] ~ F { print "true" }
+	AWK
+	grep -q ""
+}
+function launch(){
+	#firefox -P ${profile} -new-instance -new-window ${site} &
+	#firefox -P ${profile} -new-window ${site} &
+	#firefox -P ${profile} ${site} &
+	#firefox -P ${profile} -new-instance ${site} &>/dev/null &
+	echo	
+}
+function launch_new_instance(){
+	firefox -P ${profile} -new-instance -new-window ${site} &>/dev/null &
+}
+function launch_new_window(){
+	firefox -P ${profile} -remote "openUrl(http://${site}, new-window)" &>/dev/null &
+}
+
+echo start
+
+# Find open window
+if ! script_dependency_check ${dependencies}; then
+	echo Dependency problem.  Exiting\! 1>&2
+	exit 1
+elif ! profile_exists; then
+	echo No profile with name \"${profile}\". Exiting\! 1>&2
+	exit 2
+elif is_profile_open && is_window_open; then
+	# if open bring to front
+	switch_to_window
+elif ! (( ${#site} )); then
+	echo No site name provided. Exiting\! 1>^&2
+	exit 3
+elif is_profile_open; then
+	# if site is now focus of an open window then launch new window
+	launch_new_window
+else
+	# if not open launch new instance
+	echo launch :: ${profile} :: ${site} :: ${filter}
+	launch_new_instance
+fi
+
+exit
+

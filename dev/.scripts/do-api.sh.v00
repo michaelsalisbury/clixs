@@ -1,0 +1,61 @@
+#!/bin/bash
+# Dependencies: curl jq
+
+function main(){
+	TOKEN='50272476d2be2355933a3b2afef41dec99d9510f0ab1856af4a5863360eb8929'
+	HTTP_METHOD='https'
+	DO_API_URL_PREFIX='api.digitalocean.com/v2'
+	OBJECT=
+	JSON="Content-Type: application/json"
+	OAUTH="Authorization: Bearer $TOKEN"
+
+	#curl -H "Authorization: Bearer $TOKEN" \
+	#	 -H "Content-Type: application/json" \
+	#	 -d '{"name": "example.com", "ip_address": "127.0.0.1"}' \
+	#	 -X POST "https://api.digitalocean.com/v2/domains"
+
+	#curl -X GET\
+	#	 -H 'Content-Type: application/json'\
+	#	 -H 'Authorization: Bearer b7d03a6947b217efb6f3ec3bd3504582'\
+	#	 "https://api.digitalocean.com/v2/account"
+	#curl -X GET -H "${JSON}" -H "${OAUTH}" "${URL}/account"
+	#read result < <(GET account)
+	#echo $result
+	#result=`GET account | tr [{},] \\\n | tr : =`
+	#result=`GET account`
+	#echo "${result}"
+	#eval "${result}"
+	#echo $uuid
+	#result=`GET actions`
+	#echo "${result}"
+	#eval "${result}"
+	#result=`GET actions/${id}`
+	#echo "${result}"
+	#eval "${result}"
+	#result=`GET droplets`
+	#echo "${result}"
+
+	#eval "${result}"
+
+	json_account=`GET account`
+	json_droplets=`GET droplets`
+	jq .account.uuid <<< "${json_account}"
+	jq .meta.total <<< "${json_droplets}"
+	jq .droplets[0].image <<< "${json_droplets}"
+	jq .droplets[0].image.name <<< "${json_droplets}"
+	jq .droplets[0].name <<< "${json_droplets}"
+
+
+
+}
+function GET(){
+	local OAUTH="Authorization: Bearer $TOKEN"
+	local JSON="Content-Type: application/json"
+	local URL="${HTTP_METHOD}://${DO_API_URL_PREFIX}"
+	curl -X GET -H "${JSON}" -H "${OAUTH}" "${URL}/$@" 2>/dev/null
+	#tr [{},] \\\n |
+	#sed 's/^"//;s/":/=/'
+}
+
+
+main "$@"

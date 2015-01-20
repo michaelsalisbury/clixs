@@ -1,0 +1,81 @@
+{
+  "droplet": {
+    "region": {
+      "available": true,
+      "features": [
+        "virtio",
+        "private_networking",
+        "backups",
+        "ipv6",
+        "metadata"
+      ],
+      "sizes": [
+        "32gb",
+        "16gb",
+        "2gb",
+        "1gb",
+        "4gb",
+        "8gb",
+        "512mb",
+        "64gb",
+        "48gb"
+      ],
+      "slug": "nyc3",
+      "name": "New York 3"
+    },
+    "networks": {
+      "v6": [
+        {
+          "type": "public",
+          "gateway": "2604:A880:0800:0010:0000:0000:0000:0001",
+          "netmask": 64,
+          "ip_address": "2604:A880:0800:0010:0000:0000:0472:1001"
+        }
+      ],
+      "v4": [
+        {
+          "type": "public",
+          "gateway": "104.236.0.1",
+          "netmask": "255.255.192.0",
+          "ip_address": "104.236.9.187"
+        }
+      ]
+    },
+    "size_slug": "512mb",
+    "image": {
+      "min_disk_size": 20,
+      "created_at": "2014-12-30T21:25:33Z",
+      "regions": [
+        "nyc3"
+      ],
+      "public": false,
+      "slug": null,
+      "distribution": "Ubuntu",
+      "name": "Oviedo-Wordpress Latest 1",
+      "id": 9557168
+    },
+    "snapshot_ids": [
+      9779688,
+      9785062,
+      9785422
+    ],
+    "backup_ids": [],
+    "features": [
+      "ipv6",
+      "virtio"
+    ],
+    "created_at": "2014-12-31T00:46:19Z",
+    "id": 3623570,
+    "name": "Oviedo-Wordpress",
+    "memory": 512,
+    "vcpus": 1,
+    "disk": 20,
+    "locked": false,
+    "status": "active",
+    "kernel": {
+      "version": "3.13.0-37-generic",
+      "name": "Ubuntu 14.04 x64 vmlinuz-3.13.0-37-generic",
+      "id": 2233
+    }
+  }
+}

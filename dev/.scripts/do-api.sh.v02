@@ -1,0 +1,117 @@
+#!/bin/bash
+# Dependencies: curl jq
+function jstr(){
+	local ARG ARR i
+	for ARG in "$@"; do
+		if [[ "${ARG//[^[:space:]]/}" =~ [[:space:]] ]]; then
+			ARR[((i++))]=\"${ARG}\"
+		else
+			ARR[((i++))]=${ARG}
+		fi
+	done
+	jq -n -M -c "${ARR[*]}"
+}
+function jstr_(){
+	local str="$@"
+	jq -n -M -c "${str}"
+}
+function value_is_number(){
+	(( ${#1} )) || return 1
+	#local value=${1//[[:digit:].]/} # this strips out any characters that are not digits or decimal points
+	echo ${1//[\$\`]/} |
+	egrep '(^[[:digit:]]+$)|(^[[:digit:]]*[.][[:digit:]]*$)' |
+	egrep -q -v '^[.]$'
+	# the first egrep confirms that the number is formated as a number with or without a single decimal place
+	# the second egrep command eliminates the posibility of a value with only a decimal place (a dot)
+}
+function to_json_(){
+	local VAR=$1
+	eval local VAL=( \"\${${VAR}[@]}\" )
+	if (( ${#VAL[*]} - 1 )); then
+		VAL=( "${VAL[@]/#/\\\"}" )
+		VAL=( "${VAL[@]/%/\\\",}" )
+		VAL[${#VAL[*]}-1]=${VAL[${#VAL[*]}-1]%,}
+		eval jq -n -M -c \"{ ${VAR}: [ "${VAL[@]}" ] }\"
+	else
+		jq -n -M -c "{ ${VAR}: \"${!VAR}\" }"
+	fi	
+}
+function to_json(){
+	local VAR=$1
+	eval local VAL=( \"\${${VAR}[@]}\" )
+	# iterate threw each index
+	local i
+	for i in `seq 0 $(( ${#VAL[*]} - 1 ))`; do
+		# escape escapes
+		VAL[$i]=${VAL[$i]//\\/\\\\}
+		# escape double quotes
+		VAL[$i]=${VAL[$i]//\"/\\\"}
+		# don't enclose numbers in double quotes
+		value_is_number "${VAL[$i]}" || VAL[$i]=\"${VAL[$i]}\"
+		# don't append comma to last index
+		(( ${#VAL[*]} - 1 > i ))     && VAL[$i]=${VAL[$i]},
+	done
+	# generate JSON
+	if (( ${#VAL[*]} - 1 )); then
+		cat <<-JQ | jq -n -M -c "`cat`"
+			{
+				${VAR}: [ ${VAL[@]} ]
+			}
+		JQ
+	else
+		cat <<-JQ | jq -n -M -c "`cat`"
+			{
+				${VAR}: ${VAL}
+			}
+		JQ
+	fi
+}
+function main(){
+	TOKEN='50272476d2be2355933a3b2afef41dec99d9510f0ab1856af4a5863360eb8929'
+	HTTP_METHOD='https'
+	DO_API_URL_PREFIX='api.digitalocean.com/v2'
+	OBJECT=
+	JSON="Content-Type: application/json"
+	OAUTH="Authorization: Bearer $TOKEN"
+
+	jstr_ { str: '"hope this works"' }
+	jstr  { str: "hope this works" }
+	bob="123\ 456"
+	to_json bob 
+	sam=( 1 2 3 4 5 6 )
+	to_json sam
+	sam=( 1 s2 3 4 5 "6 6 6" )
+	sam[${#sam[*]}]='maybe "this" works'
+	to_json sam
+	to_json_ sam | jq .
+
+	return
+
+	#GET account  > do_account.json
+	#GET droplets > do_droplets.json
+	
+	json_account=`cat do_account.json`
+	json_droplets=`cat do_droplets.json`
+	jq .account.uuid <<< "${json_account}"
+	jq .meta.total <<< "${json_droplets}"
+	jq .droplets[0].image <<< "${json_droplets}"
+	jq .droplets[0].image.name <<< "${json_droplets}"
+	jq .droplets[0].name <<< "${json_droplets}"
+	jq .droplets[0].status <<< "${json_droplets}"
+	echo
+	jq .droplets[0] < do_droplets.json
+
+
+
+}
+function GET(){
+	local OAUTH="Authorization: Bearer $TOKEN"
+	local JSON="Content-Type: application/json"
+	local URL="${HTTP_METHOD}://${DO_API_URL_PREFIX}"
+	curl -X GET -H "${JSON}" -H "${OAUTH}" "${URL}/$@" 2>/dev/null
+	#tr [{},] \\\n |
+	#sed 's/^"//;s/":/=/'
+}
+
+
+main "$@"

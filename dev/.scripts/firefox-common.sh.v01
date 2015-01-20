@@ -1,0 +1,73 @@
+#!/bin/bash
+
+function is_profile_open(){
+	wmctrl -l |
+	awk '$5 == ":" && $NF == "Firefox" {print $4}' |
+	grep -q "^${profile}$"
+}
+function get_window_id(){
+	cat <<-AWK | awk -vP="^${profile}$" -vF="${filter}" -f <(cat) <(wmctrl -l)
+		{ split(\$0,TITLE,\$4" : ") }
+		\$4 ~ P && \$5 == ":" && TITLE[2] ~ F { print \$1 }
+	AWK
+}
+function switch_to_window(){
+	local id
+	while read id; do
+		wmctrl -i -a ${id}
+	done < <(get_window_id)
+}
+function firefox_profile_exists(){
+	if (( ${#1} )); then
+		local profile=${1//[\$\`]/}
+	elif (( ${#profile} )); then
+		echo ERROR: $0 :: ${FUNCNAME} :: \"\$profile\" not supplied or defined\!  Test not performed. 1>&2
+		exit 1
+	fi
+	grep -q "^Name=${profile}$" ~/.mozilla/firefox/profiles.ini
+}
+function profile_exists2(){
+	(( ${#profile} )) || return 1
+	find ~/.mozilla/firefox/*  -maxdepth 0 -type d -name \*.\* |
+	awk -F. '{print $NF}' |
+	grep -q "^${profile}$" && return 0
+	# https://developer.gnome.org/notification-spec/
+	local urgency expire_time app_name icon category summary body
+	urgency="critical"
+	expire_time="60000"	# 1 minute in miliseconds
+	app_name="firefox"
+	icon="firefox"
+	summary="Firefox Custom Launcher Failed"
+	read -d $'' body <<-BODY
+		~/.scripts/firefox.apps.sh
+		Script tried to use a missing profile:
+		`bullet_args - "${profile}"`
+	BODY
+	notify-send -u "${urgency}" -t "${expire_time}" -a "${app_name}" -i "${icon}" "${summary}" "${body}"
+	return 1
+}
+function script_dependency_check(){
+	which "$@" &>/dev/null && return 0	
+	# https://developer.gnome.org/notification-spec/
+	local urgency expire_time app_name icon category summary body
+	urgency="critical"
+	expire_time="60000"	# 1 minute in miliseconds
+	app_name="firefox"
+	icon="firefox"
+	summary="Firefox Custom Launcher Failed"
+	read -d $'' body <<-BODY
+		~/.scripts/firefox.apps.sh
+		Script has the following dependencies:
+		`bullet_args - "$@"`
+	BODY
+	notify-send -u "${urgency}" -t "${expire_time}" -a "${app_name}" -i "${icon}" "${summary}" "${body}"
+	return 1
+}
+function bullet_args(){
+	set -- "${@/#/${1} }"
+	set -- "${@/%/\\\n}"
+	shift	
+	echo -e "$@" | sed 's/^ //'
+}
+
+

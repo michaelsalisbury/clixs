@@ -1,0 +1,15 @@
+{
+  "image": {
+    "min_disk_size": 20,
+    "created_at": "2015-01-08T02:00:48Z",
+    "regions": [
+      "nyc3",
+      "nyc3"
+    ],
+    "public": false,
+    "slug": null,
+    "distribution": "Ubuntu",
+    "name": "Oviedo-Wordpress Latest 1420682436 new1",
+    "id": 9785422
+  }
+}

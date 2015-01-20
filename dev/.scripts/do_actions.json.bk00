@@ -1,0 +1,78 @@
+{
+  "meta": {
+    "total": 7
+  },
+  "links": {},
+  "actions": [
+    {
+      "region": "nyc3",
+      "resource_type": "droplet",
+      "resource_id": 3621635,
+      "completed_at": "2014-12-31T00:10:36Z",
+      "started_at": "2014-12-31T00:10:32Z",
+      "type": "destroy",
+      "status": "completed",
+      "id": 40101941
+    },
+    {
+      "region": "nyc3",
+      "resource_type": "droplet",
+      "resource_id": 3621635,
+      "completed_at": "2014-12-31T00:08:38Z",
+      "started_at": "2014-12-31T00:08:34Z",
+      "type": "shutdown",
+      "status": "completed",
+      "id": 40101841
+    },
+    {
+      "region": "nyc3",
+      "resource_type": "droplet",
+      "resource_id": 3621635,
+      "completed_at": "2014-12-30T21:27:50Z",
+      "started_at": "2014-12-30T21:25:33Z",
+      "type": "snapshot",
+      "status": "completed",
+      "id": 40095082
+    },
+    {
+      "region": "nyc3",
+      "resource_type": "droplet",
+      "resource_id": 3621635,
+      "completed_at": "2014-12-30T21:23:15Z",
+      "started_at": "2014-12-30T21:23:13Z",
+      "type": "shutdown",
+      "status": "completed",
+      "id": 40095022
+    },
+    {
+      "region": "nyc3",
+      "resource_type": "droplet",
+      "resource_id": 3621635,
+      "completed_at": "2014-12-30T21:20:44Z",
+      "started_at": "2014-12-30T21:20:40Z",
+      "type": "power_on",
+      "status": "completed",
+      "id": 40094898
+    },
+    {
+      "region": "nyc3",
+      "resource_type": "droplet",
+      "resource_id": 3621635,
+      "completed_at": "2014-12-30T20:52:56Z",
+      "started_at": "2014-12-30T20:52:54Z",
+      "type": "shutdown",
+      "status": "completed",
+      "id": 40093712
+    },
+    {
+      "region": "nyc3",
+      "resource_type": "droplet",
+      "resource_id": 3621635,
+      "completed_at": "2014-12-30T19:43:32Z",
+      "started_at": "2014-12-30T19:42:21Z",
+      "type": "create",
+      "status": "completed",
+      "id": 40090665
+    }
+  ]
+}

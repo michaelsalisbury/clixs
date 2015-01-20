@@ -1,0 +1,157 @@
+#!/bin/bash
+. ${BASH_SOURCE%/*}/firefox-common.sh
+# GLOBAL VARS: dependencies, profile, site, filter
+# Firefox Dependencies: to find a firefox window using a particular profile the "Show Profile" extention must be installed
+dependencies="notify-send awk grep egrep wmctrl curl"
+profile="apps"
+site="google.com"
+# ENVIRONMENT VARS:
+#	FIREFOX_TARGET_PROFILE 
+#	FIREFOX_DEFAULT_PROFILE
+#	FIREFOX_TARGET_SITE
+#	FIREFOX_DEFAULT_SITE
+
+function process_args(){
+	# determine firefox profile to use
+	if firefox_profile_exists ${1//[\$\`]/}; then
+		profile=${1//[\$\`]/}
+		shift
+	elif firefox_profile_exists ${FIREFOX_TARGET_PROFILE:-${FIREFOX_DEFAULT_PROFILE:-${profile}}}; then 
+		profile="${FIREFOX_TARGET_PROFILE:-${FIREFOX_DEFAULT_PROFILE:-${profile}}}"
+	else
+		# throw error about how a valid profile was not supplied
+		echo -n
+		return 1
+	fi
+	# determine site to use if a firefox window is not already open
+	if egrep -q -i '^none$' <<< "${1//[\$\`]/}" || url_is_valid 0.2 ${1//[\$\`]/}  ; then
+		site=${1//[\$\`]/}
+		shift
+	elif egrep -q -i '^none$' <<< ${FIREFOX_TARGET_SITE:-${FIREFOX_DEFAULT_SITE:-${site}}} ||
+		 url_is_valid 0.2 ${FIREFOX_TARGET_SITE:-${FIREFOX_DEFAULT_SITE:-${site}}}; then
+		site=${FIREFOX_TARGET_SITE:-${FIREFOX_DEFAULT_SITE:-${site}}}
+	else
+		# throw error about how a valid url was not supplied or that "none" is also valid but must be specified
+		echo -n
+		return 1
+	fi
+	# determine search filter to ID open firefox window
+	filter=$*
+	return 0
+}
+function url_is_valid(){
+	if (( ${#2} )) && value_is_number_in_range0 ${1//[\$\`]/}; then
+		local timeout=${1//[\$\`]/}
+		local url=${2//[\$\`]/}
+	elif (( ${#1} )); then
+		local timeout=0.3
+		local url=${1//[\$\`]/}
+	else
+		return 1
+	fi
+	curl --connect-timeout ${timeout} -k -o /dev/null --silent --head "${url}"
+}
+function value_is_number_in_range0(){
+	# the egrep command limit the posible valid input to 0.1 through 9.9 excluding 0/.0/0./0.0
+	(( ${#1} )) || return 1
+	echo ${1//[\$\`]/} |
+	egrep '(^[[:digit:]]$)|(^[[:digit:]]?\.[[:digit:]]?$)' |
+	egrep -q -v '(^[0.]$)|(^0?\.0?$)'
+}
+function is_window_open_old(){
+	cat <<-AWK | awk -vP="^${profile}$" -vF="${filter}" -f <(cat) <(wmctrl -l)
+		# -vP = P = ${profile} = Target Profile
+		# -vF = F = ${filter}  = Target Window Title
+		# NAME                 = Profile name from field 4 of "wmctrl" output
+		# DELIM                = Colon delim from field 5 of "wmctrl" output
+		# WINDOW_TITLE         = Parsed window title from "wmctrl" output 
+		# MATCH                = Tally of open windows that match the profile and title
+		{
+			#system("echo hi")
+			NAME = \$4
+			DELIM = \$5
+			split(\$0, WINDOW_TITLE, NAME" : ")
+			NAME ~ P && DELIM == ":" && WINDOW_TITLE[2] ~ F && MATCH += 1
+		}
+		END{
+			#print "MATCH :: "MATCH
+			if (!MATCH) {
+				#print "ERROR"
+				exit 1
+			}
+		}
+	AWK
+}
+function strip_http_from_url(){
+	sed 's/^http[s]\{0,1\}:\/\///I' <<< ${1//[\$\`]/}
+}
+function launch_new_instance(){
+	local site=$(egrep -v -i '^none$' <<< "${site}")
+	firefox -P ${profile} -new-instance -new-window ${site} &>/dev/null &
+}
+function launch_new_window(){
+	# The firefox command must be started up in a terminal to utilize the "-remote" argument
+	local site=$(sed 's/^http[s]\{0,1\}:\/\///I' <<< "${site}")
+	gnome-terminal --geometry 1x1+1+1 -e "firefox -P ${profile} -remote \"openUrl(http://${site}, new-window)\""
+}
+
+function main(){
+	if ! process_args "$@"; then
+		echo ERROR :: Invalid or missing arguments :: "$@" 1>&2
+		exit 1
+	fi
+	if ! script_dependency_check ${dependencies}; then
+		echo ERROR :: Missing dependencies :: "${dependencies}" 1>&2	
+		exit 2
+	fi
+	echo main
+	echo profile :: ${profile}
+	echo site :: ${site}
+	echo filter :: ${filter}
+
+	if is_profile_open && is_window_open; then
+		# if open bring to front
+		echo Switching to open window.
+		switch_to_window
+	elif is_profile_open; then
+		# if site is now focus of an open window then launch new window
+		echo Launching new window.
+		launch_new_window
+	else
+		# if not open launch new instance
+		#echo launch :: ${profile} :: ${site} :: ${filter}
+		echo Launching new instance.
+		launch_new_instance
+	fi
+
+	return	
+
+	# Find open window
+	if ! script_dependency_check ${dependencies}; then
+		echo Dependency problem.  Exiting\! 1>&2
+		exit 1
+	elif ! profile_exists; then
+		echo No profile with name \"${profile}\". Exiting\! 1>&2
+		exit 2
+	elif is_profile_open && is_window_open; then
+		# if open bring to front
+		echo Switching to open window.
+		switch_to_window
+	elif ! (( ${#site} )); then
+		echo No site name provided. Exiting\! 1>^&2
+		exit 3
+	elif is_profile_open; then
+		# if site is now focus of an open window then launch new window
+		echo Launching new window.
+		launch_new_window
+	else
+		# if not open launch new instance
+		#echo launch :: ${profile} :: ${site} :: ${filter}
+		echo Launching new instance.
+		launch_new_instance
+	fi
+}
+main "$@"
+
+exit
+
