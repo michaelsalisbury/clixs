@@ -1,10 +1,5 @@
 #!/bin/bash
-bob=0001230045
-echo "${bob##'+(0)'}"
-
-
-
-exit
+shopt -s extglob
 
 function main(){
 
@@ -55,6 +50,7 @@ function get_overall_health(){
 	echo ${HEALTH}
 }
 function get_reallocated_sector_ct(){
+	shopt -s extglob
 	local ID=$1
 	local FIELD='NF'
 	local QUERY='Reallocated_Sector_Ct'
@@ -64,7 +60,6 @@ function get_reallocated_sector_ct(){
 	local THRESH=$(get_smart_report_object ${ID} ${FIELD} ${QUERY})
 	echo ${COUNT}/"${THRESH##+(0)}"
 }
-Reallocated_Sector_Ct
 function get_power_on_time(){
 	local DELIM='.'
 	local ID=$1
