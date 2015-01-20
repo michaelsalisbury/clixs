@@ -1,0 +1,140 @@
+#!/bin/bash
+
+function getCompute()
+{
+        while read HOST SUBNET IFACE MAC IP NETMASK MODULE NAME VLAN OPTIONS CHANNEL ; do
+                [[ ${NAME:0:1} == - ]] && continue
+                [[ ${HOST:0:7} == compute ]] && echo $NAME $IP
+        done < <(rocks list host interface) ; }
+
+function startPing(){
+	while : ; do
+		while read NAME IP ; do
+			local startm="$NAME	$IP"
+			local data=$(ping -c 1 -w 1 $IP | sed -n '/transmitted/p' | cut -f3 -d,)
+			local data="\[\|\|\|\] $(date +%T) \[\|\|\|\] ${data}"
+			sed -i".bk2" -e "s/${startm}.*/${startm} ${data}/" status
+		done < <(getCompute)
+	done; }
+
+function startPSQuery(){
+        while : ; do
+                while read NAME IP ;do
+			local startm="$NAME	$IP"
+			local data=$(rocks run host $NAME command="ps -eo pcpu,cmd | sort -k 1 | tail -2 | head -1")
+			local data=${data//\//\\/}
+			local stopm="Current IO:"
+			local match="Current Process:"
+                        sed -i".bk4" -e "/${startm}.*/,/${stopm}/{s/${match}.*/${match} ${data}/}" status
+                done < <(getCompute)
+        done; }
+
+
+function startIO(){
+        while : ; do
+                while read NAME IP ;do
+			local startm="$NAME	$IP"
+			local data=$(getTcpDump $NAME | tail -1 | cut -f1-3 -d:)
+			local data=${data//>/\\>}
+                        local stopm="Current IO:"
+                        local match="Current IO:"
+                        sed -i".bk5" -e "/${startm}.*/,/${stopm}/{s/${match}.*/${match} ${data}/}" status
+                done < <(getCompute)
+        done; }
+
+function startRedhatRelease(){
+	while : ; do
+		while read NAME IP ;do
+			local startm="$NAME	$IP"
+			local data=$(rocks run host $NAME command="cat /etc/redhat-release")
+			local stopm="Current IO:"
+			local match="Node up\/down:"
+                        sed -i".bk3" -e "/${startm}.*/,/${stopm}/{s/${match}.*/${match} ${data}/}" status
+		done < <(getCompute)
+	done; }
+
+
+function getPS(){
+	while read line ; do
+		echo "				"$line
+	done < <(rocks run host $1 command="ps -eo pcpu,cmd | sort -k 1| tail -2 | head -1") ; }
+
+
+
+function startTcpDump(){
+	tcpdump -i 2 -w tcp.dump not ip multicast and not port opalis-rdv & 
+}
+
+function startDate(){
+	while : ;do sed -i".bk" -e "/compute-0-0/,/compute-0-1/{s/IO:.*/IO:/;s/IO:/& $(date)/}" status; sleep 3; done;}
+
+function getTcpDump(){
+	tcpdump -nn -r tcp.dump		\
+		ip host $1		\
+		and not ip proto 1	\
+		and not udp port 53	\
+		and not tcp port 22	2>/dev/null
+}
+
+
+#### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! START !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+clear
+while read NAME IP ; do
+	echo	"$NAME	$IP	"
+	echo	"|		  Node up/down:"
+	echo	"|	       Current Process:"
+	echo	"|		    Current IO:"
+	echo	"|"
+done < <(getCompute) > status
+
+startTcpDump
+startPing &
+startRedhatRelease &
+startPSQuery &
+startIO &
+
+function ctrl-C-Trap(){	stop="stop";}
+trap ctrl-C-Trap SIGINT
+while [ -z $stop ] ; do
+	echo -en "\033[0;0H"
+	while read line ; do
+		echo "$line"
+	done < status
+	echo
+	echo
+	echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Test !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	#echo $(getTcpDump compute-0-0 | tail -1 | cut -f1-3 -d:)
+        tcpdump -nn -r tcp.dump         \
+                not ip proto 1		\
+                and ip host compute-0-3	\
+		and not udp port 53     \
+		and not tcp port 514	\
+		and not udp port 514	\
+		and not udp port 123	\
+                and not tcp port 22     | tail -20
+	echo "
+
+
+"
+	sleep 0.1
+done
+
+echo
+echo
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!! CLEAN UP !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+echo
+
+        kill -9 %5
+        kill -9 %4
+        kill -9 %3
+        kill -9 %2
+        kill -9 %1
+        wait
+        while read PID CMD
+        do
+                echo    "$PID   $CMD"
+                killRS="${PID} ${killRS}"
+        done < <(ps -eo pid,cmd | grep -e rs | grep -v grep)
+        kill -9 ${killRS}
+        exit 0

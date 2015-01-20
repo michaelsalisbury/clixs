@@ -1,0 +1,806 @@
+*
+*
+*
+*     ------------------------------------------------------------------
+*		R C W F N
+*     ------------------------------------------------------------------
+*
+      SUBROUTINE RCWFN ( RHO,ETA,MINL,MAXL,FC,FCP,GC,GCP,ACCUR, IRET )
+*
+*     COMPUTES REGULAR AND IRREGULAR COULOMB WAVEFUNCTIONS.
+*
+*       THIS SUBROUTINE RETURNS THE REGULAR AND IRREGULAR COULOMB
+*     WAVEFUNCTIONS AND THEIR DERIVATIVES FOR SPECIFIC VALUES OF
+*     ETA AND RHO AND FOR A RANGE OF L'S.  THE RANGE OF L'S (ORBITAL
+*     ANGULAR MOMENTUM) NEED NOT BEGIN AT L = 0 AND, IN GENERAL,
+*     IT WILL BE LESS TIME CONSUMING TO REQUEST ONLY THOSE L'S
+*     THAT ARE ACTUALLY DESIRED.  THE CONVENTIONS OF ABRAMOWITZ
+*     AND STEGUN (HANDBOOK OF MATHEMATICAL FUNCTIONS) ARE USED.
+*
+*       THIS SUBROUTINE IS AN ADAPTATION OF THE MANCHESTER SUBROUTINE
+*     OF THE SAME NAME (BUT SLIGHTLY DIFFERENT ARGUMENT LIST) THAT
+*     WAS PUBLISHED IN COMPUTER PHYSICS COMMUNICATIONS 8, 377 (1974).
+*     BY BARNETT, FENG, STEED AND GOLDFARB.  THE CONTINUED FRACTIONS
+*     INTRODUCED IN THAT ARTICLE ARE USED IN THE RANGE RHO >
+*     RHO(TURN) BUT COMPLETELY DIFFERENT PROCEDURES ARE USED
+*     FOR RHO < RHO(TURN).  THE NEW PROCEDURES ALLOW RESULTS
+*     FOR RHO < RHO(TURN) OF ACCURACY COMPARABLE TO THOSE FOR
+*     RHO > RHO(TURN) IN COMPARABLE TIME.
+*
+*       ONE OF THE CONTINUED FRACTIONS IS NOT CONVERGENT FOR VERY
+*     SMALL RHO AND THUS THIS ROUTINE WILL FIND ONLY F AND F' FOR
+*     RHO < .005.  IN ADDITION THE ROUTINE BECOMES RATHER SLOW FOR
+*     RHO < .1.  FOR VERY LARGE RHO ( >> 1000 ), ANOTHER CONTINUED
+*     FRACTION CONVERGES VERY SLOWLY AND THE SUBROUTINE WILL FAIL
+*     TO CONVERGE IN THE MAXIMUM ALLOWED NUMBER OF ITERATIONS FOR
+*     RHO > 9500 WITH THE EXCEPTION THAT LARGER RHO ARE POSSIBLE
+*     IF ETA IS NEAR RHO/2.
+*
+*       ASIDE FROM THE ABOVE LIMITATIONS, THE SUBROUTINE HAS A VERY
+*     LARGE RANGE OF ETA,  RHO, AND L FOR WHICH IT WILL RETURN
+*     RELIABLE VALUES IN REASONABLE TIMES.  IT HAS BEEN TESTED FOR
+*     -2000 < ETA < 5000,  1E-6 < RHO < 10000;  0 < L < 1000 .
+*     THE TESTS CONSISTED OF COMPARASONS TO EXISTING ROUTINES TO
+*     LOCATE CODING ERRORS AND OF COMPARASONS TO QUADRUPLE PRECISION
+*     RESULTS TO DETERMINE THE NUMERICAL STABILITY OF THE ALGORITHMS.
+*     HOWEVER, NO VERIFICATION OF THE CORRECTNESS OF G OR G' FOR
+*     ETA < 0 HAS BEEN MADE.
+*
+*
+*     ARGUMENTS (ALL FLOATING POINT ARGUMENTS ARE DOUBLE PRECISION) -
+*
+*     RHO - THE VALUE OF THE RADIAL COORDINATE AT WHICH F, F', G, AND
+*           G' ARE DESIRED.  0 < RHO < 9500 IS REQUIRED.  IF
+*           RHO < .005, ONLY F AND F' WILL BE FOUND.
+*
+*     ETA - THE VALUE OF THE CHARGE PARAMETER TO BE USED.  THE ROUTINE
+*           HAS BEEN TESTED FOR -2000 < ETA < 5000.  ETA = 0 WILL
+*           RESULT IN THE COMPUTATION OF THE SPHERICAL BESSEL
+*           FUNCTIONS TIMES RHO.
+*
+*     MINL - THE MINIMUM VALUE OF L FOR WHICH THE FUNCTIONS ARE DESIRED.
+*     MAXL - THE MAXIMUM VALUE OF L.
+*
+*     FC, FCP, GC, AND GCP - THESE ONE DIMENSIONAL ARRAYS WILL BE
+*           SET TO THE COMPUTED VALUES OF F, F', G, AND G' RESPECTIVELY.
+*           EACH ARRAY MUST BE OF LENGTH AT LEAST MAXL+1 AND WILL
+*           BE SET AS
+*             ARRAY(L+1) = FUNCTION(L)   MINL =< L =< MAXL .
+*           DEPENDING ON ETA AND RHO, THE FIRST MINL ELEMENTS OF
+*           EACH ARRAY MAY BE USED FOR INTERMEDIATE COMPUTATIONS AND
+*           THEIR VALUES ARE NOT PREDICTABLE UPON EXIT FROM RCWFN.
+*
+*     ACCUR - THE DESIRED ACCURACY OF CONVERGENCE OF THE CONTINUED
+*          FRACTIONS AND OTHER SERIES.  IN GENERAL THIS WILL BE
+*          THE RELATIVE ACCURACY OF THE FINAL VALUES EXCEPT NEAR
+*          A ZERO OF ONE OF THE FUNCTIONS.  ACCUR SHOULD BE IN
+*          THE RANGE
+*              1E-6 < ACCUR < 1E-15 ,
+*          IF IT IS NOT, ONE OF THE ABOVE TWO VALUES WILL BE USED.
+*
+*     IRET - THIS INTEGER IS SET TO A RETURN CODE TO INDICATE THAT
+*          RCWFN WAS SUCCESSFUL OR THE REASON FOR FAILURE:
+*        0 - ALL O.K.; ALL FUNCTIONS FOUND.
+*        1 - SOME O.K., THOSE FOR HIGHER L'S HAVE UNDER/OVER-FLOWED
+*        2 - RHO < .005; ONLY F, F' WERE COMPUTED.
+*        3 - RHO < .005; ONLY F, F' WERE COMPUTED AND SOME OF THEM
+*                        UNDERFLOWED.
+*        4 - ALL WILL UNDER/OVER-FLOW; NO RESULTS DEFINED.
+*        5 - FAILED TO AVOID DIVIDE BY ZERO IN F'/F LOOP
+*        6 - NONCONVERGENCE OF R
+*        7 - NONCONVERGENCE OF P + IQ
+*        8 - NONCONVERGENCE OF MACLAUREN SERIES
+*        9 - NONCONVERGENCE OF THE TAYLOR SERIES ABOUT RHO = 2*ETA
+*     IRET'S OF 5 TO 9 SHOULD BE REPORTED TO STEVE PIEPER ( X4523 )
+*
+*       THE FOLLOWING TABLE GIVES SAMPLE EXECUTION TIMES ON THE
+*     /75 AND /195.  TIMES ARE FOR ACCUR = 1D-14 AND FOR
+*     MINL = MAXL = 0.  IN GENERAL EXECUTION TIME IS WEAKLY DEPENDANT
+*     ON ACCUR AND MINL.  IF MAXL > MINL, THE TIMES REQUIRED FOR
+*     EACH ADDITIONAL L ARE APPROXIMATLEY 0.01 MILLISEC ON THE /195
+*     AND 0.15 MILLISEC ON THE /75.  TIMES FOR ETA < 0 ARE COMPARABLE TO
+*     TO THOSE FOR \ETA\.  THE FINAL COLUMN OF THE TABLE GIVES
+*     THE NUMBER OF BITS LOST DUE TO ROUND OFF AND TRUNCATION
+*     ERRORS AND INDICATES THE MAXIMUM PRECISION POSSIBLE ON A
+*     GIVEN MACHINE.  THE /360 AND /370 HAVE 56 BITS OF PRECISION
+*     (16.8 DECIMAL PLACES) AND EACH 3.3 BITS LOST REPRESENTS
+*     ONE DECIMAL PLACE LOST.
+*
+*      ETA    RHO     TIME IN MILLISECONDS    BITS LOST
+*                       /195      /75
+*
+*        0.      .01     .15       1.2            3
+*        0.     1.       .13       1.2            3
+*        0.   100.      1.0       11.            11
+*        0.  1000.      7.6       81.
+*        1.      .1     5.4       81.             9
+*        1.     1.      1.0       12.5            8
+*        1.    10.       .33       3.7            3
+*        1.   100.      1.1       11.
+*        1.  1000.      8.1       81.
+*       10.     1.      1.5       20.             6
+*       10.    10.       .8        8.3            6
+*      100.    75.      1.9       21.            10
+*      100.   100.      2.0       21.            10
+*      100.  1000.      7.3       74.            13
+*     1000.  5000.     29.       385.            16
+*
+*
+*     MAY 23, 1976 - REVISED VERSION BY S. PIEPER.
+*     NOV 19, 1976 - FIX CHOICE OF ROOT FOR RHO << ETA, ETA > 10
+*     12/14/77 - CDC VERSION USING MORTRAN
+*     6/27/78 - FIX CDC VRYBIG, PRINTOUTS FOR ERROR CONDITIONS - S.P.
+*     1/29/80 - CUN, CVA VERSIONS, CFR%F - RPG
+*     3/13/80 - BACK TO CFR%F - S.P.
+*     7/9/80 - CRAY DATA STATEMENST - S.P.
+*
+*
+      IMPLICIT REAL*8 ( A-H, O-Z )
+*
+*DC      ALLOCLEVEL FC, FCP, GC, GCP
+      LOGICAL FRSTSW
+      DIMENSION FC(*),FCP(*),GC(*),GCP(*)
+*
+*     VRYBIG IS THE RESULT OF AN OVERFLOW
+*     BIG IS REPRESENTATIVE OF MAX NUMBER, SMALL IS ITS INVERSE
+*     SMALLN IS  LOG(SMALL)  (MUST BE ACCURATE)
+*     PRECIS IS ABOUT  100*(MACHINE PRECISION)
+*     PRECLN IS  > -\LOG(MACHINE PRECISION)\
+*     PRERT3 IS LIKE THE CUBEROOT OF THE MACHINE PRECISION
+*
+*IB      DATA VRYBIG / Z 7FFFFFFF FFFFFFFF /
+*IB      DATA BIG / Z 70800000 00000000 /
+*IB      DATA SMALL / Z 11200000 00000000 /
+*     REAL*16 SMALLN / -132.39111148694955409869133519851171 Q+00 /
+*IB      REAL*8 SMALLN / Z C284641FE1E589CC /
+*IB      DATA PRERT3 / 1.D-7 /,  PRECIS / 1.D-15 /,  PRECLN / 44.D0 /
+*
+*     FOR CDC WE STOP BEFORE OVERFLOW SINCE CANNOT TRAP OVERFLOW
+*DC      DATA VRYBIG / 3657 4000 0000 0000 0000 B /
+*DC      DATA BIG / 3621 4000 0000 0000 0000 B /
+*DC      DATA SMALL  / 0020 4000 0000 0000 0000 B /
+*DC      DATA SMALLN / 6046 2632 2411 4172 5514 B /
+*DC      DATA PRERT3 / 1.E-5 /,  PRECIS /1.E-12 /,
+*DC     1  PRECLN / 35.E0 /
+*
+*RA      DATA VRYBIG / 1.E+2450 /
+*RA      DATA BIG    / 1.E+2100 /
+*RA      DATA SMALL  / 1.E-2100 /
+*RA      DATA SMALLN / -4835.4286 9528 749 /
+*RA      DATA PRERT3 / 1.E-5 /,  PRECIS / 1.E-12 /,
+*RA     1  PRECLN / 35.E0 /
+*
+*UN      DATA VRYBIG / 1.D290 /, BIG / 1.D250 /, SMALL / 1.D-250 /
+*UN      DATA SMALLN / -575.64627 32487 61421 0D0 /
+*UN      DATA PRERT3 / 1.D-7 /, PRECIS / 1.D-16 /, PRECLN / 44.D0 /
+*
+         DATA VRYBIG / 1.D32 /, BIG / 1.D25 /, SMALL / 1.D-25 /
+         DATA SMALLN / -57.564627 32487 61421 0D0 /
+         DATA PRERT3 / 1.D-7 /, PRECIS / 1.D-15 /, PRECLN / 44.D0 /
+*
+*XX      REAL*16 PI / 3.1415926535897932384626433832795028 0Q+00 /
+         DATA  PI / 3.141592653589793238                 0D+00 /
+*IB      DATA PI / Z 413243F6A8885A31 /
+*
+*     LOGICAL FRSTSW
+*
+*     NOW
+*FR%F
+*
+*     COULOMB WAVEFUNCTIONS CALCULATED AT RHO = RHO BY THE
+*     CONTINUED-FRACTION METHOD OF STEED   MINL,MAXL ARE ACTUAL L-VALUES
+*     SEE BARNETT FENG STEED AND GOLDFARB COMPUTER PHYSICS COMMON 1974
+*
+*
+*     HERE WE LIMIT ACCURACY TO REASONABLE VALUES FOR THE MACHINE
+*
+      ACC  = ACCUR
+      ACC = DMAX1( ACC, PRECIS )
+      ACC = DMIN1( ACC, PRERT3 )
+*
+      LMAX = MAXL
+      LMIN = MINL
+      LMIN1= LMIN + 1
+      XLL1 = LMIN*LMIN1
+      ETA2 = ETA*ETA
+*
+*     DETERMIN WHICH REGION WE ARE IN
+*
+*     FOR RHO < .45, Q OF P+IQ IS POORLY DETERMINED SO WE DON'T USE IT.
+*     EXCEPT THAT FOR LARGE NEGATIVE ETA THE MACLAUREN SERIES ALSO
+*     HAS PROBLEMS
+*
+      IF ( RHO .GT. .45D0 )  GO TO 20
+      IF ( ETA .GE. 0 )  GO TO 10
+      IF ( -ETA*RHO .GT. 7 )  GO TO 20
+*
+*     FOR RHO < .005, WE ONLY RETURN F AND F' SINCE THE P+IQ RECURSION
+*     IS VERY SLOWLY CONVERGENT  ( FOR VERY SMALL ETA IT IS POSSIBLE
+*     TO GO TO SMALLER RHO ( RHO > 1E+4*ETA )  BUT WE IGNOR THAT HERE.
+*
+ 10   IF ( RHO .GT. .005D0 )  GO TO 60
+      IGOTO = 5
+      GO TO 70
+*
+ 20   TURN = ETA + DSQRT(ETA2 + XLL1)
+      IGOTO = 1
+      IF ( RHO .GE. TURN-1.D-4 )  GO TO 100
+*
+*     WE ARE INSIDE THE TURNING POINT FOR MINL, CAN WE GET OUTSIDE
+*     OF IT BY REDUCING MINL. (THIS IS ALWAYS POSSIBLE FOR
+*     ETA < 0).
+*
+      IF ( RHO .LT. ETA+DABS(ETA) )  GO TO 60
+*
+*     YES, DO SO - THIS IS THE SAME AS  RHO > RHO(TURN)  EXCEPT
+*     WE GENERATE SOME EXTRA F(L), G(L) FOR  L < MINL
+*
+      LMIN = .5*( DSQRT(1+4*((RHO-ETA)**2-ETA2)) - 1 )
+      LMIN1 = LMIN + 1
+      GO TO 80
+*
+*     MUST USE A DIFFERENT METHOD TO SUPPLIMENT THE BAD I Q
+*     VALUE.  ALWAYS START WITH LMIN = 0 FOR SIMPLICITY.
+*
+*     NOTE ONLY ETA > 0 GETS TO HERE ( EXCEPT WHEN RHO < .45 )
+*
+ 60   IGOTO = 2
+ 70   LMIN = 0
+      LMIN1 = 1
+      IF ( ETA .LT. 10  .OR.  RHO .LE. ETA )  GO TO 80
+      IGOTO = 3
+*
+ 80   XLL1 = LMIN*LMIN1
+*
+*     HERE WE COMPUTE  F'/F  FOR L = MAXL
+*     WE THEN RECURSE DOWN TO LMIN TO GENERATE THE UNNORMALIZED F'S
+*     THIS SECTION IS USED FOR ALL RHO.
+*
+ 100  PL   = LMAX + 1
+      RHOUSE = RHO
+ 105  PLSAVE = PL
+ 110  FRSTSW = .TRUE.
+*     CONTINUED FRACTION FOR  R = FP(MAXL)/F(MAXL)
+      R  = ETA/PL + PL/RHOUSE
+      DQ  = (ETA*RHOUSE)*2.0 + 6*PL**2
+      DR = 12*PL + 6
+      DEL = 0.0
+      D   = 0.0
+      F   = 1.0
+      X   = (PL*PL - PL + (ETA*RHOUSE))*(2.0*PL - 1.0)
+      AI = RHOUSE*PL**2
+      DI = (2*PL+1)*RHOUSE
+*
+*     LOOP AND CONVERGE ON R
+*
+      DO 139  I = 1, 100000
+         H = (AI + RHOUSE*ETA2)*(RHOUSE - AI)
+         X   = X + DQ
+         D = D*H + X
+*
+*     IF WE PASS NEAR A ZERO OF THE DIVISOR, START OVER AT
+*     LARGER LMAX
+*
+         IF ( DABS(D) .GT. PRERT3*DABS(DR) )  GO TO 130
+         PL = PL + 1
+         IF ( PL .LT. PLSAVE+10 )  GO TO 110
+         IRET = 5
+      GO TO 990
+*
+ 130     D = 1/D
+         DQ = DQ + DR
+         DR = DR + 12
+         AI = AI + DI
+         DI = DI + 2*RHOUSE
+         DEL =  DEL*(D*X - 1.0)
+         IF (FRSTSW) DEL = -RHOUSE*(PL*PL + ETA2)*(PL + 1.0)*D/PL
+         FRSTSW = .FALSE.
+         R  = R + DEL
+         IF(D.LT.0.0) F = -F
+         IF ( DABS(DEL) .LT. DABS(R*ACC) )  GO TO 140
+ 139  CONTINUE
+      IRET = 6
+      GO TO 990
+*
+*     R HAS CONVERGED;  DID WE INCREASE LMAX
+*
+ 140  IF ( PL .EQ. PLSAVE )  GO TO 160
+*
+*     RECURSE DOWN ON R TO LMAX
+*     HERE THE ONLY PART OF F THAT IS OF INTEREST IS THE SIGN
+*
+      PL = PL-1
+ 150     D = ETA/PL + PL/RHOUSE
+         F = (R+D)*F
+         R = D - (1+ETA2/PL**2)/(R+D)
+         PL = PL - 1
+         IF ( PL .GT. PLSAVE )  GO TO 150
+*
+*     NOW HAVE R(LMAX, RHO) OR IF IGOTO=4, R(LMIN, 2*ETA)
+*
+ 160  IF ( IGOTO .EQ. 4 )  GO TO 210
+      FC (LMAX+1) = F
+      FCP(LMAX+1) = F*R
+      IF( LMAX.EQ.LMIN) GO TO 200
+*     DOWNWARD RECURSION TO LMIN FOR F AND FP, ARRAYS GC,GCP ARE STORAGE
+      L  = LMAX
+      PL = LMAX
+      AR = 1/RHO
+      DO 189 LP  = LMIN1,LMAX
+         GC (L+1) = ETA/PL + PL*AR
+         GCP(L+1) = DSQRT( (ETA/PL)**2 + 1 )
+         FC (L)   = (GC(L+1)*FC(L+1) + FCP(L+1))/GCP(L+1)
+         FCP(L)   =  GC(L+1)*FC(L)   - GCP(L+1)*FC(L+1)
+         PL = PL - 1
+         L  = L - 1
+*
+*     IF WE ARE GETTING NEAR AN OVERFLOW, RENORMALIZE EVERYTHING DOWN
+*
+         IF ( DABS(FC(L+1)) .LT. BIG )  GO TO 189
+         DO 179  LL = L, LMAX
+            FC(LL+1) = SMALL*FC(LL+1)
+            FCP(LL+1) = SMALL*FCP(LL+1)
+ 179     CONTINUE
+ 189  CONTINUE
+      F  = FC (LMIN1)
+      R = FCP(LMIN1)/F
+*
+*     HERE WE FIND
+*        P + IQ  =  (G'+IF')/(G+IF)
+*     THIS SECTION IS USED IN ALL CASES EXCEPT WHEN
+*        15 < ETA < RHO < 2*ETA
+*
+ 200  IF ( IGOTO .EQ. 3 )  GO TO 500
+      IF ( IGOTO .EQ. 5 )  GO TO 400
+*
+*     NOW OBTAIN P + I.Q FOR LMIN FROM CONTINUED FRACTION (32)
+*     REAL ARITHMETIC TO FACILITATE CONVERSION TO IBM USING REAL*8
+ 210  P  = 0.0
+      Q  = RHOUSE - ETA
+      PL = 0.0
+      AR = -(ETA2 + XLL1)
+      AI =   ETA
+      BR = Q + Q
+      BI = 2.0
+      WI = ETA + ETA
+      DR =   BR/(BR*BR + BI*BI)
+      DI =  -BI/(BR*BR + BI*BI)
+      DP = -(AR*DI + AI*DR)
+      DQ =  (AR*DR - AI*DI)
+*
+*     LOOP AND CONVERGE ON P + IQ
+*
+ 230     P  =  P + DP
+         Q  =  Q + DQ
+         PL = PL + 2.0
+         AR = AR + PL
+         AI = AI + WI
+         BI = BI + 2.0
+         D  = AR*DR - AI*DI + BR
+         DI = AI*DR + AR*DI + BI
+         T  = 1.0/(D*D + DI*DI)
+         DR =  T*D
+         DI = -T*DI
+         H  = BR*DR - BI*DI - 1.0
+         X  = BI*DR + BR*DI
+         T  = DP*H  - DQ*X
+         DQ = DP*X  + DQ*H
+         DP = T
+         IF(PL.GT.46000.) GO TO 920
+         IF(DABS(DP)+DABS(DQ).GE.(DABS(P)+DABS(Q))*ACC) GO TO 230
+      P  = P/RHOUSE
+      Q  = Q/RHOUSE
+*
+*     WE NOW HAVE  R  AND  P+IQ,  IS THIS ENOUGH
+*
+      IF ( IGOTO .EQ. 2 )  GO TO 400
+*
+*     SOLVE FOR FP,G,GP AND NORMALISE F  AT L=LMIN
+*
+*     SINCE THIS IS FOR  RHO > RHO(TURN), F AND G ARE REASONABLE
+*     NUMBERS
+*
+      X = (R-P)/Q
+      FMAG = DSQRT( 1/(Q*(1+X**2)) )
+      W = FMAG/DABS(F)
+      F = W*F
+      G = F*X
+      GP = R*G - 1/F
+      IF ( IGOTO .EQ. 4 )  GO TO 600
+      GO TO 800
+*
+*     HERE   RHO < ETA  OR  RHO < 2*ETA < 20  OR  RHO < .45
+*     WE USE THE MACLAUREN SERIES TO GET  F( L=0, ETA, RHO )
+*
+*     FIRST COMPUTE  RHO*C(L=0, ETA)
+*
+ 400  C = 2*PI*ETA
+      IF ( DABS(C) .GT. .5 )  GO TO 410
+*
+*     USE MACLAURIN EXPANSION OF  X / (EXP(X)-1)
+*
+      X = 0
+      T = 1
+      AR = 1
+      BR = C
+      AI = 1
+      C = 1
+ 405     AI = AI + 1
+         AR = AR*BR/AI
+         C = C + AR
+         IF ( DABS(AR) .GE. ACC*C )  GO TO 405
+      C = 1/C
+      GO TO 430
+*
+*     HERE ETA IS NOT TINY.
+*
+ 410  IF ( ETA .GT. 0 )  GO TO 420
+      C = -C
+      X = 0
+      T = 1
+      GO TO 425
+ 420  X = -SMALLN - PI*ETA
+      T = SMALL
+ 425  IF ( C .LT. PRECLN )  C = C / (1-DEXP(-C))
+ 430  C = RHO*DSQRT(C)
+      B1 = 1
+      B2 = ETA*RHO
+      SUM = B1 + B2
+      AI = 6
+      DI = 6
+      DO 449  I = 1, 10000
+         B3 = ( (2*ETA*RHO)*B2 - (RHO**2)*B1 ) / AI
+         AI = AI + DI
+         DI = DI + 2
+         SUM = SUM + B3
+         STOP = DABS(B1) + DABS(B2) + DABS(B3)
+         B1 = B2
+         B2 = B3
+         IF ( DABS(SUM) .LT. BIG )  GO TO 445
+         X = X - SMALLN
+         SUM = SUM*SMALL
+         B1 = B1*SMALL
+         B2 = B2*SMALL
+ 445     IF ( STOP .LT. ACC*DABS(SUM) )  GO TO 450
+ 449  CONTINUE
+      IRET = 8
+      GO TO 990
+*
+ 450  SUM = ( C*DEXP(X)*SUM ) * T
+*
+*     DID IT UNDERFLOW
+*
+      IF ( SUM .EQ. 0 )  GO TO 900
+*
+*     WE NOW HAVE  F (=SUM),  R,  AND P  ( P ONLY IF RHO > .005 )
+*     USE THE WRONSKIAN AS THE 4TH CONDITION
+*
+      W = SUM/F
+      F = SUM
+      IF ( IGOTO .EQ. 5 )  GO TO 850
+      X = (R-P)*F
+      IF ( DABS(X) .GT. PRERT3 )  GO TO 480
+*
+*     HERE F**3 AND F**4 TERMS ARE LESS THAN MACHINE PRECISION
+*
+      G = 1/X
+      GP = P*G
+      GO TO 800
+*
+*     HERE WE MUST INCLUDE F**3, F**4; WE MUST ALSO WORRY ABOUT
+*     WHICH SIGN OF THE ROOT TO USE.
+*     THE POSITIVE ROOT APPLIES FOR G > F; ELSE THE NEGATIVE ROOT
+*     WE USE Q IN DETERMINING WHICH IS CORRECT
+*
+ 480  B1 = .5/X
+      B2 = B1 * DSQRT(1-4*(X*F)**2)
+      G = B1 + B2
+*     G > F IN ALL OF REGION 2 FOR ETA > 0
+      IF ( ETA .GE. 0 )  GO TO 490
+      SUM = 1/Q - F**2
+      GP = B1 - B2
+      IF ( DABS(G**2-SUM) .GT. DABS(GP**2-SUM) )  G = GP
+ 490  GP = P*G - X*F/G
+      GO TO 800
+*
+*     ETA > 15  AND  ETA < RHO < 2*ETA
+*
+*     WE FIND G AND G' FOR LMIN, RHO=2*ETA USING THE ABOVE METHOD
+*     CONSISTING OF R, P+IQ, AND W.
+*
+ 500  RHOUSE = ETA+ETA
+      PL = LMIN+1
+      IGOTO = 4
+      GO TO 105
+*
+*     NOW WE HAVE  G, G'  AT THE TURNING POINT, GO IN USING TAYLOR
+*
+*
+ 600  DEL = RHOUSE - RHO
+      B1 = G
+      B2  = -DEL*GP
+      B3 = 0
+      G = B1+B2
+      ACCR = ACC/2
+      DELINV = -1/DEL
+      DFACTR = 3*DELINV
+      X = DEL/RHOUSE
+      AI = X+X
+      DI = AI+AI
+      AR = 6
+      DR = 6
+      DO 639  I = 1, 10000
+         S = ( AI*B3 + (X*DEL**2)*B1 ) / AR
+         AR = AR + DR
+         DR = DR + 2
+         AI = AI + DI
+         DI = DI + 2*X
+         G = G + S
+         GP = GP + DFACTR*S
+         IF ( G .GE. VRYBIG )  GO TO 900
+         DFACTR = DFACTR + DELINV
+         B1 = B2
+         B2 = B3
+         B3 = S
+         IF ( S .LT. ACCR*G )  GO TO 650
+ 639  CONTINUE
+      IRET = 9
+      GO TO 990
+*
+*     HERE WE HAVE  R = F'/F,  G,  G'
+*     USE WRONSKIAN AS THE 4TH CONDITION
+*
+ 650  F = FC(LMIN1)
+      R = FCP(LMIN1)/F
+      SUM = 1/(R*G-GP)
+      W = SUM/F
+      F = SUM
+*
+*     WE NOW HAVE  F, R = F'/F, G, G'  AT LMIN
+*
+*     UPWARD RECURSION FROM GC(LMIN) AND GCP(LMIN),STORED VALUES ARE RHO
+*     RENORMALISE FC,FCP FOR EACH L-VALUE
+*
+ 800  GC (LMIN1) = G
+      GCP(LMIN1) = GP
+      FC(LMIN1) = F
+      FCP(LMIN1) = R*F
+      IRET = 0
+      IF(LMAX.EQ.LMIN)  RETURN
+      DO  829  L = LMIN1,LMAX
+         T        = GC(L+1)
+         GC (L+1) = (GC(L)*GC (L+1) - GCP(L))/GCP(L+1)
+         GCP(L+1) =  GC(L)*GCP(L+1) - GC(L+1)*T
+         FC (L+1) = W*FC (L+1)
+ 829     FCP(L+1) = W*FCP(L+1)
+ 840  IF ( DABS(FC(LMAX+1))+DABS(FCP(LMAX+1)) .EQ. 0 )  IRET = IRET+1
+      RETURN
+*
+*     RHO < .005;  WE CANNOT FIND P OR Q AND SO RETURN ONLY F, F'.
+*
+ 850  FC(LMIN1) = F
+      FCP(LMIN1) = R*F
+      IRET = 2
+      IF ( LMAX .EQ. LMIN )  RETURN
+      DO 859  L = LMIN1, LMAX
+         FC(L+1) = W*FC(L+1)
+         FCP(L+1) = W*FCP(L+1)
+ 859  CONTINUE
+      GO TO 840
+*
+*     F AND G ARE OUT OF THE MACHINE EXPONENT RANGE FOR LMIN.
+*     IT WILL BE EVEN WORSE FOR  L > LMIN  SO GIVE UP AND RETURN
+*
+ 900  IRET = 4
+      GO TO 990
+*
+*     P + IQ FAILED TO CONVERGE
+ 920  IRET = 7
+*
+*     ERROR DETECTED, PRINT THE INPUT AND SOME STUFF
+*
+ 990  PRINT 993, IRET, RHO, ETA, MINL, MAXL, ACCUR,
+     1  RHOUSE, P, Q, R, T, X, I, SUM
+ 993  FORMAT ( 17H0***RCWFIN IRET =, I5, 6X, 7HINPUT =,
+     1    2G20.10, 2I10, G15.5 /
+     2  4H ***, 6G18.8 /  I8, G18.8 )
+      RETURN
+*
+      END
+**********************
+*     ------------------------------------------------------------------
+*		S P L I N E
+*     ------------------------------------------------------------------
+*
+      SUBROUTINE SPLINE (N, X, Y, B, C, D)
+      IMPLICIT REAL*8 (A-H,O-Z)
+      DIMENSION X(10000),Y(10000),B(10000),C(10000),D(10000)
+*
+*  THE COEFFICIENTS B(I), C(I), AND D(I), I=1,2,...,N ARE COMPUTED
+*  FOR A CUBIC INTERPOLATING SPLINE
+*
+*    S(X) = Y(I) + B(I)*(X-X(I)) + C(I)*(X-X(I))**2 + D(I)*(X-X(I))**3
+*
+*    FOR  X(I) .LE. X .LE. X(I+1)
+*
+*  INPUT..
+*
+*    N = THE NUMBER OF DATA POINTS OR KNOTS (N.GE.2)
+*    X = THE ABSCISSAS OF THE KNOTS IN STRICTLY INCREASING ORDER
+*    Y = THE ORDINATES OF THE KNOTS
+*
+*  OUTPUT..
+*
+*    B, C, D  = ARRAYS OF SPLINE COEFFICIENTS AS DEFINED ABOVE.
+*
+*  USING  P  TO DENOTE DIFFERENTIATION,
+*
+*    Y(I) = S(X(I))
+*    B(I) = SP(X(I))
+*    C(I) = SPP(X(I))/2
+*    D(I) = SPPP(X(I))/6  (DERIVATIVE FROM THE RIGHT)
+*
+*  THE ACCOMPANYING FUNCTION SUBPROGRAM  SEVAL  CAN BE USED
+*  TO EVALUATE THE SPLINE.
+*
+*
+      INTEGER NM1, IB, I
+      DOUBLE PRECISION T
+*
+      NM1 = N-1
+      IF ( N .LT. 2 ) RETURN
+      IF ( N .LT. 3 ) GO TO 50
+*
+*  SET UP TRIDIAGONAL SYSTEM
+*
+*  B = DIAGONAL, D = OFFDIAGONAL, C = RIGHT HAND SIDE.
+*
+*      WRITE(6,*) 'IT ENTERS SPLINE'
+*      WRITE(6,*) (M,X(M),Y(M), M=1,10)
+      D(1) = X(2) - X(1)
+      C(2) = (Y(2) - Y(1))/D(1)
+      DO 10 I = 2, NM1
+         D(I) = X(I+1) - X(I)
+         B(I) = 2.*(D(I-1) + D(I))
+         C(I+1) = (Y(I+1) - Y(I))/D(I)
+         C(I) = C(I+1) - C(I)
+   10 CONTINUE
+*
+*  END CONDITIONS.  THIRD DERIVATIVES AT  X(1)  AND  X(N)
+*  OBTAINED FROM DIVIDED DIFFERENCES
+*
+      B(1) = -D(1)
+      B(N) = -D(N-1)
+      C(1) = 0.
+      C(N) = 0.
+      IF ( N .EQ. 3 ) GO TO 15
+      C(1) = C(3)/(X(4)-X(2)) - C(2)/(X(3)-X(1))
+      C(N) = C(N-1)/(X(N)-X(N-2)) - C(N-2)/(X(N-1)-X(N-3))
+      C(1) = C(1)*D(1)**2/(X(4)-X(1))
+      C(N) = -C(N)*D(N-1)**2/(X(N)-X(N-3))
+*
+*  FORWARD ELIMINATION
+*
+   15 DO 20 I = 2, N
+         T = D(I-1)/B(I-1)
+         B(I) = B(I) - T*D(I-1)
+         C(I) = C(I) - T*C(I-1)
+   20 CONTINUE
+*
+*  BACK SUBSTITUTION
+*
+      C(N) = C(N)/B(N)
+      DO 30 IB = 1, NM1
+         I = N-IB
+         C(I) = (C(I) - D(I)*C(I+1))/B(I)
+   30 CONTINUE
+*
+*  C(I) IS NOW THE SIGMA(I) OF THE TEXT
+*
+*  COMPUTE POLYNOMIAL COEFFICIENTS
+*
+      B(N) = (Y(N) - Y(NM1))/D(NM1) + D(NM1)*(C(NM1) + 2.*C(N))
+      DO 40 I = 1, NM1
+         B(I) = (Y(I+1) - Y(I))/D(I) - D(I)*(C(I+1) + 2.*C(I))
+         D(I) = (C(I+1) - C(I))/D(I)
+         C(I) = 3.*C(I)
+   40 CONTINUE
+      C(N) = 3.*C(N)
+      D(N) = D(N-1)
+      RETURN
+*
+   50 B(1) = (Y(2)-Y(1))/(X(2)-X(1))
+      C(1) = 0.
+      D(1) = 0.
+      B(2) = B(1)
+      C(2) = 0.
+      D(2) = 0.
+      RETURN
+      END
+C
+C ------------------------------------------------------------------------
+C         SEVAL
+C ------------------------------------------------------------------------ 
+      REAL FUNCTION SEVAL(N,U,X,Y,B,C,D)
+      IMPLICIT REAL*8 (A-H,O-Z) 
+      DIMENSION  X(10000),Y(10000),B(10000),C(10000),D(10000)
+C
+C  THIS SUBROUTINE EVALUATES THE CUBIC SPLINE FUNCTION
+C
+C     SEVAL + Y(I) + B(I)*(U-X(I)) + C(I) * (U-X(I))**2 + D(I) * (U-X(I))**3
+C
+C     WHERE X(I) .LT. U .LT. X(I+1), USING HORNER'S RULE
+C
+C  IF U .LT. X(1) THEN I=1 IS USED.
+C  IF U .GE. X(N) THEN I = N IS USED.
+C
+C  INPUT.
+C
+C    N = THE NUMBER OF DATA POINTS
+C    U = THE ABSCISSA AT WHICH THE SPLINE IS TO BE EVALUATED
+C    X,Y = THE ARRAYS OF DATA ABSCISSA AND ORDINATES
+C    B,C,D = ARRAYS oF SPLINE OF SPLINE COEFFICIENTS COMPUTED BY SPLINE
+C
+C  IF U IS NOT IN THE SAME INTERVAL AS THE PREVIOUS CALL , THEN A BINARY 
+C  SEARCH IS PERFORMED TO DETERMINE THE PROPER INTERVAL.
+C
+      INTEGER I, J, K     
+      REAL DX
+      DATA I/1/
+      IF (I .GE. N) I = 1
+      IF (U .LT. X(I)) GO TO 10
+      IF (U .LE. X(I+1)) GO TO 30
+C
+C     BINARY SEARCH
+C
+ 10   I = 1
+      J = N + 1
+ 20   K = (I+J)/2
+      IF ( U .LT. X(K))  J = K
+      IF ( U .GE. X(K))  I = K
+      IF ( J .GT. I + 1 ) GO TO 20
+C
+C     EVALUATE SPLINE
+C
+ 30   DX = U - X(I)
+      SEVAL = Y(I) + DX * (B(I) + DX* (C(I) + DX*D(I)))
+      RETURN
+      END
+C  **** ******
+*      -----------------------------------------------------------------
+*	S I G M A L
+*      -----------------------------------------------------------------
+
+*	Compute arg GAMM(l+1 -i ETA), the coulomb phase shift using
+*       the formula published by A. Burgess, Proc. Phys. Soc. Vol. 81,
+*	pp. 442 (1963).
+
+
+	DOUBLE PRECISION FUNCTION SIGMAL(L,ETA)
+	IMPLICIT REAL*8(A-H,O-Z)
+
+	INTEGER P,P2,S
+
+*       ... Determine p and set constants
+
+	ETA2 = ETA*ETA
+	P = MAX(L+1, INT(SQRT(ABS(35*ABS(ETA)**.25 - ETA2)) + 1))
+	P2 = P*P
+	ETAP2 = ETA2 + P2
+	ETAP22 = ETAP2*ETAP2
+
+*	... Evaluate the series
+
+	ARG = 3*P2 - ETA2 - (5*P2*P2 - 10*P2*ETA2 + ETA2*ETA2)*2./
+     :        (7.*ETAP22)
+	ARG = 1. - ARG/(30*ETAP22)
+	ARG = ETA*(1. + ARG/(12*ETAP2) - DLOG(ETAP2)/2) +
+     :	       - (P - 0.5)*ATAN(ETA/P)
+	DO 1 S = L+1,P-1
+	   ARG = ARG + ATAN(ETA/S)
+1	CONTINUE
+
+*	Set the value of Sigmal
+
+	SIGMAL = ARG
+	END

@@ -1,0 +1,31 @@
+section: screens
+	DLPBMM1:
+		halfDuplexCapsLock = false
+		halfDuplexNumLock = false
+		halfDuplexScrollLock = false
+		xtestIsXineramaUnaware = false
+		switchCorners = none 
+		switchCornerSize = 0
+	MAC:
+end
+
+section: aliases
+	MAC:
+	ChangeMe.cos.ucf.edu
+end
+
+section: links
+	DLPBMM1:
+	left = MAC
+	MAC:
+	right = DLPBMM1
+end
+
+section: options
+	relativeMouseMoves = false
+	screenSaverSync = true
+	win32KeepForeground = false
+	switchCorners = none 
+	switchCornerSize = 0
+end
+

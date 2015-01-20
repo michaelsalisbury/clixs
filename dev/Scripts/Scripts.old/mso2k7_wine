@@ -1,0 +1,13 @@
+#!/bin/bash
+
+clear; echo; echo; echo; echo; echo; echo; echo; echo; echo; echo; echo; echo; echo; echo; echo; echo; echo; echo;
+# Do not install riched20 with winetricks.  Office 2007 installs its own version of riched20.
+for p in msls31 gdiplus riched30 msxml4 msxml6 corefonts tahoma vb6run vcrun6 msi2 usp10
+	do
+		echo ___________________________________________________________________________________________[$p]
+		echo
+		winetricks $p
+		echo
+		echo 
+
+	done

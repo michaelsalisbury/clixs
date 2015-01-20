@@ -1,0 +1,543 @@
+*
+*     ------------------------------------------------------------------
+*	B L O C K    D A T A
+*     ------------------------------------------------------------------
+*
+      BLOCK DATA INITT
+*
+      IMPLICIT REAL *8(A-H,O-Z)
+*
+      COMMON/KRON/IDEL(10,10)
+      COMMON/TERMS/NROWS,I(14),J(14),N(219)
+*
+* --- SETS QUANTUM NUMBERS OF TERMS WHICH CAN BE FORMED FROM
+*     CONFIGURATIONS  L**Q . ONLY THE FIRST HALF OF THAT PART OF THE
+*     TABLE, CORRESPONDING TO A GIVEN  L, IS INCLUDED, BECAUSE OF THE
+*     SYMMETRY OF THE TABLE.  E.G. D**7 FORMS THE SAME TERMS AS D**3
+*
+*     THE ARRAYS I,J,N CORRESPOND TO THE ARRAYS ITAB,JTAB,NTAB
+*
+      DATA NROWS/14/
+      DATA I/ 1, 1, 1, 3, 3, 1, 5, 8,16,16, 1, 7, 1, 9/
+      DATA J/ 0, 3, 6, 9,18,27,30,45,69,117,165,168,189,192/
+*
+*     S - SHELLS (ROWS 1 AND 2)
+*
+      DATA N/ 1, 1, 2, 0, 1, 1,
+*
+*     P -SHELLS (ROWS 3 TO 5)
+*
+     :       1, 3, 2,
+     :       0, 1, 1, 2, 5, 1, 2, 3, 3,
+     :       1, 3, 2, 3, 5, 2, 3, 1, 4,
+*
+*     D - SHELLS (ROWS 6 TO 10)
+*
+     :       1, 5, 2,
+     :       0, 1, 1, 2, 5, 1, 2, 9, 1, 2, 3, 3, 2, 7, 3,
+     :       1, 5, 2, 3, 3, 2, 3, 5, 2, 3, 7, 2, 3, 9, 2,
+     :       3,11, 2, 3, 3, 4, 3, 7, 4,
+     :       0, 1, 1, 2, 5, 1, 2, 9, 1, 2, 3, 3, 2, 7, 3,
+     :       4, 1, 1, 4, 5, 1, 4, 7, 1, 4, 9, 1, 4,13, 1,
+     :       4, 3, 3, 4, 5, 3, 4, 7, 3, 4, 9, 3, 4,11, 3,
+     :       4, 5, 5,
+     :       1, 5, 2, 3, 3, 2, 3, 5, 2, 3, 7, 2, 3, 9, 2,
+     :       3,11, 2, 3, 3, 4, 3, 7, 4, 5, 1, 2, 5, 5, 2,
+     :       5, 7, 2, 5, 9, 2, 5,13, 2, 5, 5, 4, 5, 9, 4,
+     :       5, 1, 6,
+*
+*     F - SHELLS (ROWS 11 AND 12)
+*
+     :       1, 7, 2,
+     :       2, 3, 3, 2, 7, 3, 2,11, 3, 0, 1, 1, 2, 5, 1,
+     :       2, 9, 1, 2,13, 1,
+*
+*     G - SHELLS (ROWS 13 AND 14)
+*
+     :       1, 9, 2,
+     :       2, 3, 3, 2, 7, 3, 2,11, 3, 2,15, 3, 0, 1, 1,
+     :       2, 5, 1, 2, 9, 1, 2,13, 1, 2,17, 1/
+*
+* --- READ IN OTHER INITIALIZATION DATA
+*
+      DATA IDEL/1,10*0,1,10*0,1,10*0,1,10*0,1,10*0,1,10*0,1,10*0,
+     :          1,10*0,1,10*0,1/
+*
+      END
+*
+*     ------------------------------------------------------------------
+*	C F P
+*     ------------------------------------------------------------------
+*
+      SUBROUTINE CFP(LIJ,N,IVI,ILI,ISI,IVJ,ILJ,ISJ,COEFP)
+      IMPLICIT REAL*8(A-H,O-Z)
+      COMMON/INFORM/IREAD,IWRITE,IOUT,ISC(7)
+*
+* === CHOOSES APPROPRIATE FRACTIONAL PARENTAGE SUBROUTINE
+*
+    9 FORMAT(69H UNNECESSARY ATTEMPT TO FORM CFP OF AN S-ELECTRON - THER
+     :E IS AN ERROR)
+      K=LIJ+1
+      IF (K .GT. 4) K = 4
+*
+*     IF F-SHELL OR G-SHELL COEFFICIENT-OF-FRACTIONAL-PARENTAGE ROUTINES
+*     ARE INCLUDED, THIS COMPUTED GO TO NEEDS MODIFYING TO ACCOUNT FOR
+*     THIS
+*
+	
+      GO TO (1,2,3,4,4),K
+*
+* --- FALSE CALL FOR S-SHELLS
+*
+    1 WRITE(IWRITE,9)
+      CALL EXIT
+*
+* --- P-SHELLS
+*
+    2 CALL CFPP(N,ILI,ISI,ILJ,ISJ,COEFP)
+      RETURN
+*
+* --- D-SHELLS
+*
+    3 CALL CFPD(N,IVI,ILI,ISI,IVJ,ILJ,ISJ,COEFP)
+      RETURN
+*
+* --- F-SHELLS, G-SHELLS ETC. WITH UP TO TWO ELECTRONS
+*
+    4 CALL CFPF(N,IVI,ILI,ISI,IVJ,ILJ,ISJ,COEFP)
+      RETURN
+      END
+*
+*     ------------------------------------------------------------------
+*	C F P D
+*     ------------------------------------------------------------------
+*
+      SUBROUTINE CFPD(N,IVI,LI,ISI,IVJ,LJ,ISJ,COEFP)
+      IMPLICIT REAL*8(A-H,O-Z)
+*
+*
+*     THIS SUBROUTINE EVALUATES THE COEFFICIENTS OF FRACTIONAL PARENTAGE
+*     FOR EQUIVALENT D SHELL ELECTRONS FROM TABLES GIVEN IN J.C.SLATER
+*     QUANTUM THEORY OF ATOMIC STRUCTURE,VOLUME2,P350(1960)
+*     IN THE SUBROUTINE LIST N,THE NO.OF ELECTRONS,V THE SENIORITY QUAN
+*     TUM NO.,L THE ANGULAR MOMENTUM QUANTUM NO.,(2S+1) THE SPIN QUANTUM
+*     NO. OF BOTH THE STATE IN QUESTION AND ITS PARENT STATE ARE INPUT
+*     PARAMETERS  THE RESULT IS OUTPUT AS COEFP
+*
+*
+      COMMON/INFORM/IREAD,IWRITE,IOUT,ISC(7)
+      DIMENSION      IV(5,16),IL(5,16),IS(5,16),
+     :          ITAB1(5,1),ITAB2(8,5),ITAB3(16,8),ITAB4(16,16),
+     :          NORM1(5),NORM2(8),NORM3(16),NORM4(16)
+      DATA IV/1,2,3,4,5,0,2,3,4,5,0,2,3,4,3,0,2,3,2,5,0,0,3,4,3,0,0,1,4,
+     :   5,0,0,3,2,3,0,0,3,4,3,0,0,0,4,5,0,0,0,2,3,0,0,0,4,5,0,0,0,4,1,
+     :0,0,0,2,3,0,0,0,4,5,0,0,0,0,3,0,0,0,4,5/
+      DATA IL/2,3,3,2,0,0,1,1,5,4,0,4,5,4,3,0,2,4,3,2,0,0,3,3,1,0,0,2,2,
+     :   6,0,0,2,1,5,0,0,1,1,4,0,0,0,6,4,0,0,0,4,3,0,0,0,4,3,0,0,0,3,2,
+     :   0,0,0,2,2,0,0,0,2,2,0,0,0,0,1,0,0,0,0,0/
+      DATA IS/2,3,4,5,6,0,3,4,3,4,0,1,2,3,4,0,1,2,3,4,0,1,2,3,4,0,0,2,3,
+     :   2,0,0,2,3,2,0,0,2,3,2,0,0,0,1,2,0,0,0,1,2,0,0,0,1,2,0,0,0,1,2,
+     :   0,0,0,1,2,0,0,0,1,2,0,0,0,1,2,0,0,0,1,2/
+      DATA ITAB1/1,1,1,1,1/
+      DATA ITAB2/4,-7,-1,21,7,-21,21,-8,-1,-8,0,0,28,-9,-49,7,0,0,1,11,
+     :   -25,-9,-25,0,0,0,0,-10,-10,-5,45,15,0,0,0,0,0,16,0,0/
+      DATA ITAB3/7,20,-560,224,-112,-21,-56,16,0,0,0,0,0,0,0,0,3,0,0,-56
+     :   ,-448,49,-64,-14,0,0,0,0,0,0,0,0,0,26,308,110,220,0,0,0,7,-154,
+     :   -28,-132,0,0,0,0,0,-9,297,90,-405,45,0,0,3,66,-507,-3,-60,15,
+     :    0,0,0,5,315,-14,-175,-21,-56,-25,0,70,385,-105,28,63,0,0,0,0,
+     :   0,315,0,0,135,0,0,189,0,0,105,0,1,0,0,0,200,15,120,60,-35,10,0,
+     :   -25,88,200,45,20,0,1,0,0,0,16,-200,-14,-14,25,0,0,0,120,-42,42,
+     :    0,0/
+      DATA ITAB4/1,-105,-175,-175,-75,12*0,154,-110,0,0,231,286,924,-308
+     :   ,220,-396,6*0,-66,-90,180,0,99,-99,891,-5577,-405,-9,0,45,45,0,
+     :   0,0,0,224,0,-56,0,-220,1680,0,112,0,-21,21,0,-16,0,0,-70,14,-84
+     :   ,56,0,55,945,4235,-175,-315,0,-21,189,-25,0,0,25,-15,-135,35,0,
+     :   0,600,968,120,600,0,60,60,10,3,0,0,-56,0,-64,4*0,448,0,-9,-49,
+     :   0,14,0,0,0,-16,126,14,4*0,-200,360,0,-14,126,25,0,5*0,-175,182,
+     :   -728,-2184,7*0,6*0,220,880,0,-400,0,-9,-25,0,0,0,5*0,-45,-5,845
+     :    ,-1215,275,495,0,-11,99,0,0,6*0,33,-7,-2541,105,-525,0,35,35,
+     :   -15,0,7*0,-800 ,0,-160,0,-5,45,0,30,0,7*0,-100,1452,180,-100,0,
+     :   -10,90,15,-2,11*0,6,16*0,-14,-56,0,0/
+      DATA NORM1/1,1,1,1,1/
+      DATA NORM2/5,15,2,42,70,60,140,30/
+      DATA NORM3/10,60,1680,840,1680,210,360,90,10,504,1008,560,280,140,
+     :   1,1/
+      DATA NORM4/1,420,700,700,300,550,1100,8400,18480,2800,2800,50,350,
+     :   700,150,5/
+*
+*     READ IN D SHELL PARAMETERS AND TABLES
+*     PERIPHERAL 1 IS THE CARD READER
+*
+*     TEST IF N IS IN THE FIRST HALF OF SHELL
+*
+99    IF(N-6) 40,103,103
+*
+*     TEST IF STATE IN QUESTION IS ALLOWED
+*     IF IT IS, IDENTIFY THE ROW OF THE TABLE BY J1
+*
+40    J = 0
+101   J = J+1
+      IF(J-17) 41,11,11
+41    IF(IV(N,J)-IVI) 101,42,101
+42    IF(IL(N,J)-LI) 101,43,101
+43    IF(IS(N,J)-ISI) 101,44,101
+44    J1=J
+*
+*     TEST IF PARENT STATE IS ALLOWED
+*     IF IT IS, IDENTIFY THE COLUMN OF THE TABLE BY J2
+*
+      IF(N-1) 45,30,45
+30    IF(IVJ) 11,31,11
+31    IF(LJ) 11,32,11
+32    IF(ISJ-1) 11,1,11
+45    J = 0
+102   J = J+1
+      IF(J-17) 46,11,11
+46    IF(IV(N-1,J)-IVJ) 102,47,102
+47    IF(IL(N-1,J)-LJ)  102,48,102
+48    IF(IS(N-1,J)-ISJ) 102,49,102
+49    J2=J
+      GO TO 100
+*
+*     SIMILAR SETTING OF J1 AND J2 IF N IS IN SECOND HALF OF SHELL
+*
+103   M = 10-N
+      IF(M) 36,33,36
+33    IF(IVI) 11,34,11
+34    IF(LI) 11,35,11
+35    IF(ISI-1) 11,37,11
+36    J = 0
+104   J = J+1
+      IF(J-17) 50,11,11
+50    IF(IV(M,J)-IVI) 104,51,104
+51    IF(IL(M,J)-LI) 104,52,104
+52    IF(IS(M,J)-ISI) 104,53,104
+53    J1=J
+37    J = 0
+105   J = J+1
+      IF(J-17) 54,11,11
+54    IF(IV(M+1,J)-IVJ) 105,55,105
+55    IF(IL(M+1,J)-LJ)  105,56,105
+56    IF(IS(M+1,J)-ISJ) 105,57,105
+57    J2=J
+*
+*     IDENTIFY THE F.P.C AS A UNIQUE ELEMENT OF ITABN(J1,J2)
+*
+100   GO TO (1,2,3,4,5,12,12,12,12,1),N
+1     COEFP = 1.0D0
+      GO TO 10
+2     COEFP = ITAB1(J1,J2)
+      IF(COEFP) 60,10,81
+60    COEFP = - DSQRT(-COEFP/NORM1(J1))
+      GO TO 10
+81    COEFP = DSQRT(COEFP/NORM1(J1))
+      GO TO 10
+3     COEFP = ITAB2(J1,J2)
+      IF(COEFP) 61,10,82
+61    COEFP = -DSQRT(-COEFP/NORM2(J1))
+      GO TO 10
+82    COEFP = DSQRT(COEFP/NORM2(J1))
+      GO TO 10
+4     COEFP = ITAB3(J1,J2)
+      IF(COEFP) 62,10,83
+62    COEFP = -DSQRT(-COEFP/NORM3(J1))
+      GO TO 10
+83    COEFP = DSQRT(COEFP/NORM3(J1))
+      GO TO 10
+5     COEFP = ITAB4(J1,J2)
+      IF(COEFP) 63,10,84
+63    COEFP = -DSQRT(-COEFP/NORM4(J1))
+      GO TO 10
+84    COEFP = DSQRT(COEFP/NORM4(J1))
+      GO TO 10
+*
+*     USE RECURRENCE RELATION EQUATION (19) OF RACAH FOR SECOND HALF OF
+*     SHELL
+*
+12    ISIGN = (-1)**((ISI+ISJ-7)/2 +LI +LJ)
+      FACTOR = DSQRT(DFLOAT((11-N)*ISJ*(2*LJ+1))/DFLOAT(N*ISI*(2*LI+1)))
+      M1 =N-5
+      GO TO(6,7,8,9),M1
+6     COEFP = ITAB4(J2,J1)
+      IF(COEFP) 64,10,85
+64    COEFP = -DSQRT(-COEFP/NORM4(J2))
+      GO TO 86
+85    COEFP = DSQRT(COEFP/NORM4(J2))
+86    COEFP = COEFP*ISIGN*FACTOR
+      IF(MOD((IVJ-1)/2,2))  87,10,87
+87    COEFP = -COEFP
+      GO TO 10
+7     COEFP = ITAB3(J2,J1)
+      IF(COEFP) 65,10,88
+65    COEFP = -DSQRT(-COEFP/NORM3(J2))
+      GO TO 89
+88    COEFP = DSQRT(COEFP/NORM3(J2))
+89    COEFP = COEFP * ISIGN * FACTOR
+      GO TO 10
+8     COEFP = ITAB2(J2,J1)
+      IF(COEFP) 66,10,90
+66    COEFP = -DSQRT(-COEFP/NORM2(J2))
+      GO TO 91
+90    COEFP = DSQRT(COEFP/NORM2(J2))
+91    COEFP = COEFP * ISIGN * FACTOR
+      GO TO 10
+9     COEFP = ITAB1(J2,J1)
+      IF(COEFP) 67,10,92
+67    COEFP = -DSQRT(-COEFP/NORM1(J2))
+      GO TO 93
+92    COEFP = DSQRT(COEFP/NORM1(J2))
+93    COEFP = COEFP * ISIGN * FACTOR
+      GO TO 10
+*
+*     AN UNALLOWED STATE OR AN UNALLOWED PARENT
+*
+11    WRITE(IWRITE,1111)
+ 1111 FORMAT(' ERROR IN SUBROUTINE CFPD - THE STATE OR IT''S PARENT IS N
+     :OT ALLOWED')
+      CALL EXIT
+10    CONTINUE
+      RETURN
+      END
+*
+*     ------------------------------------------------------------------
+*	C F P F
+*     ------------------------------------------------------------------
+*
+      SUBROUTINE CFPF(N,IVI,ILI,ISI,IVJ,ILJ,ISJ,COEFP)
+      IMPLICIT REAL*8(A-H,O-Z)
+*
+*     THIS IS A DUMMY SUBROUTINE TO CALCULATE CFP OF F-ELECTRONS.  IT IS
+*     VALID ONLY FOR ONE OR TWO ELECTRONS IN THE F-SHELL UNDER
+*     CONSIDERATION.
+*
+      COEFP=1.D0
+      RETURN
+      END
+*
+*     ------------------------------------------------------------------
+*	C F P P
+*     ------------------------------------------------------------------
+*
+      SUBROUTINE CFPP(N,LI,ISI,LJ,ISJ,COEFP)
+      IMPLICIT REAL*8(A-H,O-Z)
+*
+*     THIS SUBROUTINE EVALUATES THE COEFFICIENTS OF FRACTIONAL PARENTAGE
+*     FOR EQUIVALENT P SHELL ELECTRONS FROM TABLES GIVEN IN J.C.SLATER
+*     QUANTUM THEORY OF ATOMIC STRUCTURE,VOLUME2,P350(1960)
+*     IN THE SUBROUTINE LIST N,THE NO. OF ELECTRONS,L THE ANGULAR
+*     MOMENTUM QUANTUM NO.,(2S+1) THE SPIN QUANTUM NO. OF BOTH THE STATE
+*     IN QUESTION AND ITS PARENT STATE ARE INPUT PARAMETERS.THE RESULT
+*     IS OUTPUT AS COEFP
+*
+      COMMON/INFORM/IREAD,IWRITE,IOUT,ISC(7)
+      DIMENSION IL(3,3),IS(3,3),ITAB1(3,1),ITAB2(3,3),NORM1(3),NORM2(3)
+      DATA IS(1,2),IS(1,3)/0,0/
+      DATA IL(1,2),IL(1,3)/0,0/
+*
+*
+*     SET UP P SHELL PARAMETERS AND TABLES
+*
+      DATA IL(1,1),IL(2,1),IL(2,2),IL(2,3),IL(3,1),IL(3,2),IL(3,3)/1,1,2
+     :     ,0,0,2,1/
+      DATA IS(1,1),IS(2,1),IS(2,2),IS(2,3),IS(3,1),IS(3,2),IS(3,3)/2,3,1
+     :     ,1,4,2,2/
+      DATA ITAB1(1,1),ITAB1(2,1),ITAB1(3,1)/1,1,1/
+      DATA ITAB2(1,1),ITAB2(1,2),ITAB2(1,3),ITAB2(2,1),ITAB2(2,2),ITAB2(
+     :     2,3),ITAB2(3,1),ITAB2(3,2),ITAB2(3,3)/1,0,0,1,-1,0,-9,-5,4/
+      DATA NORM1(1),NORM1(2),NORM1(3)/1,1,1/
+      DATA NORM2(1),NORM2(2),NORM2(3)/1,2,18/
+*
+*     TEST IF N IS IN THE FIRST HALF OF SHELL
+*
+99    IF(N-4) 40,103,103
+*
+*     TEST IF STATE IN QUESTION IS ALLOWED
+*     IF IT IS, IDENTIFY THE ROW OF THE TABLE BY J1
+*
+40    J = 0
+101   J = J+1
+      IF(J-4) 41,8,8
+41    IF(IL(N,J)-LI) 101,42,101
+42    IF(IS(N,J)-ISI) 101,43,101
+43    J1 = J
+*
+*     TEST IF PARENT STATE IS ALLOWED
+*     IF IT IS, IDENTIFY THE COLUMN OF THE TABLE BY J2
+*
+      IF(N-1) 44,70,44
+70    IF(LJ) 8,71,8
+71    IF(ISJ-1) 8,1,8
+44    J = 0
+102   J = J+1
+      IF(J-4) 45,8,8
+45    IF(IL(N-1,J)-LJ) 102,46,102
+46    IF(IS(N-1,J)-ISJ) 102,47,102
+47    J2 = J
+      GO TO 100
+*
+*     SIMILAR SETTING OF J1 AND J2 IF N IS IN SECOND HALF OF SHELL
+*
+103   M =6-N
+      IF(M) 72,73,72
+73    IF(LI) 8,74,8
+74    IF(ISI-1) 8,75,8
+72    J = 0
+104   J = J+1
+      IF(J-4) 48,8,8
+48    IF(IL(M,J)-LI) 104,49,104
+49    IF(IS(M,J)-ISI) 104,50,104
+50    J1 = J
+75    J = 0
+105   J = J+1
+      IF(J-4) 51,8,8
+51    IF(IL(M+1,J)-LJ) 105,52,105
+52    IF(IS(M+1,J)-ISJ) 105,53,105
+53    J2 = J
+*
+*
+*     IDENTIFY THE F.P.C AS A UNIQUE ELEMENT OF ITABN(J1,J2)
+*
+100   GO TO (1,2,3,4,4,1),N
+1     COEFP = 1.D0
+      GO TO 10
+2     COEFP = ITAB1(J1,J2)
+      IF(COEFP) 54,10,31
+54    COEFP = -DSQRT(-COEFP/NORM1(J1))
+      GO TO 10
+31    COEFP = DSQRT(COEFP/NORM1(J1))
+      GO TO 10
+3     COEFP = ITAB2(J1,J2)
+      IF(COEFP) 55,10,32
+55    COEFP = -DSQRT(-COEFP/NORM2(J1))
+      GO TO 10
+32    COEFP =DSQRT(COEFP/NORM2(J1))
+      GO TO 10
+*
+*     USE RECURRENCE RELATION EQUATION (19) OF RACAH FOR SECOND HALF OF
+*     SHELL
+*
+4     ISIGN = (-1)**((ISI+ISJ-5)/2+LI+LJ)
+      FACTOR=DFLOAT((7-N)*ISJ*(2*LJ+1))/DFLOAT(N*ISI*(2*LI+1))
+      IF(N-5) 56,5,8
+56    COEFP = ITAB2(J2,J1)
+      IF(COEFP) 57,10,33
+57    COEFP = -DSQRT(-COEFP/NORM2(J2))
+      GO TO 34
+33    COEFP = DSQRT(COEFP/NORM2(J2))
+34    COEFP = COEFP * ISIGN * DSQRT(FACTOR)
+      IF(LJ-1) 35,10,35
+35    COEFP = -COEFP
+      GO TO 10
+5     COEFP = ITAB1(J2,J1)
+      IF(COEFP) 58,10,36
+58    COEFP = -DSQRT(-COEFP/NORM1(J2))
+      GO TO 37
+36    COEFP = DSQRT(COEFP/NORM1(J2))
+37    COEFP = COEFP * ISIGN * DSQRT(FACTOR)
+      GO TO 10
+*
+*     AN UNALLOWED STATE OR AN UNALLOWED PARENT
+*
+8     WRITE(IWRITE,8888)
+ 8888 FORMAT(' ERROR IN SUBROUTINE CFPP - THE STATE OR IT''S PARENT IS N
+     :OT ALLOWED')
+      CALL EXIT
+10    CONTINUE
+      RETURN
+      END
+*
+*     ------------------------------------------------------------------
+*	N T A B 1
+*     ------------------------------------------------------------------
+*
+      FUNCTION NTAB1(NELCTS,K)
+      INTEGER IROW(0:4), I
+      DATA (IROW(I), I=0,4) /0,2,5,10,12/
+*
+*     THIS SUBROUTINE CALCULATES THE ROW OF NTAB CORRESPONDING TO THE
+*     PARENTS WHICH MAY GIVE RISE TO THE TERM ASSOCIATED WITH SHELL
+*     LAMBDA .  E.G. IF WE SEEK THE ROW OF NTAB CONTAINING THE PARENTS
+*     OF ONE OF THE P**3 TERMS, THE ROW = VALUE OF NTAB1 IS THAT
+*     CONTAINING THE P**2 TERMS
+*
+*     USE IS MADE OF THE FACT THAT THE LIST OF POSSIBLE PARENTS (SEE
+*     WHITE - ATOMIC SPECTRA - APPENDIX)  IS SYMMETRICAL ABOUT THE
+*     CONFIGURATION L**(2L+1)
+*
+*
+* --- FOR ONE ELECTRON IN A TERM, THE PARENT IS ALWAYS A SINGLET S TERM
+*
+      IF (NELCTS .EQ. 1) THEN
+         NTAB1 = 2
+      ELSE
+         NPAR = NELCTS - 1
+         L = K-1
+         LHALF = 2*L+1
+         IF (NPAR .GT. LHALF) NPAR = 2*LHALF - NPAR
+         NTAB1 = IROW(L) + NPAR
+      END IF
+      END
+*
+*     ------------------------------------------------------------------
+*	M U M D A D
+*     ------------------------------------------------------------------
+*
+      SUBROUTINE MUMDAD(II,IJ,IK,M,X)
+      IMPLICIT REAL*8(A-H,O-Z)
+      COMMON/MEDEFN/IHSH,NJ(10),LJ(10),NOSH(10,2),J1QN(19,3,2),IJFUL(10)
+      COMMON/INTERM/J1B(10,3,2),J1T(3,2)
+      COMMON/INFORM/IREAD,IWRITE,IOUT,ISC1,ISC2,ISC3,JSC0,JSC1,JSC2,JSC3
+      COMMON/DEBUG/IBUG1,IBUG2,IBUG3,NBUG6,NBUG7,IFULL
+*
+*     NOTICE THE NAMES IN THE COMMON BLOCKS. SEE SETUP FOR DESCRIPTION
+*
+* --- CALLS AND EVALUATES FRACTIONAL PARENTAGE COEFFICIENTS
+*
+   10 FORMAT(8H COEFP =,F15.9)
+      X=1.0D0
+      LIJ=LJ(IJ)
+      IF(LIJ) 12,12,11
+   12 IF(M)4,5,4
+   11 N=NOSH(IJ,II)
+      IVI=J1QN(IJ,1,II)
+      ILI=(J1QN(IJ,2,II)-1)/2
+      ISI=J1QN(IJ,3,II)
+*
+*     IF M=0 THERE ARE QUANTUM NUMBERS WITH TILDES TO CONSIDER
+*
+      IF(M) 1,2,1
+    1 IVJ=J1B(IJ,1,II)
+      ILJ=(J1B(IJ,2,II)-1)/2
+      ISJ= J1B(IJ,3,II)
+      GO TO 3
+    2 IVJ=J1T(1,II)
+      ILJ=(J1T(2,II)-1)/2
+      ISJ=J1T(3,II)
+    3 CALL CFP(LIJ,N,IVI,ILI,ISI,IVJ,ILJ,ISJ,COEFP)
+      IF(IBUG2.GT.0) WRITE(IWRITE,10) COEFP
+      X=X*COEFP
+      IF(DABS(X).LT.1.D-14) GO TO 5
+    4 LIJ=LJ(IK)
+      IF(LIJ) 5,5,14
+   14 IF(M) 6,7,6
+    6 N=NOSH(IK,II)
+      IVI=J1QN(IK,1,II)
+      ILI=(J1QN(IK,2,II)-1)/2
+      ISI=J1QN(IK,3,II)
+      IVJ = J1B(IK,1,II)
+      ILJ =(J1B(IK,2,II)-1)/2
+      ISJ = J1B(IK,3,II)
+      GO TO 8
+    7 N=NOSH(IJ,II)-1
+      IVI=IVJ
+      ILI=ILJ
+      ISI=ISJ
+      IVJ=J1B(IJ,1,II)
+      ILJ=(J1B(IJ,2,II)-1)/2
+      ISJ = J1B(IJ,3,II)
+    8 CALL CFP(LIJ,N,IVI,ILI,ISI,IVJ,ILJ,ISJ,COEFP)
+      IF(IBUG2.GT.0) WRITE(IWRITE,10) COEFP
+      X=X*COEFP
+    5 CONTINUE
+      RETURN
+      END

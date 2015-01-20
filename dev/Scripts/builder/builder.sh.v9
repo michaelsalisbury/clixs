@@ -1,0 +1,335 @@
+#!/bin/bash
+function main(){
+        switches $* && exit 1
+	while ! is_finished && ! is_rebooting; do
+        	skip || eval_function ${step} || return 1
+		skip && nogo
+		next
+        	skip || sleep 1
+	done
+	is_rebooting && exit 1 || exit 0
+}
+function show_help(){
+	tabs -4
+	cat << END_OF_HELP
+	-l   List all functions
+	-e   edit script with vim
+	-el  edit main log with vim
+	-e#  edit function log with vim
+	-d#  dump function # code to stout
+	-da  dump all function code to stout
+	-w#  write function # log to stout
+	-wl  write main log to stout
+	-t#  tail function # log
+	-tl  tail mail log
+	-i#  run function #
+	-r   reset step to 1
+	-rr  reset step to 1 and run
+	-rl  reset step to 1 and clear logs
+	-rc  reset step to 1, clear logs and run
+	-n   run current step and incrument step
+	-c   run current step and stop
+	-j   jump forward one step
+	-jf  jump forward one step
+	-jb  jump back one step
+	-s#  toggle function # to set/unset skip
+	-sa  toggle enable/disable of function skipping
+END_OF_HELP
+	tabs -8
+}
+###########################################################################################
+###########################################################################################
+function switches(){
+	[ $# = 0 ] && set -- -h
+	include $* && shift
+	[ -z "$*" ] && return 1
+	switches_o=$@\ \ 
+	switches_o=${switches_o/ -/  -}
+	switches_o=${switches_o/-r /-r}
+	switches_o=${switches_o/-r /-rX }
+	switches_o=${switches_o/-j /-j}
+	switches_o=${switches_o/-j /-jf }
+	switches_o=${switches_o/-d /-d}
+	switches_o=${switches_o/-d /-da }
+	switches_o=${switches_o/-e /-e}
+	switches_o=${switches_o/-e /-es }
+	set -- $switches_o
+	while getopts "cd:e:hj:i:lnr:s:t:w:" OPTION
+               do
+                case $OPTION in
+			c)		skip || eval_function $step; disp_functions; echo;;
+			d)		[ $OPTARG == a ] && dump_functions || show_function $OPTARG;;
+			e)		[ $OPTARG == s ] && vim "$scriptFQFN" && return 0;
+					[ $OPTARG == l ] && vim "$scrLogFQFN" && return 0;
+							    vim "`log_get_name $OPTARG`";;
+                        h)              show_help; disp_functions; echo;;
+			j)		show_help;
+					[ $OPTARG == b ] && back || next;
+					wrap; disp_functions; echo;;
+                        i)              step=$OPTARG; eval_function $OPTARG;;
+                        l)              disp_functions; echo;;
+			n)		skip || eval_function $step; next; wrap; disp_functions; echo;;
+                        s)              show_help; 
+					[ $OPTARG == a ] && OPTARG=0;
+					skip_function $OPTARG; disp_functions; echo;;
+                        r)              rset;
+					[ $OPTARG == r ] && return 1;
+					[ $OPTARG == l ] && clear_logs;
+					[ $OPTARG == c ] && clear_logs && return 1;
+					disp_functions; echo;;
+			t)		[ $OPTARG == l ] && log_tail_main || log_tail_func $OPTARG;;
+                        w)              [ $OPTARG == l ] && cat "$scrLogFQFN" || log_to_stout $OPTARG;;
+                        ?)              show_help; disp_functions; echo;;
+                esac
+        done
+	return 0
+}
+###########################################################################################
+###########################################################################################
+function include(){
+	if [ -f "$1" ]; then
+		scriptFQFN="$(readlink -fn $1)"
+		scriptName="$(basename $scriptFQFN)"
+		scriptPath="$(dirname  $scriptFQFN)"
+		
+		if [ ! -f "/bin/$buildScriptName" ]; then
+			ln "$buildScriptFQFN" "/bin/$buildScriptName"
+			mesg 80 Hard link setup: $buildScriptFQFN \>\> /bin/$buildScriptName
+		fi
+		if [ -n "`sed \"1!d;/#!\/bin\/$buildScriptName/d\" \"$scriptFQFN\"`" ]; then
+			sed -i "1{s|^[^ ]*|#!/bin/$buildScriptName|;}" "$scriptFQFN"
+			mesg 80 Fixed script line 1 to read: \#\!/bin/$buildScriptName
+			return 1
+		fi
+	
+		scrLogPath="/var/log/${buildScriptName%.*}_${scriptName%.*}"
+		mkdir -p "$scrLogPath"
+		scrLogFQFN="$scrLogPath/${scriptName%.*}"
+		. "$scriptFQFN"
+		is_unset prefix	&& { prefix="setup"; sed -i "1aprefix=\"setup\""      "$scriptFQFN"; }
+		is_unset step	&& { step=1;         sed -i "1astep=1"                "$scriptFQFN"; }
+		is_unset skip	&& { skip=( 0 `seq $(last_function)` )
+				     skip=( ${skip[*]/*/false} )
+				                     sed -i "1askip=\( ${skip[*]} \)" "$scriptFQFN"; }
+		if ! (( ${#skip[*]} > `last_function` )); then 
+			for index in $(seq ${#skip[*]} `last_function`); do
+				skip[$index]=false
+			done
+			fixs		
+		fi
+		return 0
+	else
+		return 1
+	fi
+}
+###########################################################################################
+###########################################################################################
+function log_tail_main(){  [ -f "$scrLogFQFN" ] && tail -n +1 -f "$scrLogFQFN" || \
+		           desc 50 Log \"$scrLogFQFN\" unavailable!; }
+function log_tail_funct(){ [ -f "`log_get_name $1`" ] && tail -n +1 -f "`log_get_name $1`" || \
+			   desc 50 Log \"`log_get_name $1`\" per func [`name_function $1`] unavailable; }
+function log_clear(){ rm -rf "$scrLogPath"; }
+function log_to_stout(){ cat "`log_get_name $1`"; }
+function log_output(){ tee -a "$scrLogFQFN" | tee -a "`log_get_name $1`"; }
+function log_get_name(){ log_step="00$1"
+			 log_step="${log_step:$(( ${#log_step} - 3 ))}"
+			 log_subFQFN="$scrLogFQFN-$log_step-`name_function $1`"
+			 echo "$log_subFQFN"; }
+###########################################################################################
+###########################################################################################
+function eval_function(){ eval_name=`name_function $1`
+			  eval `name_function $1` 2>&1                  | log_output $1
+			  eval_rtrn=${PIPESTATUS[0]}
+			  (( $eval_rtrn == 1 )) && derr Error, Stopping | log_output $1
+			  is_rebooting && desc REBOOTING                | log_output $1
+			  return $eval_rtrn; }
+
+function name_function(){ list_functions | sed "$1!d"; }
+function last_function(){ list_functions | wc -l; }
+function show_function(){ type -a `name_function $1` | sed '1d;2s/^/function /'; }
+
+function retr_function_mesg_opts(){ show_function $step | grep "desc " | head -1 | \
+				    while read retr_mesg_cmd retr_mesg_opts; do
+					retr_mesg_opts=${retr_mesg_opts%?}
+					retr_mesg_opts=${retr_mesg_opts//\"/}
+					echo $retr_mesg_opts
+				    done; }
+
+function dump_functions(){ step=1
+			   echo \#\!$buildScriptName
+			   while ! is_finished; do
+				dump
+				let step++
+			   done
+}
+
+function list_functions(){ sed "/^function $prefix/!d;s|.*\($prefix.*\)(.*|\1|" "$scriptFQFN"; }
+
+function disp_functions(){
+	tabs -4
+	list_functions | sed '$aFINISHED; Reset to run again.' | tr _ \ | cat -n | \
+        while read index prefix name; do
+		${skip[0]} && { ${skip[$index]} && toggle=S || toggle=-; } || unset toggle
+		(( $step == $index )) && marker='>>' || unset marker
+		echo -e "${marker}\t${index}${toggle:+\t}${toggle}\t${name}"
+	done
+	tabs -8
+}
+
+function skip_function(){ [[ $1 =~ ^[0-9]+$ ]] && (( $1 <= `last_function` )) || return
+			  ${skip[$1]} && skip[$1]=false || skip[$1]=true; fixs; }
+
+
+###########################################################################################
+###########################################################################################
+function is_rebooting(){ rl=(`who -r | awk '{print $2;}'`); (( $rl == 1 || $rl == 6 )); }
+function is_finished(){	(( $step > `last_function` )) && return 0 || return 1; }
+function is_unset(){ compgen -A variable | egrep ^$1$ > /dev/null && return 1 || return 0; }
+###########################################################################################
+###########################################################################################
+function skip(){ ${skip[0]} && { ${skip[$step]} && return 0 || return 1; } || return 1; }
+function wrap(){ (( $step > `last_function` )) && step=1               && fixs && return 0
+		 (( $step < 1 ))               && step=`last_function` && fixs && return 0
+		 return 1; }
+function back(){ let step--; fixs; }
+function next(){ let step++; fixs; }
+function rset(){ step=1; fixs; }
+
+function fixs(){ sed -i".bk" "/^step=/s/.*/step=${step}/;/^skip=/s/.*/skip=( ${skip[*]} )/" "$scriptFQFN"; }
+###########################################################################################
+###########################################################################################
+function time_stamp(){ date +%m.%d\ %T.$(m=`date +%N`; echo ${m:0:2}); }
+function stall(){ for s in `seq $1 -1 1`; do echo -n "$s "; done; echo; }
+###########################################################################################
+###########################################################################################
+function repc(){ a=(`seq $1`);shift;a=${a[*]/*/#};a=${a// /};a=${a//#/"$@"};echo "$a";unset a; }
+function padf(){ [[ $1 =~ ^[0-9]+ ]] && { padf_width=$1 && shift; } || padf_width=100
+		 padf_pattern="$1"
+		 shift
+		 padf_line=`repc $padf_width "$padf_pattern"`
+		 padf_line+=" $@"
+		 echo "${padf_line:$(( ${#padf_line} - $padf_width ))}"
+		 unset padf_line
+		 unset padf_width
+		 unset padf_pattern
+}
+function pade(){ [[ $1 =~ ^[0-9]+ ]] && { pade_width=$1 && shift; } || pade_width=100
+		 pade_pattern="$1"
+		 shift
+		 pade_line="$@ "
+		 pade_line+=`repc $pade_width "$pade_pattern"`
+		 echo "${pade_line:0:$pade_width}"
+		 unset pade_line
+		 unset pade_width
+		 unset pade_pattern
+}
+function derr(){ derr_o=( `retr_function_mesg_opts` )
+		 [[ ${derr_o[0]} =~ ^[0-9]+ ]] && { derr_width=${derr_o[0]} && derr_o=( ${derr_o[*]:1} ); } || derr_width=100
+		 echo -n \#; repc $derr_width _
+		 echo -n \#; pade $derr_width \! \!\!\! Error Step[$step]\(`name_function $step`\):$scriptFQFN \"${derr_o[*]}\"
+		 echo -n \#; padf $derr_width " " $@ \{`time_stamp`\}
+		 echo -n \#; repc $derr_width `printf "\257"`
+		 unset derr_width
+}
+function desc(){ desc_o=( `retr_function_mesg_opts` )
+                 [[ ${desc_o[0]} =~ ^[0-9]+ ]] && { desc_width=${desc_o[0]} && desc_o=( ${desc_o[*]:1} ); } || desc_width=100
+                 [[ $1 =~ ^[0-9]+ ]] && shift 
+                 #printf "\257\273\253\n"
+                 echo -n \#; repc $desc_width _
+                 echo -n \#; pade $desc_width `printf "\253"` `printf "\273\273\273"` Step[$step]\(`name_function $step`\):$scriptFQFN \{`time_stamp`\}
+                 echo -n \#; padf $desc_width " " $@
+                 echo -n \#; repc $desc_width `printf "\257"`
+                 unset desc_width 
+}      
+function mesg(){ [[ $1 =~ ^[0-9]+ ]] && { mesg_width=$1; shift; } || mesg_width=100
+		 echo -n \#; repc $mesg_width _
+                 echo -n \#; pade $mesg_width `printf "\253"` `printf "\273\273\273"` Message [$buildScriptName \<\< $scriptName]
+                 echo -n \#; padf $mesg_width " " $@
+                 echo -n \#; repc $mesg_width `printf "\257"`
+                 unset mesg_width
+}
+
+function nogo(){ nogo_o=( `retr_function_mesg_opts` )
+		 [[ ${nogo_o[0]} =~ ^[0-9]+ ]] && { nogo_width=${nogo_o[0]} && nogo_o=( ${nogo_o[*]:1} ); } || nogo_width=100
+		 echo -n \#; repc $nogo_width _
+		 echo -n \#; pade $nogo_width `printf "\277?"` `printf "\277?\277"` SKIPPING! Step[$step]\(`name_function $step`\):$scriptFQFN \{`time_stamp`\}
+		 echo -n \#; padf $nogo_width " " ${nogo_o[*]}
+		 echo -n \#; repc $nogo_width `printf "\257"`
+		 show_function $step
+		 echo
+		 unset nogo_width
+		 unset nogo_o
+}
+function dump(){ dump_o=( `retr_function_mesg_opts` )
+		 [[ ${dump_o[0]} =~ ^[0-9]+ ]] && { dump_width=${dump_o[0]} && dump_o=( ${dump_o[*]:1} ); } || dump_width=100
+		 echo -n \#; repc $dump_width _
+		 echo -n \#; pade $dump_width " " "   " Step[$step]\(`name_function $step`\)
+		 echo -n \#; padf $dump_width " " ${dump_o[*]}
+		 echo -n \#; repc $dump_width \.
+		 show_function $step
+		 echo
+		 unset dump_width
+		 unset dump_o
+}
+###########################################################################################
+###########################################################################################
+function waitAptgetUpdate(){
+        lockTestFile="/var/lib/apt/lists/lock"
+        timestamp=$(date +%s)
+        pso="-o pid,user,ppid,pcpu,pmem,cmd"
+        if [ -n "$(lsof -t ${lockTestFile})" ]; then
+                desc "Waiting on apt-get to finish in another process"
+        fi
+        while [ -n "$(lsof -t ${lockTestFile})" ]; do
+                ps ${pso}                                           -p $(lsof -t ${lockTestFile})
+                ps ${pso} --no-heading -p $(ps --no-heading -o ppid -p $(lsof -t ${lockTestFile}))
+                if (( $(date +%s) - ${timestamp} > 120 )); then break; fi
+                sleep 1
+                echo $(( $(date +%s) - ${timestamp} )) :: Seconds Elapsed
+        done
+}
+function waitAptgetInstall(){
+        lockTestFile="/var/lib/dpkg/lock"
+        timestamp=$(date +%s)
+        pso="-o pid,user,ppid,pcpu,pmem,cmd"
+        if [ -n "$(lsof -t ${lockTestFile})" ]; then
+                desc "Waiting on apt-get to finish in another process"
+        fi
+        while [ -n "$(lsof -t ${lockTestFile})" ]; do
+                ps ${pso}                                           -p $(lsof -t ${lockTestFile})
+                ps ${pso} --no-heading -p $(ps --no-heading -o ppid -p $(lsof -t ${lockTestFile}))
+                if (( $(date +%s) - ${timestamp} > 120 )); then break; fi
+                sleep 1
+                echo $(( $(date +%s) - ${timestamp} )) :: Seconds Elapsed
+        done
+}
+function waitForNetwork(){
+	[[ "$1" =~ ^[0-9]+ ]] && wfn_timeout=$(( `date "+%s"` + $1 )) || wfn_timeout=$(( `date "+%s"` + 300 ))
+	wfn_DNSS=( 10.171.92.40 8.8.8.8 10.171.92.41 8.8.4.4 )
+	if [ ! -f $(whereis -b nslookup | cut -f2 -d:)"" ]; then
+		derr The command \"nslookup\" missing or not installed
+		return 1
+	fi
+	wfn_cnt=0
+	while (( `date "+%s"` < $wfn_timeout )); do
+		for wfn_ip in ${wfn_DNSS[*]}; do
+			nslookup amazon.com $wfn_ip | \
+			grep "Non-authoritative answer" > /dev/null 2>&1 && let wfn_cnt++
+		done
+		(( $wfn_cnt >= 2 )) && return 0
+	done
+	return 1
+}
+###########################################################################################
+###########################################################################################
+buildScriptFQFN="$(readlink -nf $BASH_SOURCE)"
+buildScriptName="$(basename $buildScriptFQFN)"
+buildScriptPath="$(dirname  $buildScriptFQFN)"
+
+username=$(who -u | grep "(:" | head -1 | cut -f1 -d" ")
+[ -z "$username" ] && username=root
+userhome="$(cat /etc/passwd | grep $username | cut -f6 -d:)"
+###########################################################################################
+###########################################################################################
+main $*
+

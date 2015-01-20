@@ -1,0 +1,60 @@
+#!/bin/bash
+
+LOG="~/.logs/updater"
+
+function main(){
+	local IP='10.173.161.50'
+	local DOM='ucf.edu'
+	IP_IS_UP ${IP}	&& echo "${IP}"
+	GET_HOSTNAME_SIMPLE ${IP} ${DOM}
+	GET_HOSTNAME_DOM    ${IP} ${DOM}
+	GET_HOST_ENTRY      ${IP} ${DOM}
+}
+function GET_HOST_ENTRY(){
+	local IP=$1
+	local DOM=$2
+	if IP_IS_UP ${IP}; then
+		local SIMPLE=$(GET_HOSTNAME_SIMPLE "${IP}" "${DOM}")
+		local    DOM=$(GET_HOSTNAME_DOM    "${IP}" "${DOM}")
+		echo "${IP}" "${DOM}" "${SIMPLE}"
+	else
+		echo -n ""
+	fi
+}
+function IP_IS_UP(){
+	ping -W 1 -c 1 $1 &> /dev/null	\
+		&& return 0		\
+		|| return 1
+}
+
+function GET_HOSTNAME_SIMPLE(){
+	local IP=$1
+	local DOM=$2
+	local NAME=$(cat /etc/hosts	|\
+		awk	-v IP="${IP}"	\
+			-v DOM="${DOM}"	\
+			'$0~"^"IP{if(tolower($NF)!~tolower(DOM))print $NF}')
+	if [ -n "${NAME}" ]; then
+		echo "${NAME}"
+	else
+		echo "-"
+	fi
+}
+function GET_HOSTNAME_DOM(){
+	local IP=$1
+	local DOM=$2
+	local NAME=$(cat /etc/hosts	|\
+		awk	-v IP="${IP}"	\
+			-v DOM="${DOM}"	\
+			'$0~"^"IP{for(i=1;i<=NF;i++)if(tolower($i)~tolower(DOM))print $i}')
+	if [ -n "${NAME}" ]; then
+		echo "${NAME}"
+	else
+		echo "-"
+	fi
+}
+
+
+
+
+main "$@"

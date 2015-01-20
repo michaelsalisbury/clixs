@@ -1,0 +1,26 @@
+###########################################################################################################################
+#### sed script file named "sp"
+####
+/Nmap/{                         # match all lines that contain the word "Nmap"
+        s/Nmap.*for //          # strip "Nmap can report for "
+        /)$/{                   # match all lines ending with the character ")"; all lines with a host name
+                s/[()]//g       # remove parenthesis
+                h               # save line to hold buffer
+                s/[^ ]* //      # strip the first word up to the first space; remove hostname
+                G               # append "[hostname] [IP address] from hold buffer
+                s/\n/ /         # replace the newline character with a space
+                s/ [^ ]*$//     # strip the last word from the last space; remove IP adrress
+        }
+        h                       # save line to hold buffer overwiting the hold buffers current contents
+        d                       # delete line
+}
+/Host/d                         # delete all lines with the word "Host"
+/MAC/{                          # match all lines that contain the word "MAC"
+        s/MAC.*: //             # strip "MAC Address: "
+        s/ /_/g                 # replace all spaces with the character "_"
+        s/_/ /                  # replace the fist instance of character "_" with a space
+        G                       # append the contents of the hold buffer; [IP address] [hostname]
+        s/\n/ /                 # replace the newline character with a space
+}
+
+

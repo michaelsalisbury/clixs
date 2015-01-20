@@ -1,0 +1,98 @@
+#!/bin/bash
+
+mkdir -p /tmp/buffer
+monitor=/tmp/buffer/monitor
+mon_PID=/tmp/buffer/monitor.pid
+buffer0=/tmp/buffer/buffer0
+buf0PID=/tmp/buffer/buffer0.pid
+buffer1=/tmp/buffer/buffer1
+buffer2=/tmp/buffer/buffer2
+parser0=/tmp/buffer/parser0
+parser1=/tmp/buffer/parser1
+parser2=/tmp/buffer/parser2
+output_=/tmp/buffer/output_
+output0=/tmp/buffer/output0
+output1=/tmp/buffer/output1
+output2=/tmp/buffer/output2
+PIDFILE=/tmp/buffer/PID
+#killtree='s/[^(]\+\(([0-9]\+)\)/\1\n/g;s/[()]//g'
+killtree='s/[^(]\+\(([0-9]\+)\)/\1/g;s/[()]/ /g'
+
+
+function main(){
+	KILL_PID_FILE "${PIDFILE}"
+	daemon &
+	echo $! > "${PIDFILE}"
+	wait
+}
+function KILL_PID_FILE(){
+	# test file exists
+	[ -f "$1" ] || return 1
+	# test pid in file is alive
+	cat "$1" | xargs ps --no-heading -p | grep -q "" || return 1
+	# kill pid
+	cat "$1" | xargs kill
+}
+function daemon(){
+	sleep 3 &
+	local PID=$(ps --no-heading -o ppid -p $!)
+	trap "pstree -p ${PID} | sed \"${killtree}\" | xargs kill" TERM
+	launch_monitor &
+	wait
+}
+function launch_monitor(){
+	mkfifo "${monitor}" &>/dev/null
+	mkfifo "${buffer0}" &>/dev/null
+	mkfifo "${buffer1}" &>/dev/null
+	mkfifo "${buffer2}" &>/dev/null
+	mkfifo "${parser0}" &>/dev/null
+	mkfifo "${parser1}" &>/dev/null
+	mkfifo "${parser2}" &>/dev/null
+	while :; do
+		dd       if="${monitor}"		|\
+		tee >(dd of="${buffer0}" conv=notrunc)	|\
+		tee >(dd of="${buffer1}" conv=notrunc)	|\
+		      dd of="${buffer2}" conv=notrunc	&
+		jobs -p > "${mon_PID}"
+		wait
+	done &
+	while :; do
+		echo start buffer0 :: `date` >> "${output_}"
+		dd if="${buffer0}" of="${parser0}" conv=notrunc &
+		echo $! > "${buf0PID}"
+		wait `cat "${buf0PID}"`
+	done &
+	while :; do
+		echo start buffer1 :: `date` >> "${output_}"
+		dd if="${buffer1}" of="${parser1}" conv=notrunc
+	done &
+	while :; do
+		echo start buffer2 :: `date` >> "${output_}"
+		dd if="${buffer2}" of="${parser2}" conv=notrunc
+	done &
+	parser0_handler &
+	parser1_handler &
+	parser2_handler &
+	wait
+}
+function parser0_handler(){
+	while :; do
+		while read line; do
+			echo "${line}" | sed "s/^/`date` :: /" >> "${output0}"
+			sleep .2
+		done < <(cat "${parser0}")
+		cat "${mon_PID}" | xargs kill
+	done
+}
+function parser1_handler(){
+	while :; do
+		cat "${parser1}" | sed "s/^/`date` :: /" >> "${output1}"
+	done
+}
+function parser2_handler(){
+	while :; do
+		cat "${parser2}" | sed "s/^/`date` :: /" >> "${output2}"
+	done
+}
+
+main "$@"

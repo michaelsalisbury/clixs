@@ -1,0 +1,103 @@
+#!/bin/bash
+
+mkdir -p /tmp/buffer
+parsers=3
+fifodir=/tmp/buffer
+
+monitor=/tmp/buffer/monitor
+mon_PID=/tmp/buffer/monitor.pid
+buffer0=/tmp/buffer/buffer0
+buffer1=/tmp/buffer/buffer1
+buffer2=/tmp/buffer/buffer2
+parser0=/tmp/buffer/parser0
+parser1=/tmp/buffer/parser1
+parser2=/tmp/buffer/parser2
+output_=/tmp/buffer/output_
+output0=/tmp/buffer/output0
+output1=/tmp/buffer/output1
+output2=/tmp/buffer/output2
+PIDFILE=/tmp/buffer/PID
+#killtree='s/[^(]\+\(([0-9]\+)\)/\1\n/g;s/[()]//g'
+killtree='s/[^(]\+\(([0-9]\+)\)/\1/g;s/[()]/ /g'
+
+
+function main(){
+	KILL_PID_FILE "${PIDFILE}"
+	daemon &
+	cho $! > "${PIDFILE}"
+	wait
+}
+function KILL_PID_FILE(){
+	# test file exists
+	[ -f "$1" ] || return 1
+	# test pid in file is alive
+	cat "$1" | xargs ps --no-heading -p | grep -q "" || return 1
+	# kill pid
+	cat "$1" | xargs kill
+}
+function daemon(){
+	sleep 3 &
+	local PID=$(ps --no-heading -o ppid -p $!)
+	trap "pstree -p ${PID} | sed \"${killtree}\" | xargs kill" TERM
+	launch_monitor &
+	wait
+}
+function GET_FIFO(){
+	local cnt="0000${2}"
+	echo "${fifodir}/${1}${cnt: -3}"
+}
+function buffer(){
+	local parser=$1
+	local fifo=$(GET_FIFO buffer ${parser})
+	let parser--
+	if (( parser )); then	
+		tee >(dd of="${fifo}" conv=notrunc) | buffer ${parser}
+	else
+		dd of="${fifo}" conv=notrunc
+	fi
+}
+function launch_monitor(){
+	# local variables
+	local cnt buffer parser
+	# setup input fifo
+	mkfifo "${monitor}" &>/dev/null
+	# setup buffer and parser fifo's
+	for cnt in `seq ${parsers}`; do
+		mkfifo `GET_FIFO buffer ${cnt}` &>/dev/null
+		mkfifo `GET_FIFO parser ${cnt}` &>/dev/null
+	done
+	# setup stream splitter
+	while :; do
+		dd if="${monitor}" | buffer ${parsers} &
+		jobs -p > "${mon_PID}"
+		wait
+	done &
+	# setup buffer and parser loops
+	for cnt in `seq ${parsers}`; do
+		buffer=$(GET_FIFO buffer ${cnt})
+		parser=$(GET_FIFO parser ${cnt})
+		while :; do
+			dd if="${buffer}" of="${parser}" conv=notrunc
+		done &
+		while :; do
+			cat "${mon_PID}" | xargs kill
+			parser${cnt}_handler
+		done &
+	done
+	wait
+}
+function parser1_handler(){
+	while read line; do
+		echo "${line}" | sed "s/^/`date` :: /" >> "${output0}"
+		sleep .2
+	done < <(cat "${parser0}")
+	#cat "${mon_PID}" | xargs kill
+}
+function parser2_handler(){
+	cat "${parser1}" | sed "s/^/`date` :: /" >> "${output1}"
+}
+function parser3_handler(){
+	cat "${parser2}" | sed "s/^/`date` :: /" >> "${output2}"
+}
+
+main "$@"

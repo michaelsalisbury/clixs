@@ -1,0 +1,168 @@
+#!/bin/bash
+#aptopt="-y -q --force-yes"
+#autoLoginUser="msalisbury"
+#skip=(  )
+
+function show_help(){
+        echo
+        echo -l List all functions
+        echo -s show function \# code
+        echo -i Eval function \#
+        echo -r Reset step to 1 and run all
+        echo -t toggle function skip and reset
+        echo
+}
+function switches(){
+	[ $# = 0 ] && set -- -h
+	[ -f "$1" ] && {
+		scriptFQPN="$(readlink -fn $1)"
+		scriptName="$(basename $scriptFQPN)"
+		scriptPath="$(dirname  $scriptFQPN)"
+		. "$scriptFQPN"
+		for var in togo step skip prefix; do
+			if [ -z "$(compgen -A variable | egrep """^$var$""" )" ]; then
+				case $var in
+					prefix)	prefix="setup_"; sed -i "1a$var=\"setup_\"" "$scriptFQPN";;
+					step)	step=1;          sed -i "1a$var=1"          "$scriptFQPN";;
+					*)	                 sed -i "1a$var=\( \)"      "$scriptFQPN";;
+				esac
+			fi
+		done		
+		shift
+	}
+        #[ -z "$*" ] && return
+	#echo $scriptFQPN
+	#echo $buildScriptFQPN
+	#echo number of options = $#
+
+        while getopts "hlri:s:t:" OPTION
+	do
+                case $OPTION in
+                        h)              show_help; list_functions; echo; exit 1;;
+                        l)              show_help; list_functions; echo; exit 1;;
+                        t)              show_help; skip_function $OPTARG; echo; exit 1;;
+                        i)              step=$OPTARG; eval_function $OPTARG
+                                        exit 1;;
+                        s)              step=$OPTARG; show_function $OPTARG
+                                        exit 1;;
+                        r)              rset;;
+                        ?)              show_help; list_functions; echo; exit 1;;
+                esac
+        done
+}
+function main(){
+        switches $*
+        #skip || eval_function ${step}
+        #next
+        #sleep 1
+        #last || bash -l -c " \"$scriptPath/$scriptName\" " &
+}
+###########################################################################################
+###########################################################################################
+###########################################################################################
+buildScriptFQPN="$(readlink -nf $BASH_SOURCE)"
+buildScriptName="$(basename $buildScriptFQPN)"
+buildScriptPath="$(dirname  $buildScriptFQPN)"
+
+username=$(who -u | grep "(:" | head -1 | cut -f1 -d" ")
+[ -z "$username" ] && username=root
+userhome="$(cat /etc/passwd | grep $username | cut -f6 -d:)"
+
+#step=1
+#togo=(  )
+###########################################################################################
+###########################################################################################
+###########################################################################################
+
+function name_function(){ cat "$scriptPath/$scriptName" | sed '/^function setup/!d' | sed "$1!d;s/[^ ]* \([^(]*\).*/\1/" ; }
+function last_function(){ cat "$scriptPath/$scriptName" | sed '/^exit 0$/,$d;/^function setup/!d' | wc -l; }
+function show_function(){ cat "$scriptPath/$scriptName" | sed "/^function $(name_function $1)/,/^}$/!d"; }
+function eval_function(){ eval $(name_function $1) 2>&1 | tee -a "/var/log/$scriptName"; }
+function list_functions(){
+        tabs -3
+        cat "$scriptPath/$scriptName"           | \
+        sed '/^exit 0$/,$d;/^function setup/!d' | \
+        sed "s/[^_]*_\([^(]*\).*/\1/;s/_/ /g"   | \
+        cat -n                                  | \
+        while read num name
+                do
+                        toggle=$(for n in ${skip[*]}; do (( $n == $num )) && echo S && break; done)
+                        echo "	$num	$toggle	$name"
+                done
+        tabs -8
+}
+
+function skip_function(){
+        #skip=( $(echo ${skip[*]} $1 | tr ' ' '\n' | sort -nu | egrep -v ^[a-Z0-] ) )
+	#echo -e "A\n -9\n b\n ${bob[@]/%/\n} " | sed '/[a-Z-]/d;/33/,$d'
+	last=$(( $(last_function) + 1 ))
+	skip=( $(echo -e "${skip[*]/%/\n}" $1 $last | sort -nu | sed "/[a-Z-]/d;/$last/,\$d" ) )
+	
+        (( ${#skip[*]} == ${#togo[*]} )) && \
+        skip=( $(echo ${skip[*]}    | tr ' ' '\n' | grep -v $1 ) )
+        list_functions
+        rset
+}
+
+function stall(){ for s in `seq $1 -1 1`; do echo -n "$s "; done; echo; }
+
+function last(){ ((($step > $(last_function) )) && rset) || (rl=(`runlevel`);(( ${rl[1]} == 1 || ${rl[1]} == 6 ))) || return 1; }
+function last(){ (( ${step} > $(last_function) )) && rset || return 1; }
+function next(){ let step++; fixs; }
+function rset(){ step=1; togo=( ${skip[*]} ); fixs; }
+
+function skip(){ while [ ${step} == ${togo[0]} ]; do togo=( ${togo[*]:1} ); next; echo; echo Skipping Step[$step]...; done; return 1; }
+
+function fixs(){ sed -i".bk" "/^step=/s/.*/step=${step}/"        "$scriptPath/$scriptName";
+                 sed -i".bk" "/^togo=/s/.*/togo=( ${togo[*]} )/" "$scriptPath/$scriptName";
+                 sed -i".bk" "/^skip=/s/.*/skip=( ${skip[*]} )/" "$scriptPath/$scriptName"; }
+
+function repc(){ echo `seq $1` | sed "s/ /$2/g;s/[^$2]//g"; }
+function desc(){ echo
+                 echo $(repc 101 '#');
+                 line="#### Step[$step] $(repc 100 '#')"
+                 echo ${line:0:100}
+                 echo $(repc 101 '#');
+                 line="#### $@ $(repc 100 '#')"
+                 echo ${line:0:100}
+                 echo
+}
+
+function waitAptgetUpdate(){
+        lockTestFile="/var/lib/apt/lists/lock"
+        timestamp=$(date +%s)
+        pso="-o pid,user,ppid,pcpu,pmem,cmd"
+        if [ -n "$(lsof -t ${lockTestFile})" ]; then
+                desc "Waiting on apt-get to finish in another process"
+        fi
+        while [ -n "$(lsof -t ${lockTestFile})" ]; do
+                ps ${pso}                                           -p $(lsof -t ${lockTestFile})
+                ps ${pso} --no-heading -p $(ps --no-heading -o ppid -p $(lsof -t ${lockTestFile}))
+                if (( $(date +%s) - ${timestamp} > 120 )); then break; fi
+                sleep 1
+                echo $(( $(date +%s) - ${timestamp} )) :: Seconds Elapsed
+        done
+}
+function waitAptgetInstall(){
+        lockTestFile="/var/lib/dpkg/lock"
+        timestamp=$(date +%s)
+        pso="-o pid,user,ppid,pcpu,pmem,cmd"
+        if [ -n "$(lsof -t ${lockTestFile})" ]; then
+                desc "Waiting on apt-get to finish in another process"
+        fi
+        while [ -n "$(lsof -t ${lockTestFile})" ]; do
+                ps ${pso}                                           -p $(lsof -t ${lockTestFile})
+                ps ${pso} --no-heading -p $(ps --no-heading -o ppid -p $(lsof -t ${lockTestFile}))
+                if (( $(date +%s) - ${timestamp} > 120 )); then break; fi
+                sleep 1
+                echo $(( $(date +%s) - ${timestamp} )) :: Seconds Elapsed
+        done
+}
+
+
+###########################################################################################
+###########################################################################################
+###########################################################################################
+main $*
+
+

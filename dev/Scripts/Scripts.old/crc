@@ -1,0 +1,43 @@
+#!/bin/bash
+
+
+polynomial=1000000100001000
+#polynomial=100100010000100
+data=101001101001000111001010
+
+#######################################################################################################################################
+
+pos=0
+for x in `seq 0 $(( ${#polynomial} - 1 ))`
+	do
+		(( ${polynomial:$x:1} == 1 )) && {
+			polyArray[$pos]=$x
+			echo $pos = ${polyArray[$pos]}
+			let -a pos+=1
+		}
+	done
+
+data=$data$(echo ${polynomial} | tr 1 0)
+
+echo "$data" | sed 's/^\(.\{'$(( ${#data} - ${#polynomial} ))'\}\)\(.*\)/\1-\2/'
+
+while (( $(( ${#data} - ${#polynomial} )) > ${#zeros} ))
+	do
+
+		echo $(echo -n "$zeros" | tr 0 .)$polynomial	| sed 's/^\(.\{'$(( ${#data} - ${#polynomial} ))'\}\)\(.*\)/\1-\2/'
+
+		for x in `seq 0 $(( ${#polyArray[@]} - 1 ))`
+			do
+				pos=$(( ${polyArray[$x]} + ${#zeros} ))
+				(( ${data:$pos:1} == 1 )) && XOR=0 || XOR=1
+				data=`sed 's/^\(.\{'${pos}'\}\)\(.\{1\}\)\(.*\)/\1'${XOR}'\3/' <(echo $data)`
+			done
+
+		zeros=`sed 's/^\(0*\).*/\1/' <(echo $data)`
+
+		echo "$data" | sed 's/^\(.\{'$(( ${#data} - ${#polynomial} ))'\}\)\(.*\)/\1-\2/'
+
+	done
+
+
+

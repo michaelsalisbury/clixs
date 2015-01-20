@@ -1,0 +1,72 @@
+#!builder.sh
+skip=( true false false false true true true true true true false )
+step=1
+prefix="setup"
+#aptopt="-y -q --force-yes"
+#autoLoginUser="msalisbury"
+
+function setup_A(){
+        desc 80 "A" B C
+        ###################################################################################
+        echo A
+        uptime
+}
+function setup_B(){
+        desc 80 Run Beta Now
+        ###################################################################################
+	./beta.sh
+}
+function setup_C(){
+        desc 80 "C"
+        ###################################################################################
+        show_function $step
+        uptime
+        #echo C
+}
+function setup_D(){
+        desc 80 "D"
+        ###################################################################################
+        echo D
+        uptime
+}
+function setup_END(){
+        desc 80 "END"
+        ###################################################################################
+        echo END
+        uptime
+}
+function setup_Disable_runonce(){
+        desc 80 "Remove from rc.local"
+        ###################################################################################
+        sed -i "/${scriptName}/s/^/#/" /etc/rc.local
+        uptime
+}
+#function setup_E(){
+#        desc 80 "E"
+#        ###################################################################################
+#        echo E
+#        uptime
+#}
+function setup_F(){
+        desc 80 "F"
+        ###################################################################################
+        echo F
+        uptime
+        echo rebooting
+        #reboot
+}
+function setup_G(){
+        desc 80 "G"
+        ###################################################################################
+        show_function $step
+        uptime
+        #echo G
+}
+function setup_H(){
+        desc 80 "H"
+        ###################################################################################
+        echo H
+        uptime
+}
+
+

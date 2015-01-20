@@ -1,0 +1,144 @@
+#!/bin/bash
+
+LOG="~/.logs/updater"
+DOM='ucf.edu'
+
+function main(){
+	HOST_NEEDS_SSHKEY root 10.173.161.50 ~/.ssh/id_rsa.2945starz \
+		&& echo needs key \
+		|| echo has key
+	HOST_NEEDS_SSHKEY root 10.173.161.50 ~/.ssh/id_rsa.2945star.pub \
+		&& echo needs key \
+		|| echo has key
+	HOST_NEEDS_SSHKEY root 10.173.161.50 \
+		&& echo needs key \
+		|| echo has key
+
+	#return 0
+
+	GET_HOSTNAME_SIMPLE 10.173.158.26 ${DOM}
+	GET_HOSTNAME_DOM    10.173.158.26 ${DOM}
+
+	SSH_COPY_ID $(whoami) 10.173.161.254 'COSTech2010\!'
+	SSH_COPY_ID $(whoami) 10.173.161.50  'COSTech2010\!'
+	SSH_COPY_ID root      10.173.161.50  '1qaz@WSX'
+
+	#while read IP; do
+	#	GET_HOST_ENTRY ${IP} ${DOM}
+	#done < <(cat /etc/hosts | awk '/^[0-9].*/{print $1}')
+
+	#IP_IS_UP ${IP}	&& echo "${IP}"
+	#GET_HOSTNAME_SIMPLE ${IP} ${DOM}
+	#GET_HOSTNAME_DOM    ${IP} ${DOM}
+	#GET_HOST_ENTRY      ${IP} ${DOM}
+}
+function SSH_COPY_ID(){
+	local USERNAME=$1
+	local IP=$2
+	local PASSWORD=$3
+	local KEY=${4:+"${4%.pub}.pub"}
+	if [ -n "${KEY}" ] && [ ! -f "${KEY}" ]; then
+		echo key \"${KEY}\" missing\!\! 1>&2
+		echo ERROR_SSH_COPY_ID_FOR_${USERNAME}_TO_${IP}${KEY:+_VIA_KEY_${KEY}}
+		return 1
+	fi
+	if ! IP_IS_UP ${IP}; then
+		echo "${IP}_DOWN"
+		return 1
+	elif ! HOST_NEEDS_SSHKEY ${USERNAME} ${IP} ${KEY:+"${KEY}"}; then
+		echo ${USERNAME}_HAS_ACCESS_TO_${IP}${KEY:+_VIA_KEY_${KEY}}
+	else
+		#expect <(GET_EXPECT_SSH_COPY_ID) ${USERNAME} ${IP} ${PASSWORD} ${KEY} &> /dev/null
+		expect <(GET_EXPECT_SSH_COPY_ID) ${USERNAME} ${IP} ${PASSWORD} ${KEY}
+		(( $? > 0 ))\
+			&& echo ERROR_SSH_COPY_ID_FOR_${USERNAME}_TO_${IP}${KEY:+_VIA_KEY_${KEY}}\
+			|| echo ${USERNAME}_GRANTED_ACCESS_TO_${IP}${KEY:+_VIA_KEY_${KEY}}
+	fi
+} 
+function HOST_NEEDS_SSHKEY(){
+	local USERNAME=$1
+	local IP=$2
+	local KEY=${3%.pub}
+	[ -n "${KEY}" ] && [ ! -f "${KEY}" ] && { echo key \"${KEY}\" missing\!\! 1>&2; return 1;} 
+	#ssh ${KEY:+-i "${KEY}"} -l ${USERNAME} -o passwordauthentication=no ${IP} exit\
+	ssh ${KEY:+-i "${KEY}"} -l ${USERNAME} -o passwordauthentication=no ${IP} exit &> /dev/null\
+		&& return 1 \
+		|| return 0
+}
+function GET_HOST_ENTRY(){
+	local IP=$1
+	local DOM=$2
+	if IP_IS_UP ${IP}; then
+		local SIMPLE=$(GET_HOSTNAME_SIMPLE "${IP}" "${DOM}")
+		local    DOM=$(GET_HOSTNAME_DOM    "${IP}" "${DOM}")
+		echo "${IP}" "${DOM}" "${SIMPLE}"
+	else
+		echo -n ""
+	fi
+}
+function IP_IS_UP(){
+	ping -W 1 -c 1 $1 &> /dev/null	\
+		&& return 0		\
+		|| return 1
+}
+function GET_HOSTNAME_SIMPLE(){
+	local IP=$1
+	local DOM=$2
+	local NAME=$(cat /etc/hosts		|\
+		sed 's/[[:space:]]*#.*$//'	|\
+		awk	-v IP="${IP}"		\
+			-v DOM="${DOM}"		\
+			'$0~"^"IP{for(i=2;i<=NF;i++)if(tolower($i)!~tolower(DOM))printf $i" "}')
+	[ -n "${NAME}" ]\
+		&& echo "${NAME}" \
+		|| echo "-"
+}
+function GET_HOSTNAME_DOM(){
+	local IP=$1
+	local DOM=$2
+	local NAME=$(cat /etc/hosts		|\
+		sed 's/[[:space:]]*#.*$//'	|\
+		awk	-v IP="${IP}"		\
+			-v DOM="${DOM}"		\
+			'$0~"^"IP{for(i=1;i<=NF;i++)if(tolower($i)~tolower(DOM))printf $i" "}')
+	[ -n "${NAME}" ]\
+		&& echo "${NAME}" \
+		|| echo "-"
+}
+function GET_EXPECT_SSH_COPY_ID(){
+	cat << END-OF-EXPECT
+#!/usr/bin/expect -f
+
+if { \${argc} < 3 } { exit 1 }
+set username [lindex \$argv 0]
+set IP       [lindex \$argv 1]
+set password [lindex \$argv 2]
+if { \${argc} > 3 } {
+	set KEY "-i [lindex \$argv 3]"
+	puts "KEY :: \$KEY COUNT :: \${argc}"
+	flush stdout
+} else {
+	set KEY ""
+}
+
+set force_conservative 0  ;# set to 1 to force conservative mode even if
+			  ;# script wasn't run conservatively originally
+if {\$force_conservative} {
+	set send_slow {1 .1}
+	proc send {ignore arg} {
+		sleep .1
+		exp_send -s -- \$arg
+	}
+}
+
+set timeout -1
+spawn ssh-copy-id \${KEY} \${username}@\${IP}
+match_max 100000
+expect *
+expect  -exact "password: "
+send -- "\${password}\r"
+expect eof
+END-OF-EXPECT
+}
+
+main "$@"

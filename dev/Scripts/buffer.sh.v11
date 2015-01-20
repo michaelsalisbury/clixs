@@ -1,0 +1,148 @@
+#!/bin/bash
+
+parsers=3
+fifodir=/tmp/buffer
+tmp=/dev/shm
+
+monitor=/tmp/buffer/monitor
+mon_PID=/tmp/buffer/monitor.pid
+output_=/tmp/buffer/output_
+PIDFILE=/tmp/buffer/PID
+#killtree='s/[^(]\+\(([0-9]\+)\)/\1\n/g;s/[()]//g'
+killtree='s/[^(]\+\(([0-9]\+)\)/\1/g;s/[()]/ /g'
+
+########################################### Auto Generate Handlers
+function GEN_HANDLERS(){
+	local handler="/tmp/$$$(basename "${BASH_SOURCE}")_handler$$"
+	touch "${handler}"
+	local cnt
+	for cnt in `seq ${parsers}`; do
+		cat <<-HANDLER > "${handler}"
+			function parser${cnt}_handler(){
+				local parser=\$(GET_FIFO_FQFN parser \${FUNCNAME//[^0-9]/})
+				local output=\$(GET_FIFO_FQFN output \${FUNCNAME//[^0-9]/})
+				cat "\${parser}" | sed "s/^/\$(date) :: /" >> "\${output}"
+			}
+		HANDLER
+		source "${handler}"
+	done
+	rm "${handler}"
+}
+GEN_HANDLERS
+##################################################################
+function main(){
+	KILL_PID_FILE "${PIDFILE}"
+	daemon &
+	wait
+}
+function GET_PPID(){
+	ps --no-heading -o ppid -p $1
+}
+function GET_PID(){
+	local pid_depth=${1:-1}			# default depth to get PPID
+	local fifo=${tmp}/${FUNCNAME}.fifo	# fifo; to create background process
+	mkfifo     "${fifo}"			# create fifo
+	cat        "${fifo}" &>/dev/null &	# create background process
+	local   PID=$(GET_PPID $!)		# get parent PID to background process
+	while (( pid_depth-- )); do		# get parent to the parent till depth reached
+		PID=$(GET_PPID ${PID})
+	done
+	echo -n >> "${fifo}"			# close background process
+	rm -f      "${fifo}"			# clean-up fifo
+	echo ${PID}				# return results
+}
+function GET_FIFO_FQFN(){
+	local places=${#parsers}
+	local name=${1}
+	local cnt=${parsers//?/0}${2}
+	      cnt=${cnt: -${places}}
+	echo "${fifodir}/${name}${cnt}"
+}
+function KILL_PID_FILE(){
+	# test file exists
+	[ -f "$1" ] || return 1
+	# test pid in file is alive
+	cat "$1" | xargs ps --no-heading -p | grep -q "" || return 1
+	# kill pid
+	cat "$1" | xargs kill
+}
+function daemon_exit(){
+	local PID=$1
+	#sed 's/[^0-9]\+/ /g' |\
+	#tr -s -c [:digit:] ' '
+	pstree -p ${PID} | tr -s -c [:digit:] ' ' | xargs kill
+
+}
+function WRITE_PIDFILE(){
+	local file=$1
+	local dir=$(dirname "${file}")
+	local pid_depth=${2:-1}
+	mkdir -p "${dir}"
+	GET_PID ${pid_depth} | tee "${file}"
+}
+function daemon(){
+	#mkdir -p "${fifodir}"
+	local PID=$(WRITE_PIDFILE "${PIDFILE}" 2)	
+	#local PID=$(ps --no-heading -o ppid -p $! | tee "${PIDFILE}")
+	trap "daemon_exit ${PID}" TERM
+	#trap "pstree -p ${PID} | sed \"${killtree}\" | xargs kill" TERM
+	#trap "pstree -p ${PID} | sed \"${killtree}\" | xargs kill; rm -rf \"${fifodir}\"" TERM
+	launch_monitor &
+	wait
+}
+function buffer(){
+	local parser=$1
+	local fifo=$(GET_FIFO_FQFN buffer ${parser})
+	let parser--
+	if (( parser )); then
+		tee -a "${fifo}" | buffer ${parser}
+	else
+		tee -a "${fifo}" &>/dev/null
+	fi
+}
+function launch_monitor(){
+	# local variables
+	local cnt buffer parser
+	# setup tmp
+	mkdir -p "${fifodir}"
+	# setup input fifo
+	mkfifo "${monitor}" &>/dev/null
+	# setup buffer and parser fifo's
+	for cnt in `seq ${parsers}`; do
+		mkfifo `GET_FIFO_FQFN buffer ${cnt}` &>/dev/null
+		mkfifo `GET_FIFO_FQFN parser ${cnt}` &>/dev/null
+	done
+	# setup stream splitter
+	while :; do
+		dd if="${monitor}" | buffer ${parsers} &
+		jobs -p > "${mon_PID}"
+		#jobs -p | sed 's/^/jobs -p :: /' >> "${output_}"
+		#jobs -l | sed 's/^/jobs -l :: /' >> "${output_}"
+		wait
+	done &
+
+	# setup buffer and parser loops
+	for cnt in `seq ${parsers}`; do
+		buffer=$(GET_FIFO_FQFN buffer ${cnt})
+		parser=$(GET_FIFO_FQFN parser ${cnt})
+		while :; do
+			dd if="${buffer}" of="${parser}" conv=notrunc
+		done &
+		while :; do
+			parser${cnt}_handler
+			#cat "${mon_PID}" | xargs kill
+		done &
+	done
+	wait
+}
+function parser1_handler(){
+	local parser=$(GET_FIFO_FQFN parser ${FUNCNAME//[^0-9]/})
+	local output=$(GET_FIFO_FQFN output ${FUNCNAME//[^0-9]/})
+	while read line; do
+		echo "${line}" | sed "s/^/`date` :: /" >> "${output}"
+		sleep .2
+	done < <(cat "${parser}")
+	cat "${mon_PID}" | xargs kill
+}
+
+main "$@"

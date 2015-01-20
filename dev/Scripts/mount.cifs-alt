@@ -1,0 +1,36 @@
+#!/bin/bash
+
+function opt(){
+        username=$3
+        cred=$4
+        uid=$(id -u $username)
+        gid=$(id -g $username)
+        home=$(cat /etc/passwd | grep ${username} | cut -d: -f6)
+        groupname=$(cat /etc/group | grep ${gid} | cut -d: -f1)
+
+        opt=(
+iocharset=utf8
+file_mode=$1
+dir_mode=$2
+uid=$uid
+forceuid=$uid
+gid=$gid
+forcegid=$gid
+sec=ntlmssp
+credentials=$cred
+)
+        opt=${opt[*]}
+        echo ${opt// /,}
+}
+
+
+mount.cifs  //cos-fs1.cos.ucf.edu/Departments\$/Technology/Technology\ Workspace/Client\ Services\ Files/CS\ Technician\ Resources/CS\ Common\ Files \
+            /var/www/packages/CS\ Common\ Files	\
+            -o $(opt 0555 0555 root /home/localcosadmin/.cifs-cos.ucf.edu-cred)
+
+#mount.cifs "//cos-fs1.cos.ucf.edu/Applications"         \
+#           "/mnt"                                       \
+#           -o $(opt 0770 0770 apache /root/.cifs-cred)
+
+exit 0
+

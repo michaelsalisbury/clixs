@@ -1,0 +1,81 @@
+#!ipxe
+# make using command ~/ipxe/src/make --EMBEDDED_IMAGE=~/ipxe.scripts/ipxelinux.ipxt
+
+	ifopen net0
+
+echo }-----------------------------------------------------------------------------{
+	set press-key s
+	prompt --timeout 1000 --key ${press-key} Press "${press-key}" to skip 30 second delay && goto dhcp-start-a || echo Press "${press-key}" to skip 30 second delay
+
+:dhcp-wait
+echo }----------------------------------Stand-By-----------------------------------{
+	prompt --timeout 1000 --key ${press-key} 30............................. && goto dhcp-start-a ||
+	prompt --timeout 1000 --key ${press-key} 29............................ && goto dhcp-start-a ||
+	prompt --timeout 1000 --key ${press-key} 28........................... && goto dhcp-start-a ||
+	prompt --timeout 1000 --key ${press-key} 27.......................... && goto dhcp-start-a ||
+	prompt --timeout 1000 --key ${press-key} 26......................... && goto dhcp-start-a ||
+	prompt --timeout 1000 --key ${press-key} 25........................ && goto dhcp-start-a ||
+	prompt --timeout 1000 --key ${press-key} 24....................... && goto dhcp-start-a ||
+	prompt --timeout 1000 --key ${press-key} 23...................... && goto dhcp-start-a ||
+	prompt --timeout 1000 --key ${press-key} 22..................... && goto dhcp-start-a ||
+	prompt --timeout 1000 --key ${press-key} 21.................... && goto dhcp-start-a ||
+	prompt --timeout 1000 --key ${press-key} 20................... && goto dhcp-start-a ||
+	prompt --timeout 1000 --key ${press-key} 19.................. && goto dhcp-start-a ||
+	prompt --timeout 1000 --key ${press-key} 18................. && goto dhcp-start-a ||
+	prompt --timeout 1000 --key ${press-key} 17................ && goto dhcp-start-a ||
+	prompt --timeout 1000 --key ${press-key} 16............... && goto dhcp-start-a ||
+	prompt --timeout 1000 --key ${press-key} 15.............. && goto dhcp-start-a ||
+	prompt --timeout 1000 --key ${press-key} 14............. && goto dhcp-start-a ||
+	prompt --timeout 1000 --key ${press-key} 13............ && goto dhcp-start-a ||
+	prompt --timeout 1000 --key ${press-key} 12........... && goto dhcp-start-a ||
+	prompt --timeout 1000 --key ${press-key} 11.......... && goto dhcp-start-a ||
+	prompt --timeout 1000 --key ${press-key} 10......... && goto dhcp-start-a ||
+	prompt --timeout 1000 --key ${press-key} 9......... && goto dhcp-start-a ||
+	prompt --timeout 1000 --key ${press-key} 8........ && goto dhcp-start-a ||
+	prompt --timeout 1000 --key ${press-key} 7....... && goto dhcp-start-a ||
+	prompt --timeout 1000 --key ${press-key} 6...... && goto dhcp-start-a ||
+	prompt --timeout 1000 --key ${press-key} 5..... && goto dhcp-start-a ||
+	prompt --timeout 1000 --key ${press-key} 4.... && goto dhcp-start-a ||
+	prompt --timeout 1000 --key ${press-key} 3... && goto dhcp-start-a ||
+	prompt --timeout 1000 --key ${press-key} 2.. && goto dhcp-start-a ||
+	prompt --timeout 1000 --key ${press-key} 1. && goto dhcp-start-a || echo
+
+	ifstat
+echo }-----------------------------------------------------------------------------{
+	prompt --timeout 1000 Lets give DHCP a try..... || echo Lets give DHCP a try.....
+
+:dhcp-start-a
+	dhcp net0 || goto dhcp-fail-a
+		show ip
+		show netmask
+		show gateway
+		goto dhcp-done-a
+
+:dhcp-fail-a
+		prompt --timeout 10000 DHCP failed, try again? || echo DHCP failed, try again?
+		goto dhcp-wait
+:dhcp-done-a
+echo
+#echo }-----------------------------------------------------------------------------{
+	#prompt --timeout 1000 Set Next-Server & filename || echo Set Next-Server & filename
+	#set next-server 10.173.119.81
+	#set filename pxelinux.0
+	#show next-server
+	#show filename
+echo
+echo }-----------------------------------------------------------------------------{
+        prompt --timeout 111 3......... ||
+        prompt --timeout 111 3........ ||
+        prompt --timeout 111 3....... ||
+        prompt --timeout 111 2...... ||
+        prompt --timeout 111 2..... ||
+        prompt --timeout 111 2.... ||
+        prompt --timeout 111 1... ||
+        prompt --timeout 111 1.. ||
+        prompt --timeout 111 1. || echo
+
+:pxe-boot
+	#chain tftp://${next-server}/${filename}
+	chain http://10.173.119.78/ipxe/ucf.ipxe
+exit
+

@@ -1,0 +1,191 @@
+#!ipxe
+# make using command ~/ipxe/src/make EMBED=~/Scripts/ipxe.scripts/[script name]
+
+	ifopen net0
+
+echo }-----------------------------------------------------------------------------{
+	set press-key s
+	prompt --timeout 3000 --key ${press-key} Press "${press-key}" to skip static IP assignment and try DHCP && echo Press "${press-key}" to skip static IP assignment and try DHCP || goto static-ip-assignment
+
+echo }-----------------------------------------------------------------------------{
+:dhcp-wait
+	set press-key s
+	prompt --timeout 1000 --key ${press-key} Press "${press-key}" to skip 30 second delay && goto dhcp || echo Press "${press-key}" to skip 30 second delay
+
+echo }----------------------------------Stand-By-----------------------------------{
+	prompt --timeout 1000 --key ${press-key} 30............................. && goto dhcp ||
+	prompt --timeout 1000 --key ${press-key} 29............................ && goto dhcp ||
+	prompt --timeout 1000 --key ${press-key} 28........................... && goto dhcp ||
+	prompt --timeout 1000 --key ${press-key} 27.......................... && goto dhcp ||
+	prompt --timeout 1000 --key ${press-key} 26......................... && goto dhcp ||
+	prompt --timeout 1000 --key ${press-key} 25........................ && goto dhcp ||
+	prompt --timeout 1000 --key ${press-key} 24....................... && goto dhcp ||
+	prompt --timeout 1000 --key ${press-key} 23...................... && goto dhcp ||
+	prompt --timeout 1000 --key ${press-key} 22..................... && goto dhcp ||
+	prompt --timeout 1000 --key ${press-key} 21.................... && goto dhcp ||
+	prompt --timeout 1000 --key ${press-key} 20................... && goto dhcp ||
+	prompt --timeout 1000 --key ${press-key} 19.................. && goto dhcp ||
+	prompt --timeout 1000 --key ${press-key} 18................. && goto dhcp ||
+	prompt --timeout 1000 --key ${press-key} 17................ && goto dhcp ||
+	prompt --timeout 1000 --key ${press-key} 16............... && goto dhcp ||
+	prompt --timeout 1000 --key ${press-key} 15.............. && goto dhcp ||
+	prompt --timeout 1000 --key ${press-key} 14............. && goto dhcp ||
+	prompt --timeout 1000 --key ${press-key} 13............ && goto dhcp ||
+	prompt --timeout 1000 --key ${press-key} 12........... && goto dhcp ||
+	prompt --timeout 1000 --key ${press-key} 11.......... && goto dhcp ||
+	prompt --timeout 1000 --key ${press-key} 10......... && goto dhcp ||
+	prompt --timeout 1000 --key ${press-key} 9......... && goto dhcp ||
+	prompt --timeout 1000 --key ${press-key} 8........ && goto dhcp ||
+	prompt --timeout 1000 --key ${press-key} 7....... && goto dhcp ||
+	prompt --timeout 1000 --key ${press-key} 6...... && goto dhcp ||
+	prompt --timeout 1000 --key ${press-key} 5..... && goto dhcp ||
+	prompt --timeout 1000 --key ${press-key} 4.... && goto dhcp ||
+	prompt --timeout 1000 --key ${press-key} 3... && goto dhcp ||
+	prompt --timeout 1000 --key ${press-key} 2.. && goto dhcp ||
+	prompt --timeout 1000 --key ${press-key} 1. && goto dhcp || echo
+
+	ifstat
+echo }-----------------------------------------------------------------------------{
+:dhcp
+	isset ${dns} && goto dhcp-done || goto dhcp-start
+
+:dhcp-start
+	prompt --timeout 1000 Lets give DHCP a try..... || echo Lets give DHCP a try.....
+
+	dhcp net0 || goto dhcp-fail
+		show ip
+		show netmask
+		show gateway
+		goto dhcp-done
+
+:dhcp-fail
+		prompt --timeout 10000 DHCP failed, try again? || echo DHCP failed, try again?
+		goto dhcp-wait
+:dhcp-done
+echo
+#echo }-----------------------------------------------------------------------------{
+	#prompt --timeout 1000 Set Next-Server & filename || echo Set Next-Server & filename
+	#set next-server 10.173.119.81
+	#set filename pxelinux.0
+	#show next-server
+	#show filename
+echo
+echo }-----------------------------------------------------------------------------{
+        prompt --timeout 111 3......... ||
+        prompt --timeout 111 3........ ||
+        prompt --timeout 111 3....... ||
+        prompt --timeout 111 2...... ||
+        prompt --timeout 111 2..... ||
+        prompt --timeout 111 2.... ||
+        prompt --timeout 111 1... ||
+        prompt --timeout 111 1.. ||
+        prompt --timeout 111 1. || echo
+
+:pxe-boot
+	#chain tftp://${next-server}/${filename}
+	chain http://10.173.119.78/ipxe/ucf.ipxe
+	goto exit-script
+
+:exit-script
+exit
+
+:setup-static-ip
+	echo -n Please enter the 3 digit final octet for "${NETWORKNAME}" :: ${NETWORK}.
+	read OCTET
+	echo
+	isset ${OCTET}   || set OCTET 253
+	isset ${GATEWAY} || set GATEWAY ${NETWORK}.1
+	isset ${MASK}    || set MASK 255.255.255.0
+	set net0/ip      ${NETWORK}.${OCTET}
+	set net0/netmask ${MASK}
+	set net0/gateway ${GATEWAY}
+	set dns          10.171.12.5
+	goto dhcp-wait
+
+:static-ip-assignment
+	menu Choose Network
+	item setup-ncfs-10.173.150	NCFS 10.173.150 NAT
+	item setup-ncfs-10.174.150	NCFS 10.174.150 No NAT
+	item setup-ps-10.173.161	Pysics Server Room   10.173.161
+	item setup-ps-10.173.153	Cemistry Server Room 10.173.153
+	item setup-ps-10.173.152	PS 1st Floor 10.173.152
+	item setup-ps-10.173.154	PS 2nd Floor 10.173.154
+	item setup-ps-10.173.156	PS 3rd Floor 10.173.156
+	item setup-ps-10.173.158	PS 4th Floor 10.173.158
+	item setup-math-10.173.160	Math Server Room 10.173.160
+	item setup-math-10.171.117	Math (MSB) 10.171.117
+	item setup-stat-10.171.112	Statistics 10.171.112
+	item	
+	item setup-it-10.171.142	COSIT Office Range 10.171.142
+	item setup-it-10.173.119	COSIT Tech Lounge  10.173.119
+	item
+	item dhcp-wait			Return to DHCP
+	choose --default setup-it-10.173.119 --timeout 10000 target && goto ${target}
+
+:setup-it-10.173.119
+	set NETWORKNAME COSIT Tech Lounge
+	set NETWORK     10.173.119
+	set MASK        255.255.255.192
+	set GATEWAY     10.173.119.65
+	goto setup-static-ip
+
+
+:setup-ncfs-10.173.150
+	set NETWORKNAME NCFS NAT
+	set NETWORK     10.173.150
+	set MASK        255.255.254.0
+	goto setup-static-ip
+
+:setup-ncfs-10.174.150
+	set NETWORKNAME NCFS NAT
+	set NETWORK     10.174.150
+	set MASK        255.255.254.0
+	goto setup-static-ip
+
+:setup-ps-10.173.161
+	set NETWORKNAME Physics Server Room
+	set NETWORK     10.173.161
+	goto setup-static-ip
+
+:setup-ps-10.173.153
+	set NETWORKNAME Chemistry Server Room
+	set NETWORK     10.173.161
+	goto setup-static-ip
+
+:setup-ps-10.173.154
+	set NETWORKNAME PS 2nd Floor
+	set NETWORK     10.173.154
+	goto setup-static-ip
+
+:setup-ps-10.173.156
+	set NETWORKNAME PS 3rd Floor
+	set NETWORK     10.173.156
+	goto setup-static-ip
+
+:setup-ps-10.173.158
+	set NETWORKNAME PS 4th Floor
+	set NETWORK     10.173.158
+	goto setup-static-ip
+
+:setup-math-10.173.160
+	set NETWORKNAME Math Server Room
+	set NETWORK     10.173.160
+	goto setup-static-ip
+
+setup-math-10.171.117
+	set NETWORKNAME Math (MSB)
+	set NETWORK     10.171.117
+	goto setup-static-ip
+
+:setup-stat-10.171.112
+	set NETWORKNAME Statistics
+	set NETWORK     10.171.112
+	goto setup-static-ip
+
+:setup-stat-10.171.142
+	set NETWORKNAME COSIT Office Range
+	set NETWORK     10.171.142
+	goto setup-static-ip
+
+
+

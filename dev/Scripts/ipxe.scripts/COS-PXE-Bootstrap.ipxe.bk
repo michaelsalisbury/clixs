@@ -1,0 +1,81 @@
+#!ipxe
+# make using command ~/ipxe/src/make --EMBEDDED_IMAGE=~/ipxe.scripts/ipxelinux.ipxt
+
+	ifopen net0
+
+echo }-----------------------------------------------------------------------------{
+	prompt --timeout 1000 --key s Press 's' to skip 30 second delay && goto dhcp-start-a || echo
+
+goto dhcp-start-a
+:dhcp-wait
+echo }----------------------------------Stand-By-----------------------------------{
+	prompt --timeout 1000 30............................. ||
+	prompt --timeout 1000 29............................ ||
+	prompt --timeout 1000 28........................... ||
+	prompt --timeout 1000 27.......................... ||
+	prompt --timeout 1000 26......................... ||
+	prompt --timeout 1000 25........................ ||
+	prompt --timeout 1000 24....................... ||
+	prompt --timeout 1000 23...................... ||
+	prompt --timeout 1000 22..................... ||
+	prompt --timeout 1000 21.................... ||
+	prompt --timeout 1000 20................... ||
+	prompt --timeout 1000 19.................. ||
+	prompt --timeout 1000 18................. ||
+	prompt --timeout 1000 17................ ||
+	prompt --timeout 1000 16............... ||
+	prompt --timeout 1000 15.............. ||
+	prompt --timeout 1000 14............. ||
+	prompt --timeout 1000 13............ ||
+	prompt --timeout 1000 12........... ||
+	prompt --timeout 1000 11.......... ||
+	prompt --timeout 1000 10......... ||
+	prompt --timeout 1000 9......... ||
+	prompt --timeout 1000 8........ ||
+	prompt --timeout 1000 7....... ||
+	prompt --timeout 1000 6...... ||
+	prompt --timeout 1000 5..... ||
+	prompt --timeout 1000 4.... ||
+	prompt --timeout 1000 3... ||
+	prompt --timeout 1000 2.. ||
+	prompt --timeout 1000 1. || echo
+
+	ifstat
+echo }-----------------------------------------------------------------------------{
+	prompt --timeout 1000 Lets give DHCP a try..... || echo Lets give DHCP a try.....
+
+:dhcp-start-a
+	dhcp net0 || goto dhcp-fail-a
+		show ip
+		show netmask
+		show gateway
+		goto dhcp-done-a
+
+:dhcp-fail-a
+		prompt --timeout 10000 DHCP failed, try again? || echo DHCP failed, try again?
+		goto dhcp-wait
+:dhcp-done-a
+echo
+#echo }-----------------------------------------------------------------------------{
+	#prompt --timeout 1000 Set Next-Server & filename || echo Set Next-Server & filename
+	#set next-server 10.173.119.81
+	#set filename pxelinux.0
+	#show next-server
+	#show filename
+echo
+echo }-----------------------------------------------------------------------------{
+        prompt --timeout 111 3......... ||
+        prompt --timeout 111 3........ ||
+        prompt --timeout 111 3....... ||
+        prompt --timeout 111 2...... ||
+        prompt --timeout 111 2..... ||
+        prompt --timeout 111 2.... ||
+        prompt --timeout 111 1... ||
+        prompt --timeout 111 1.. ||
+        prompt --timeout 111 1. || echo
+
+:pxe-boot
+	#chain tftp://${next-server}/${filename}
+	chain http://10.173.119.78/ipxe/ucf.ipxe
+exit
+

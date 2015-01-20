@@ -9,9 +9,9 @@ echo hi
 
 # Auto Login User
 
-username='localcosadmin'
-password='COSTech2010!'
-vncpasswd='5678'
+username=
+password=
+vncpasswd=
 
 
 killall SecurityAgent

@@ -1,0 +1,78 @@
+#!/bin/bash
+
+function main(){
+	zenityTitle='TEST	ABCD'
+	zenityText="Hello World"
+
+	#(
+	#	while (( ${RESULT:- 1} )); do
+	#		let COUNT++
+	#		MOV_ZENITY_WINDOW          "${zenityTitle}" 100 100
+	#		RESULT=$?
+	#	done
+	#	echo retries = $COUNT
+	#) &	
+
+	MOV_WINDOW          "${zenityTitle}" 100 100 &
+	#while ! MOV_ZENITY_WINDOW "${zenityTitle}" 100 100 &>/dev/null; do true; done &
+
+                zenity       \
+                        --width=300                     \
+                        --height=400                    \
+                        --timeout=${DIALOG_TIMEOUT:-25} \
+                        --ok-label="NEXT"               \
+                        --cancel-label="CANCEL"         \
+                        --title="${zenityTitle// /   }" \
+                        --text="${zenityText}"          \
+                        --list                          \
+                        --print-column=ALL              \
+                        --separator=:                   \
+                        --column "#"                    \
+                        --column "1"         \
+                        --column "2"         \
+			A B C \
+			E F G &
+	zenityPID=$!
+	#MOV_ZENITY_WINDOW          "${zenityTitle}" 100 100
+	#echo MOVE = $?
+
+	sleep 1
+
+	GET_WINDOW_ID       "${zenityTitle}"
+	GET_WINDOW_LOCATION "${zenityTitle}"
+	#MOV_ZENITY_WINDOW          "${zenityTitle}" 100 100
+	#echo MOVE = $?
+
+	sleep 1
+
+	kill ${zenityPID}
+
+}
+#function MOV_
+function MOV_WINDOW(){
+	local title=$1
+	local newX=$2
+	local newY=$3
+	local tries=100
+	local ID="" G="" X="" Y="" W="" H=""
+	while ((tries--)) && ! wmctrl -ir "${ID}" -e $G,${newX},${newY},$W,$H &>/dev/null
+	do	
+		read ID        < <(GET_WINDOW_ID "${title}")
+		read G X Y W H < <(GET_WINDOW_LOCATION "${title}")
+	done
+}
+function GET_WINDOW_LOCATION(){
+	local title=$1
+	local id=$(GET_WINDOW_ID "${title}")
+	awk '{print $2,$3,$4,$5,$6}' <(grep "^${id}[[:space:]]" <(wmctrl -lG))
+}
+function GET_WINDOW_ID(){
+	local title=$1
+	cat <<-SED | sed -n -f <(cat) <(wmctrl -l)
+		/[[:space:]]${title//[[:space:]]/[[:space:]]\+}\$/{
+			s/[[:space:]]\+.*//p
+		}
+	SED
+}
+
+main
