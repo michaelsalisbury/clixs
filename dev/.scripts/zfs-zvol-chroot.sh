@@ -1,6 +1,4 @@
 #!/bin/bash
-
-
 function main(){
 	(( ${#@} == 3 )) || { echo ERROR :: incorrect arg count. Exiting\!; exit 1; }
 	local zvol=$1
