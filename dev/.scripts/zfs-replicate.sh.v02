@@ -1,0 +1,114 @@
+#!/bin/bash
+function main(){
+	local update='true'
+	local snapshot="zfs-replication-$(date +%s)"
+	local depth=${3:-0}
+	local dst=$2
+	local src=$1
+	local src_type=$(zfs list -H -o type "${src}")
+	local src_snapshot dataset size 
+	# verify src and dst
+	for dataset in "${src}" "${dst}"; do
+		zfs list -H -o type "${dataset}" |
+		grep -q "^\(volume\|filesystem\)" ||
+		{ echo ERROR :: \"${dataset}\" not a filesystem or volume. Exiting\!; exit 1; }
+	done
+	# lock down destination
+	if zfs list -H -o type "${dst}/${src##*/}" | grep -q "^${src_type}$"; then
+		dst="${dst}/${src##*/}"
+	elif zfs list -H -o type "${dst}/${src#*/}" | grep -q "^${src_type}$"; then
+		dst="${dst}/${src#*/}"
+	elif zfs list -H -o type "${dst}/${src}" | grep -q "^${src_type}$"; then
+		dst="${dst}/${src}"
+	else
+		dst="${dst}/${src}"
+		update=false
+	fi
+
+	if ${update}; then
+		update		"${src}" "${dst}"
+	else
+		copy_oldest	"${src}" "${dst}"
+	fi
+
+	if (( depth-- )); then
+		echo recurse ${depth}
+	fi
+
+}
+function update(){
+	local creation name inc_snapshot size
+	local src=$1
+	local dst=$2
+
+	# find most recent snapshot
+	while read creation name; do
+		if zfs list -H -o type "${src}@${name##*@}" 2>/dev/null | grep -q "^snapshot$"; then
+			inc_snapshot="${src}@${name##*@}"
+			break	
+		fi
+	done < <(zfs list -p -H -t snapshot -r -d 1 -o creation,name "${dst}" | sort -n -r)
+
+	# if no src_snapshot was found then exit with error
+	if [ -z "${inc_snapshot}" ]; then
+		echo ERROR :: destination dataset exists but no matching snapshot can be found. Exiting\!
+		exit 2
+	fi
+
+	# send all snapshots since last replication
+	while read creation name; do
+		# get estimated send size
+		size=$(zfs send -nv -i "${inc_snapshot}" "${name}" 2>&1 | awk 'NR>1{gsub(/\.[0-9]*/,"",$NF); print $NF}')
+		# replicate
+		zfs send -i "${inc_snapshot}" "${name}" |
+		pv -b -p -t -r -s ${size} |
+		zfs receive "${dst}"
+		# shift
+		inc_snapshot=${name}
+	done < <(
+		zfs list -p -H -t snapshot -r -d 1 -o creation,name "${src}" |
+		sort -n |
+		sed "1,\|${inc_snapshot}$|d"
+		)
+	# set snapshot name
+	name="${src}@zfs-replication-$(date +%s)"
+	# take snapshot
+	zfs snapshot "${name}"
+	# get estimated send size
+	size=$(zfs send -nv -i "${inc_snapshot}" "${name}" 2>&1 | awk 'NR>1{gsub(/\.[0-9]*/,"",$NF); print $NF}')
+	# replicate
+	zfs send -i "${inc_snapshot}" "${name}" |
+	pv -b -p -t -r -s ${size} |
+	zfs receive "${dst}"
+}
+function copy_oldest(){
+	local creation name inc_snapshot size
+	local src=$1
+	local dst=$2
+
+	# take snapshot
+	if zfs list -H -p -o name -t snapshot -r -d 1 "${src}" | wc -l | (( `cat` )); then
+		read creation inc_snapshot < <(
+			zfs list -p -H -t snapshot -r -d 1 -o creation,name "${src}" |
+			sort -n |
+			sed -n 1p
+		)
+	else
+		# set snapshot name
+		name="${src}@zfs-replication-$(date +%s)"
+		# take snapshot
+		zfs snapshot "${name}"
+		# shift
+		inc_snapshot=${name}
+	fi
+
+	# get estimated send size
+	size=$(zfs send -nv "${inc_snapshot}" 2>&1 | awk 'NR>1{gsub(/\.[0-9]*/,"",$NF); print $NF}')
+	# replicate
+	zfs send "${inc_snapshot}" |
+	pv -b -p -t -r -s ${size} |
+	zfs receive "${dst}"
+	# recurse
+	update "${src}" "${dst}"
+}
+main "$@"
