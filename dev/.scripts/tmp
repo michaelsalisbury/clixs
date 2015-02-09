@@ -1,0 +1,246 @@
+[list]
+    [--long
+    -l]
+[showvminfo]
+    OwnCloud
+    Win7-x86_64
+    OSX
+    RocksCluster6
+    Windows 2008 R2 DEV
+    Ubuntu-1404-ZFS
+    Ubuntu-1404-apt-cache
+    Ubuntu-1404-iscsi
+    <inaccessible>
+    OwnCloud
+    Win7-x86_64
+    OSX
+    RocksCluster6
+    Windows 2008 R2 DEV
+    Ubuntu-1404-ZFS
+    Ubuntu-1404-apt-cache
+    Ubuntu-1404-iscsi
+    <inaccessible>
+    OwnCloud
+    Win7-x86_64
+    OSX
+    RocksCluster6
+    Windows 2008 R2 DEV
+    Ubuntu-1404-ZFS
+    Ubuntu-1404-apt-cache
+    Ubuntu-1404-iscsi
+    <inaccessible>
+[registervm]
+    <filename>
+[unregistervm]
+    OwnCloud
+    Win7-x86_64
+    OSX
+    RocksCluster6
+    Windows 2008 R2 DEV
+    Ubuntu-1404-ZFS
+    Ubuntu-1404-apt-cache
+    Ubuntu-1404-iscsi
+    <inaccessible>
+[createvm]
+    --name
+[modifyvm]
+    OwnCloud
+    Win7-x86_64
+    OSX
+    RocksCluster6
+    Windows 2008 R2 DEV
+    Ubuntu-1404-ZFS
+    Ubuntu-1404-apt-cache
+    Ubuntu-1404-iscsi
+    <inaccessible>
+[clonevm]
+    OwnCloud
+    Win7-x86_64
+    OSX
+    RocksCluster6
+    Windows 2008 R2 DEV
+    Ubuntu-1404-ZFS
+    Ubuntu-1404-apt-cache
+    Ubuntu-1404-iscsi
+    <inaccessible>
+[import]
+    <ovfname/ovaname>
+[export]
+    <machines>
+[startvm]
+    OwnCloud
+    Win7-x86_64
+    OSX
+    RocksCluster6
+    Windows 2008 R2 DEV
+    Ubuntu-1404-ZFS
+    Ubuntu-1404-apt-cache
+    Ubuntu-1404-iscsi
+    <inaccessible>...
+[controlvm]
+    OwnCloud
+    Win7-x86_64
+    OSX
+    RocksCluster6
+    Windows 2008 R2 DEV
+    Ubuntu-1404-ZFS
+    Ubuntu-1404-apt-cache
+    Ubuntu-1404-iscsi
+    <inaccessible>
+[discardstate]
+    OwnCloud
+    Win7-x86_64
+    OSX
+    RocksCluster6
+    Windows 2008 R2 DEV
+    Ubuntu-1404-ZFS
+    Ubuntu-1404-apt-cache
+    Ubuntu-1404-iscsi
+    <inaccessible>
+[adoptstate]
+    OwnCloud
+    Win7-x86_64
+    OSX
+    RocksCluster6
+    Windows 2008 R2 DEV
+    Ubuntu-1404-ZFS
+    Ubuntu-1404-apt-cache
+    Ubuntu-1404-iscsi
+    <inaccessible>
+[snapshot]
+    OwnCloud
+    Win7-x86_64
+    OSX
+    RocksCluster6
+    Windows 2008 R2 DEV
+    Ubuntu-1404-ZFS
+    Ubuntu-1404-apt-cache
+    Ubuntu-1404-iscsi
+    <inaccessible>
+[closemedium]
+    disk
+    dvd
+    floppy
+[storageattach]
+    OwnCloud
+    Win7-x86_64
+    OSX
+    RocksCluster6
+    Windows 2008 R2 DEV
+    Ubuntu-1404-ZFS
+    Ubuntu-1404-apt-cache
+    Ubuntu-1404-iscsi
+    <inaccessible>
+[storagectl]
+    OwnCloud
+    Win7-x86_64
+    OSX
+    RocksCluster6
+    Windows 2008 R2 DEV
+    Ubuntu-1404-ZFS
+    Ubuntu-1404-apt-cache
+    Ubuntu-1404-iscsi
+    <inaccessible>
+[bandwidthctl]
+    OwnCloud
+    Win7-x86_64
+    OSX
+    RocksCluster6
+    Windows 2008 R2 DEV
+    Ubuntu-1404-ZFS
+    Ubuntu-1404-apt-cache
+    Ubuntu-1404-iscsi
+    <inaccessible>
+[showhdinfo]
+    <uuid
+    filename>
+[createhd]
+    --filename
+[modifyhd]
+    <uuid
+    filename>
+[clonehd]
+    <uuid
+    inputfile>
+[convertfromraw]
+    <filename>
+    stdin
+[getextradata]
+    global
+    OwnCloud
+    Win7-x86_64
+    OSX
+    RocksCluster6
+    Windows 2008 R2 DEV
+    Ubuntu-1404-ZFS
+    Ubuntu-1404-apt-cache
+    Ubuntu-1404-iscsi
+    <inaccessible>
+[setextradata]
+    global
+    OwnCloud
+    Win7-x86_64
+    OSX
+    RocksCluster6
+    Windows 2008 R2 DEV
+    Ubuntu-1404-ZFS
+    Ubuntu-1404-apt-cache
+    Ubuntu-1404-iscsi
+    <inaccessible>
+[setproperty]
+    machinefolder
+[usbfilter]
+    add
+    modify
+    remove
+[sharedfolder]
+    add
+    remove
+[guestproperty]
+    get
+    set
+    delete
+    unset
+    enumerate
+    wait
+[guestcontrol]
+    OwnCloud
+    Win7-x86_64
+    OSX
+    RocksCluster6
+    Windows 2008 R2 DEV
+    Ubuntu-1404-ZFS
+    Ubuntu-1404-apt-cache
+    Ubuntu-1404-iscsi
+    <inaccessible>
+[debugvm]
+    OwnCloud
+    Win7-x86_64
+    OSX
+    RocksCluster6
+    Windows 2008 R2 DEV
+    Ubuntu-1404-ZFS
+    Ubuntu-1404-apt-cache
+    Ubuntu-1404-iscsi
+    <inaccessible>
+[metrics]
+    list
+    setup
+    query
+    enable
+    disable
+    collect
+[natnetwork]
+    add
+    remove
+    modify
+    start
+    stop
+[hostonlyif]
+    ipconfig
+[dhcpserver]
+    add
+    modify
+    remove
+[extpack]
+    install

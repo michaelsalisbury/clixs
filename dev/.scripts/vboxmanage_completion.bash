@@ -1,0 +1,1 @@
+/etc/bash_completion.d/vboxmanage_completion.bash

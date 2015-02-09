@@ -1,0 +1,768 @@
+#!/bin/bash/
+LOG="/tmp/vboxmanage-auto-complete.log"
+
+_vboxmanage_select_actions(){
+	local ACTION_WORD_DEPTH=${1:-$((COMP_CWORD-1))}
+	local ACTION="${COMP_WORDS[ACTION_WORD_DEPTH]}"
+	_COMPREPLY_put_command_actions
+	_COMPREPLY_put_list -a <<< ${OPTIONAL}
+	# test for action in previos word; _COMPREPLY returns err #2 if only one match is found 
+	_COMPREPLY "${ACTION}"
+	(( $? == 2 )) && _COMPREPLY_put_command_action_opts ${COMPREPLY[${#COMPREPLY[*]}-1]}
+	# process COMPREPLY against current word
+	_COMPREPLY "${COMP_WORDS[COMP_CWORD]}"
+}
+_vboxmanage_select_vm(){
+	local VM_WORD_DEPTH=${1:-2}
+	local VM="${COMP_WORDS[VM_WORD_DEPTH]}"
+	_COMPREPLY_put_vms
+	_COMPREPLY "${VM}"
+	if (( ${#COMPREPLY[*]} == 1 )) && (( COMP_CWORD > VM_WORD_DEPTH )); then
+		unset COMPREPLY
+	else
+		_COMPREPLY_put_vms
+		_COMPREPLY
+		return 1
+	fi
+}
+_vboxmanage_options_exp(){
+	local OPTION
+	while read OPTION; do
+		case "${OPTION}" in
+			\<uuid\|vmname\>)	vboxmanage list vms | cut -f2 -d\";;
+			#\<uuid\|filename\>)	;;
+			#\<uuid\|inputfile\>)	;;
+			*)			echo "${OPTION}";;
+		esac
+	done
+}
+_COMPREPLY_put(){
+	local WORD_DEPTH=${1:-1}
+	case "${WORD_DEPTH}" in
+		1)	_COMPREPLY_put_list    < <(_vboxmanage_help_args)
+			_COMPREPLY_put_list -a < <(_vboxmanage_commands);;
+		[2-3])	_COMPREPLY_put_list    < <(_vboxmanage_help_args)
+			_COMPREPLY_put_list -a < <(_vboxmanage_options_L${WORD_DEPTH} | _vboxmanage_options_exp);;
+		[4-9]*)	_COMPREPLY_put_list    < <(_vboxmanage_help_args)
+			_COMPREPLY_put_list -a < <(_vboxmanage_options_DEFAULT);;
+	esac
+}
+_vboxmanage_select(){
+	local WORD_DEPTH=${1:-1}
+	case "${WORD_DEPTH}" in
+		L[0-9]*|l[0-9]*)	WORD_DEPTH=${WORD_DEPTH//[a-zA-Z]/};;
+		[1-9]*)			;;
+		*)			WORD_DEPTH=1;;
+	esac
+	local WORD="${COMP_WORDS[WORD_DEPTH]}"
+	_COMPREPLY_put "${WORD_DEPTH}"
+	_COMPREPLY "${WORD}"
+	(( $? == 2 )) && COMPREPLY=() && return 0
+	_COMPREPLY "${COMP_WORDS[COMP_CWORD]}"
+	return 1
+}
+_vboxmanage_select_action(){
+	local ACTION_WORD_DEPTH=${1:-1}
+	local ACTION="${COMP_WORDS[ACION_WORD_DEPTH]}"
+	_COMPREPLY_put_actions
+	_COMPREPLY "${ACTION}"
+	(( $? == 2 )) && return 0
+	_COMPREPLY "${COMP_WORDS[COMP_CWORD]}"
+	return 1
+}
+_vboxmanage_commands(){
+	cat <<-AWK | awk -f <(cat) <(vboxmanage)
+		NR==1,/^Commands:/{s=1;next}
+		s-->0{next}
+		!RSTART{match(\$0,\$1)}
+		{\$0=substr(\$0,RSTART)}
+		/^( |$)/{next}
+		CMD!=\$1{print \$1}
+		#{CMD=\$1}
+	AWK
+}
+_vboxmanage_options_L2(){
+	local COMMAND_WORD_DEPTH='1'
+	local COMMAND="${1:-${COMP_WORDS[COMMAND_WORD_DEPTH]}}"
+	(( ${#COMMAND} )) || return
+	exec 3<<-AWK
+		GET_OPT{GET_OPT=\$1}
+		/^VBox/{GET_OPT=\$3}
+		GET_OPT{
+			sub(/\|$/,"",GET_OPT)
+			print GET_OPT
+			if(/\|$/){GET_OPT=1}else{GET_OPT=null}
+		}
+	AWK
+	exec 4<<-SED
+		s/\(<[a-zA-Z]\+\)|\([a-zA-Z]\+\)/\1@\2/g
+		s/|/\n/g
+		s/@/|/g
+	SED
+	_vboxmanage_command ${COMMAND} \
+	|awk -f <(cat <&3 3<&-) \
+	|uniq \
+	|sed -f <(cat <&4 4<&-)
+}
+_vboxmanage_options_L3(){
+	local COMMAND_WORD_DEPTH='1'
+	local COMMAND="${1:-${COMP_WORDS[COMMAND_WORD_DEPTH]}}"
+	(( ${#COMMAND} )) || return
+	exec 3<<-AWK
+		/^VBox/&&(NF>3){print \$4}
+
+
+		END{print "TESTING"}
+	AWK
+	_vboxmanage_command ${COMMAND} \
+	|awk -f <(cat <&3 3<&-)
+
+}
+_vboxmanage_options_DEFAULT(){
+	local COMMAND_WORD_DEPTH='1'
+	local COMMAND="${1:-${COMP_WORDS[COMMAND_WORD_DEPTH]}}"
+	(( ${#COMMAND} )) || return
+	exec 3<<-AWK
+		END{print "TESTING"}
+	AWK
+	_vboxmanage_command ${COMMAND} \
+	|awk -f <(cat <&3 3<&-)
+}
+_vboxmanage_help_args(){
+	echo ${PREPEND} | tr \  \\n
+}
+_vboxmanage_need_help(){
+	case "${COMP_WORDS[${COMP_CWORD}]:-${COMP_WORDS[COMP_CWORD-1]}}" in
+		-h|--help|help)	return 0;;		
+		*)		return 1;;
+	esac
+}
+_vboxmanage_get_help(){
+	if _vboxmanage_need_help; then
+		echo 1>&2
+		echo HELP >> "${LOG}"
+		_vboxmanage_command | tee -a "${LOG}" 1>&2
+		return 0
+	else
+		return 1
+	fi
+}
+_COMPREPLY_put_list(){
+	# expected use: _COMPREPLY_put_list [-a] < <(input)
+	# if arg 1 is -a then append otherwise clear _COMPREPLY
+	[ "$1" == "-a" ] || _COMPREPLY=()
+	local ITEM
+	while read ITEM; do _COMPREPLY[${#_COMPREPLY[*]}]=${ITEM}; done
+}
+_COMPREPLY_put_actions(){
+	local COMMAND_WORD_DEPTH=${1:-1}
+	_COMPREPLY_put_list    < <(_vboxmanage_help_args)
+	_COMPREPLY_put_list -a < <(_vboxmanage_actions ${COMMAND_WORD_DEPTH})
+}
+_vboxmanage_command_all(){
+	_vboxmanage_commands | uniq |
+	while read COMMAND; do
+	       	_vboxmanage_command ${COMMAND}
+	done
+}
+_vboxmanage_command(){
+	local COMMAND_WORD_DEPTH='1'
+	local COMMAND="${1:-${COMP_WORDS[COMMAND_WORD_DEPTH]}}"
+	(( ${#COMMAND} )) || return
+
+	# 1; Skip upto /^Usage:/ plus one line (effects all commands). Skip /^Syntax error:/ (effects vboxmanage convertfromraw).
+	# 2; Ammends commands who's subcommands have line depreciated attributes (effects vboxmanage guestcontrol).
+	# 3; Rectify vboxmanage list 2nd argument [--long|-l] and join it to the 3rd argument
+	# 4; Remove first instance of vboxmanage guestcontrol since it will have been replicated by the 2nd step above.
+	exec 3<<-AWK
+		############################################################################ 1
+		NR==1,/^Usage:/{s=1;next}
+		s-->0{next}
+		/^Syntax error:/{next}
+		############################################################################ 2
+		/^VBoxManage/{CMD_LINE=\$0}
+		CMD_LINE_NEXT && !/^ *$/ && !/^VBoxManage/{
+			match(\$0,/^ */)
+			\$0=CMD_LINE" "substr(\$0,RLENGTH)
+		}
+		{CMD_LINE_NEXT=/^ *$/}
+		############################################################################ 3
+		"list"=="${COMMAND}" && "${COMMAND}"==\$2{
+			match(\$3,/[^\[\]]+/)
+			\$4=substr(\$3,RSTART,RLENGTH)"|"\$4
+			gsub(/./," ",\$3)
+		}
+		############################################################################ 4
+		"guestcontrol"=="${COMMAND}" && /^VBoxManage/ && !ONCE {ONCE=1;next}
+		{print}
+	AWK
+	# joins indented lines to their parent
+	exec 4<<-AWK
+		/^ *\$/{printf "\n";next}
+		/^VBoxManage/{
+			printf NR==1 ? \$0 : "\n"\$0
+			match(\$3,/^.*[^\|]/)
+			match(\$0,substr(\$3,0,RLENGTH))
+			INDENT=RSTART
+			next
+		}
+		{
+			match(\$0,/[^[:space:]]/)
+			printf RSTART<=INDENT ? "\n"\$0 : " "substr(\$0,RSTART)
+		}
+	AWK
+	# expands arguments like exec[ute] to execute
+		local END="[ \|\[\]]"
+		local ALPHA="[a-zA-Z]"
+	exec 5<<-AWK
+		match(\$0,/${END}${ALPHA}+\[${ALPHA}+\]${END}/)||
+		match(\$0,/${END}\[${ALPHA}+\]${ALPHA}+${END}/){
+			MATCH=substr(\$0,RSTART,RLENGTH)
+			gsub(/[\[\]]/,"",MATCH)
+			\$0=substr(\$0,0,RSTART-1) MATCH substr(\$0,RSTART+RLENGTH)
+		}
+		{print}
+	AWK
+	# limits output to the correct sub command
+	# effects: showvminfo,convertfromraw,usbfilter,sharedfolder,guestcontrol,guestproperty,metrics,natnetwork,dhcpserver
+	exec 6<<-AWK
+		3>${COMP_CWORD}{print;MATCH=1;next}
+		{LINES[LENGTH++]=\$0}			
+		(/^VBox/ && \$3~/(^|\|)${COMP_WORDS[2]}(\||\$)/),/^ *$/ {print;MATCH=1;next}
+		(/^VBox/ && \$4~/(^|\|)${COMP_WORDS[3]}(\||\$)/),/^ *$/ {print;MATCH=1;}
+		END{
+			if (!MATCH)
+				for (INDEX=0;INDEX<LENGTH;INDEX++)
+					print LINES[INDEX]
+		}
+	AWK
+
+	#|awk -f <(cat <&4 4<&-) \
+	vboxmanage ${COMMAND} 2>&1 \
+	|awk -f <(cat <&3 3<&-) \
+	|awk -f <(cat <&5 5<&-) \
+	|awk -f <(cat <&6 6<&-)
+	return
+}
+
+
+
+_vboxmanage_actions(){
+	local COMMAND_WORD_DEPTH=${1:-1}
+	local COMMAND="${COMP_WORDS[COMMAND_WORD_DEPTH]}"
+	local COMMAND=$1
+	cat <<-AWK | awk -f <(cat) <(vboxmanage ${COMMAND} 2>&1) | sort -u
+		function _vboxmanage_put_vms(){
+			cmd="vboxmanage list vms"
+			while (cmd|getline line){
+				split(line,line_array,"\"")
+				if(vms)
+					vms=vms"|"line_array[2]
+				else
+					vms=line_array[2]
+			}
+			close(cmd)
+			return (vms)
+		}
+		#/^( |\$)/{next}
+		#\$1!="${COMMAND}"{next}
+		\$1!="VBoxManage"{next}
+		{sub(/<uuid\|vmname>/,_vboxmanage_put_vms(),\$3)}
+		{sub(/<uuid\|filename>/,"<uuid>|<filename>",\$3)}
+		{sub(/<uuid\|inputfile>/,"<uuid>|<inputfile>",\$3)}
+		{sub(/\[--long\|-l\]/,"${OPTIONAL}|-l|--long",\$3)}
+		{gsub(/\|/,"\n",\$3)}
+		{print \$3}
+	AWK
+		#{sub(/<uuid\|vmname>/,"$(vboxmanage list vms | awk -F\" '{print $2}')",\$0)}
+}
+_vboxmanage_1st_arg(){
+	local COMMAND_WORD_DEPTH='1'
+	local COMMAND="${COMP_WORDS[COMMAND_WORD_DEPTH]}"
+	local ACTION_WORD_DEPTH='2'
+	local ACTION="${COMP_WORDS[ACTION_WORD_DEPTH]}"
+	# DEBUG
+	local COMMAND=$1
+	local ACTION=$2
+	#cat <<-AWK | awk -f <(cat) <(	
+
+
+}
+_vboxmanage() {
+    PREPEND="-h --help help"
+    OPTIONAL=":opts_optional:"
+
+    local PROGRAM=$1
+    local NEXT=$2
+    local LAST=$3
+
+    local cur p1 p2 p3 p4 opts
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+    cat <<-LOG >> "${LOG}"
+
+	`date` :: $1 [$2] <$3> :: ${#*}
+	LOG
+
+    _vboxmanage_select command || return 0
+
+    _vboxmanage_need_help && _vboxmanage_get_help && return 0
+
+    _vboxmanage_select L2 || return 0
+
+    echo COMMAND >> "${LOG}"
+    _vboxmanage_command >> "${LOG}"
+    echo OPTIONS >> "${LOG}"
+    _vboxmanage_options_L3 >> "${LOG}"
+
+    _vboxmanage_select L3 || return 0
+
+    _vboxmanage_select L${COMP_CWORD} || return 0
+
+    return 0
+
+    #_vboxmanage_select_action || return 0
+
+
+    # In case current is complete command
+    case $cur in
+	startvm|list|controlvm|test)	    
+	    COMPREPLY=($(compgen -W "$cur "))
+	    return 0
+	    ;;
+    esac
+
+    # COMP_WORDS by function depth
+    local COMMAND_WORD_DEPTH='1'
+    local VM_WORD_DEPTH='2'
+    local ACTION_WORD_DEPTH='3'
+    case "${COMP_WORDS[COMMAND_WORD_DEPTH]}" in
+	-h|--help|help)
+		eval "__${COMP_WORDS[0]}_help" 1>&2
+		return 0
+		;;
+	-showvminfo)
+		_COMP_WORDS
+		return 0
+		;;
+	discardstate)
+		_vboxmanage_select_vm ${VM_WORD_DEPTH}
+		return 0
+		;;
+	startvm|showvminfo)
+		_vboxmanage_select_vm ${VM_WORD_DEPTH} || return 0
+		_vboxmanage_select_actions ${ACTION_WORD_DEPTH}
+		return 0
+		;;
+	controlvm)
+		_vboxmanage_select_vm ${VM_WORD_DEPTH} || return 0
+		_vboxmanage_select_actions
+		return 0
+		;;
+    esac
+    
+    if _is_COMP_WORDS_func; then
+	# temporary limiter
+	case "${COMP_WORDS[1]}" in
+		test|showvminfo)
+			opts=$(_COMP_WORDS)
+			COMPREPLY=($(compgen -W "${opts}" -- ${cur}))
+			return 0
+			;;
+	esac
+    fi
+
+    case $prev in
+	-v|--version)
+	    ;;
+
+	-l|--long)
+	    opts=$(__vboxmanage_list "long")
+	    COMPREPLY=($(compgen -W "${opts}" -- ${cur}))
+	    return 0	    
+	    ;;
+	startvm|list)
+	    opts=$(__vboxmanage_$prev)
+	    COMPREPLY=($(compgen -W "${opts}" -- ${cur}))
+	    return 0	    
+	    ;;	
+	--type)
+	    COMPREPLY=($(compgen -W "gui headless" -- ${cur}))
+	    return 0
+	    ;;
+	gui|headless)
+	    # Done. no more completion possible
+	    return 0
+	    ;;
+	#vboxmanage|-q|--nologo)
+	-q|--nologo)
+	    # echo "Got vboxmanage"
+	    opts=$(__vboxmanage_default)
+	    COMPREPLY=($(compgen -W "${opts}" -- ${cur}))
+	    return 0
+	    ;;
+	controlvm)
+	    #opts=$(__vboxmanage_list_vms)
+	    #COMPREPLY=($(compgen -W "${opts}" -- ${cur}))
+	    #COMPREPLY=("$(__vboxmanage_list_vms)")
+	    _COMPREPLY_put_vms
+	    _COMPREPLY
+
+	    return 0
+	    ;;
+    esac
+
+    for VM in $(__vboxmanage_list_vms); do
+	if [ "$VM" == "$prev" ]; then
+	    pprev=${COMP_WORDS[COMP_CWORD-2]}
+	    # echo "previous: $pprev"
+	    case $pprev in
+		startvm)
+ 		    opts="--type"	    
+		    COMPREPLY=($(compgen -W "${opts}" -- ${cur}))
+		    return 0
+		    ;;
+		controlvm)
+		    opts=$(__vboxmanage_controlvm)
+		    COMPREPLY=($(compgen -W "${opts}" -- ${cur}))
+		    return 0;
+		    ;;
+	    esac
+	fi
+    done
+
+    # echo "Got to end withoug completion"
+    #opts=$(echo ${PREPEND} `_vboxmanage_command_list_old`)
+    #COMPREPLY=($(compgen -W "${opts}" -- ${cur}))
+    #return 0
+}
+__vboxmanage_showvminfo(){
+	local VM_WORD_DEPTH='2'
+	_vboxmanage_select_vm ${VM_WORD_DEPTH} || return
+	_COMPREPLY=(--details --machinereadable)
+	_COMPREPLY
+}
+_vboxmanage_realopts() {
+    echo $(vboxmanage|grep -i vboxmanage|cut -d' ' -f2|grep '\['|tr -s '[\[\|\]\n' ' ')
+    echo " "
+}
+
+__vboxmanage_startvm() {
+    RUNNING=$(vboxmanage list runningvms | cut -d' ' -f1 | tr -d '"')
+    TOTAL=$(vboxmanage list vms | cut -d' ' -f1 | tr -d '"')
+
+    AVAILABLE=""
+    for VM in $TOTAL; do
+	MATCH=0;
+	for RUN in $RUNNING "x"; do
+	    if [ "$VM" == "$RUN" ]; then
+		MATCH=1
+	    fi
+	done
+	(( $MATCH == 0 )) && AVAILABLE="$AVAILABLE $VM "
+    done
+    echo $AVAILABLE
+}
+
+__vboxmanage_list() {
+    INPUT=$(vboxmanage list | tr -s '[\[\]\|\n]' ' ' | cut -d' ' -f4-)
+    
+    PRUNED=""
+    if [ "$1" == "long" ]; then
+	for WORD in $INPUT; do
+	    [ "$WORD" == "-l" ] && continue;
+	    [ "$WORD" == "--long" ] && continue;
+	    
+	    PRUNED="$PRUNED $WORD"
+	done
+    else 
+	PRUNED=$INPUT
+    fi
+
+    echo $PRUNED
+}
+
+_vboxmanage_raw_command_opts(){
+	local CMD_WORD_DEPTH=${1:-1}
+	exec 3<<-AWK
+		#NR==1,/^VBoxManage/{next}
+		#!RLENGTH{match(\$0,/^ */)}
+		#{print substr(\$0,RLENGTH+1)}
+		/^Usage:/{next}
+		/^$/{next}
+		/^VBoxManage/{match(\$0,\$3)}
+		{print substr(\$0,RSTART)}
+	AWK
+	exec 4<<-SED
+		1!{s/^[^ ]/!&/}		# excluding the first line; prepend ! to each line that doesn't start with a space
+		s/^ \+/ /		# all lines; reduce all leading spaces to one space
+		H			# all lines; append line to hold space
+		\${			# last line;
+			g		# copy hold space to pattern space
+			s/\n//g		# remove all line line feeds
+			s/!/\n/g	# replace ! with line feeds; this effectivelly adds indented lines to parrent
+			s/<1-N>/1/g	# replace; self explanitory
+			p
+		}
+	SED
+	exec 5<<-SED
+		s/^\[\(.*\)\]$/\1/
+		/^[^ ]\+|\$/{		# match all lines that have a list of actions but no sub arguments
+			s/|\$//		# remove trailing pipe/or
+			s/|/\n/g	# replave interleaved pipes/ors with a line feed
+		}
+	SED
+	vboxmanage ${COMP_WORDS[CMD_WORD_DEPTH]} |
+		awk    -f <(cat<&3) |
+		sed -n -f <(cat<&4) |
+		sed    -f <(cat<&5)
+}
+_COMPREPLY_put_command_actions(){
+	_COMPREPLY=($(_vboxmanage_raw_command_opts | awk '{print $1}'))
+}
+_COMPREPLY_put_command_action_opts(){
+	local VM_ACTION=${1:-${COMPREPLY[${#COMPREPLY[*]}-1]}}
+	exec 3<<-AWK
+		\$1=="${VM_ACTION}"{
+			\$1=""
+			gsub(/\|/,"\n",\$0)
+			print
+		}
+	AWK
+	_COMPREPLY=($(_vboxmanage_raw_command_opts | awk -f <(cat<&3)))
+}
+_COMPREPLY_put_vms() {
+	local VM
+	#unset _COMPREPLY
+	_COMPREPLY=()
+	while read VM; do
+		_COMPREPLY[${#_COMPREPLY[*]}]=${VM}
+	done < <(vboxmanage list vms | awk -F\" '{print $2}')
+}
+
+__vboxmanage_list_vms() {
+    VMS=""
+    if [ "x$1" == "x" ]; then
+	SEPARATOR=" "
+    else
+	SEPARATOR=$1
+    fi
+    
+    for VM in $(vboxmanage list vms | cut -d' ' -f1 | tr -d '"'); do
+	[ "$VMS" != "" ] && VMS="${VMS}${SEPARATOR}"
+	VMS="${VMS}${VM}"
+    done
+
+    echo $VMS
+}
+
+__vboxmanage_list_runningvms() {
+    VMS=""
+    if [ "$1" == "" ]; then
+	SEPARATOR=" "
+    else
+	SEPARATOR=$1
+    fi
+    
+    for VM in $(vboxmanage list runningvms | cut -d' ' -f1 | tr -d '"'); do
+	[ "$VMS" != "" ] && VMS="${VMS}${SEPARATOR}"
+	VMS="${VMS}${VM}"
+    done
+
+    echo $VMS
+
+}
+
+__vboxmanage_controlvm_old() {
+    echo "pause resume reset poweroff savestate acpipowerbutton"
+    echo "acpisleepbutton keyboardputscancode guestmemoryballoon"
+    echo "gueststatisticsinterval usbattach usbdetach vrde vrdeport"
+    echo "vrdeproperty vrdevideochannelquality setvideomodehint"
+    echo "screenshotpng setcredentials teleport plugcpu unplugcpu"
+    echo "cpuexecutioncap"
+
+# setlinkstate<1-N> 
+# nic<1-N> null|nat|bridged|intnet|hostonly|generic
+#                                      [<devicename>] |
+                          # nictrace<1-N> on|off
+                          #   nictracefile<1-N> <filename>
+                          #   nicproperty<1-N> name=[value]
+                          #   natpf<1-N> [<rulename>],tcp|udp,[<hostip>],
+                          #                 <hostport>,[<guestip>],<guestport>
+                          #   natpf<1-N> delete <rulename>
+
+}
+function _vboxmanage_commands_old(){
+	cat <<-SED | sed -n -f <(cat) <(vboxmanage)
+		/^Commands:$/,/:$/ {
+			/^Commands:$/!p
+		}
+	SED
+}
+function _vboxmanage_command_first_indent(){
+	cat <<-SED | sed -n -f <(cat) <(_vboxmanage_commands_old) |
+		/[a-zA-Z]\+/{
+			s/[^ ].*//p
+		}
+	SED
+	sort -u | head -1 | wc -m
+}
+function _vboxmanage_command_list_old(){
+	local INDENT=$(_vboxmanage_command_first_indent_old)
+	_vboxmanage_commands_old |
+       	cut -f${INDENT} -d' ' |
+	sed '/^$/d' |
+	uniq
+}
+function __vboxmanage_help(){
+	local INDENT=$(_vboxmanage_command_first_indent_old)
+	echo
+	cat <<-SED | sed -n -f <(cat) <(vboxmanage)
+		/^Usage:$/,/^Commands:$/ {
+			/^Commands:$/!p
+		}
+	SED
+	echo Commands:
+	_vboxmanage_command_list_old |
+	column |
+	column -t |
+	sed "s/^/$(_repeate_string $(( INDENT - 1 )))/"
+}
+__vboxmanage_test(){
+	__vboxmanage_help $@
+    	local cur="${COMP_WORDS[COMP_CWORD]}"
+	local prev="${COMP_WORDS[COMP_CWORD-1]}"
+	echo --arg1 --arg2 opt1 opt2 $FUNCNAME ${FUNCNAME[1]}
+}
+__vboxmanage_default() {
+    realopts=$(_vboxmanage_realopts)
+    opts=$realopts$(vboxmanage | grep -i vboxmanage | cut -d' ' -f2 | grep -v '\[' | sort | uniq)
+    pruned=""
+
+    # echo ""
+    # echo "DEBUG: cur: $cur, prev: $prev"
+    # echo "DEBUG: default: |$p1|$p2|$p3|$p4|"
+    case ${cur} in
+ 	-*)
+	    echo $opts
+ 	    # COMPREPLY=($(compgen -W "${opts}" -- ${cur}))
+ 	    return 0
+ 	    ;;
+    esac;
+
+    for WORD in $opts; do
+	MATCH=0
+	for OPT in ${COMP_WORDS[@]}; do
+		    # opts=$(echo ${opts} | grep -v $OPT);
+	    if [ "$OPT" == "$WORD" ]; then
+		MATCH=1
+		break;
+	    fi
+	    if [ "$OPT" == "-v" ] && [ "$WORD" == "--version" ]; then
+		MATCH=1
+		break;
+	    fi
+	    if [ "$OPT" == "--version" ] && [ "$WORD" == "-v" ]; then
+		MATCH=1
+		break;
+	    fi
+	    if [ "$OPT" == "-q" ] && [ "$WORD" == "--nologo" ]; then
+		MATCH=1
+		break;
+	    fi
+	    if [ "$OPT" == "--nologo" ] && [ "$WORD" == "-q" ]; then
+		MATCH=1
+		break;
+	    fi
+	done
+	(( $MATCH == 1 )) && continue;
+	pruned="$pruned $WORD"
+	
+    done
+    
+    # COMPREPLY=($(compgen -W "${pruned}" -- ${cur}))
+    echo $pruned
+    return 0
+}
+################################################################################
+################################################################################
+############################################################## supplemental
+_get_COMP_WORDS_func_() {
+	# returns a posible function name with the following format
+	# __[command name]_[first word]_[second word]_[and so on]
+	# the depth will be the full length of the COMP_WORDS array
+	# minus the value of REVERSE_DEPTH
+	local REVERSE_DEPTH=${1:-0}
+	echo ${COMP_WORDS[*]:0:COMP_CWORD-${REVERSE_DEPTH}} |
+       	xargs echo _ |
+       	tr \  _
+}
+_get_COMP_WORDS_func() {
+	# returns the first valid function recursing from the full
+	# COMP_WORDS array length to nothing
+	# if the first valid function returned matches the function
+	# that called this then nothing is returned to prevent a loop
+	local REGRESS FUNCTION
+	for REGRESS in `seq 0 $(( COMP_CWORD - 1 ))`; do
+		FUNCTION=$(_get_COMP_WORDS_func_ ${REGRESS})
+		# test if FUNCTION is a parent
+		if [[ "${FUNCNAME[*]}" =~ (^| )${FUNCTION}($| ) ]]; then
+			break
+		# test if FUNCTION exists
+		elif type "${FUNCTION}" 2>/dev/null |
+		     head -1 |
+	   	     grep -q "is a function$"; then
+			echo "${FUNCTION}"
+			return 0
+		fi	   
+	done
+	return 1
+}
+_is_COMP_WORDS_func() {
+	_get_COMP_WORDS_func &>/dev/null
+}
+_COMP_WORDS(){
+	if _is_COMP_WORDS_func; then
+		eval `_get_COMP_WORDS_func` \$@
+	fi
+}
+function _repeate_string(){
+	local REPETITIONS=${1:-1}
+	local STRING=${2:- }
+	echo ${REPETITIONS}	|
+	xargs seq		|
+	sed "s/.*/${STRING}/"	|
+	tr -d \\n		|
+	xargs -0 -i@ echo "@"
+}
+__vboxmanage_DEBUG(){
+	cat <<-DEBUG | cat 1>&2
+		func    ${FUNCNAME[*]/#/:: }
+		 cur :: ${COMP_WORDS[COMP_CWORD]}
+		prev :: ${COMP_WORDS[COMP_CWORD-1]}
+		args :: $@
+	DEBUG
+}
+_COMPREPLY(){
+    # expects _COMPREPLY to already be populated with
+    #   un-escaped posible matches with or without spaces
+    # filters COMPREPLY against ${COMP_WORDS[COMP_CWORD]}
+    # handles matches with spaces
+    unset COMPREPLY
+    (( ${#_COMPREPLY[*]} )) || return 1
+    local REGEX=${1:-${COMP_WORDS[COMP_CWORD]}}
+    local MATCH
+    while read MATCH; do
+	MATCH=$(printf "%q" "${MATCH}")
+	[[ "${MATCH}" =~ ^"${REGEX}" ]] || continue
+	COMPREPLY[${#COMPREPLY[*]}]=${MATCH}
+	[[ "${MATCH}" =~ ^"${REGEX}"$ ]] && return 2
+    done < <(printf "%q\n" "${_COMPREPLY[@]}" | sort -r)
+    return 0
+}
+################################################################################
+################################################################################
+############################################################## complete
+complete -F _vboxmanage vboxmanage

@@ -1,0 +1,61 @@
+#!/bin/bash
+
+
+function _vboxmanage_commands(){
+	cat <<-SED | sed -n -f <(cat) <(vboxmanage)
+		/^Commands:$/,/:$/ {
+			/^Commands:$/!p
+		}
+	SED
+}
+function _vboxmanage_command_first_indent(){
+	cat <<-SED | sed -n -f <(cat) <(_vboxmanage_commands) |
+		/[a-zA-Z]\+/{
+			s/[^ ].*//p
+		}
+	SED
+	sort -u | head -1 | wc -m
+}
+function _vboxmanage_command_list(){
+	local INDENT=$(_vboxmanage_command_first_indent)
+	_vboxmanage_commands |
+       	cut -f${INDENT} -d' ' |
+	sed '/^$/d'
+	#uniq -u
+}
+function _vboxmanage_default(){
+	local INDENT=$(_vboxmanage_command_first_indent)
+	cat <<-SED | sed -n -f <(cat) <(vboxmanage)
+		/^Usage:$/,/^Commands:$/ {
+			/^Commands:$/d
+			p
+		}
+	SED
+	echo Commands:
+	_vboxmanage_command_list
+	return
+	column |
+	column -t |
+	sed "s/^/$(_repeate_string $(( INDENT - 1 )))/"
+}
+function _repeate_string(){
+	local REPETITIONS=${1:-1}
+	local STRING=${2:- }
+	echo ${REPETITIONS} | xargs seq | sed "s/.*/${STRING}/" | tr -d \\n | xargs -0 -i@ echo "@"
+}
+function _vboxmanage_raw_command_opts(){
+	local CMD_WORD_DEPTH=${1:-1}
+	#vboxmanage ${COMP_WORDS[CMD_WORD_DEPTH]} |
+	vboxmanage controlvm |
+	sed -n '/^VBoxManage/,$p' |
+	tail -n +2 |
+	awk '{if(NR==1)match($0,/^ */);print substr($0,RLENGTH+1)}'|
+       	sed '1!{s/^[^ ]/!&/};s/^ \+/ /;$s/$/!/' |
+       	tr -d \\n | tr ! \\n |
+	sed 's/<1-N>/1/' |
+	sed '/^[^ ]\+|$/{s/|$//;s/|/\n/g}'
+}
+#_vboxmanage_default
+#	_vboxmanage_command_list
+
+_vboxmanage_raw_command_opts
