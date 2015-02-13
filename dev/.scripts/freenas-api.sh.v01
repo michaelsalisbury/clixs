@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 #curl	-v -k \
 #	-X "GET" \
 #	-H "${OAUTH}" \
@@ -10,7 +9,7 @@
 function main(){
 	SYSTEM='10.173.161.111'
 	API_USER='root'
-	API_PASS='COSTech2010!'
+	API_PASS='xxx'
 	API_URL_PREFIX=${SYSTEM}'/api/v1.0'
 	HTTP_METHOD='https'
 	OBJECT=

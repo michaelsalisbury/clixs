@@ -7,7 +7,7 @@ import requests
 r = requests.get(
     'https://10.173.161.111/api/v1.0/storage/volume/',
     headers={'Content-Type': 'application/json'},
-    auth=('root', 'COSTech2010!'),
+    auth=('root', 'xxx'),
     verify=False
 )
     #params={'offset': 0, 'limit': 10000}
