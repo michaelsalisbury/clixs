@@ -500,7 +500,7 @@ function json_from_vars(){
 		# if bash var was array
 		cat <<-JQ | jq -n -M -c "`cat`"
 			{
-				${VAR}: [ ${VAL[@]} ]
+				${VAR}: [ ${VAL[@]//\":ARRAY:\"*/} ]
 			}
 		JQ
 	else

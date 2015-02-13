@@ -1,0 +1,172 @@
+#!/bin/bash
+
+
+#curl	-v -k \
+#	-X "GET" \
+#	-H "${OAUTH}" \
+#	-H "Content-Type: application/json" \
+#	"https://10.173.161.111/api/v1.0/storage/volume/"
+
+function main(){
+	SYSTEM='10.173.161.111'
+	API_USER='root'
+	API_PASS='COSTech2010!'
+	API_URL_PREFIX=${SYSTEM}'/api/v1.0'
+	HTTP_METHOD='https'
+	OBJECT=
+	JSON="Content-Type: application/json"
+	#OAUTH="Authorization: Bearer $TOKEN"
+	OAUTH="Authorization: Basic "$(printf "${API_USER}:${API_PASS}" | base64)
+
+	
+	#API_ GET "storage/volume/" | jq .
+	nfs_ro="false"
+        nfs_quiet="false"
+	nfs_paths=( ":ARRAY:" "/mnt/dpool/HOME/bochen/Windows" )
+	nfs_network="10.173.161.0/24 10.173.158.0/24 10.173.152.0/24 10.173.119.64"
+	id="9"
+	nfs_alldirs="true"
+	nfs_comment="HOME-bochen-Windows"
+	nfs_hosts=""
+	nfs_mapall_group=""
+	nfs_mapall_user=""
+	nfs_maproot_group=""
+	nfs_maproot_user=""
+	DATA=( nfs_ro nfs_quiet nfs_paths nfs_network id nfs_alldirs nfs_comment nfs_hosts nfs_mapall_group nfs_mapall_user nfs_maproot_group nfs_maproot_user )
+	json_from_vars DATA | jq -c -M .DATA
+
+
+	#API_ GET "sharing/nfs/" | jq .
+
+}
+function API_(){
+	# if arg #1 or arg #2 is unset we should pobably throw an error
+	# arg #1 is a curl action GET|DELETE|POST
+	# arg #2 is a url entry 
+	# arg #3 sould be a json string or variable reference; POST action only otherwise ignored
+	local API_X=${1^^}
+	local API_URL=${2}
+	GET_REF API_URL
+	#local OAUTH="Authorization: Bearer $TOKEN"
+	local OAUTH="Authorization: Basic "$(printf "${API_USER}:${API_PASS}" | base64)
+	local JSON="Content-Type: application/json"
+	local API_URL="${HTTP_METHOD}://${API_URL_PREFIX}/${API_URL}"
+	case "${API_X}" in
+		POST|PUT)
+			shift 2
+			# test arg #1 checking for a variable reference; if true build json from vars
+			if IS_REF "$1"; then
+				if [ "${1^^}" == "DATA" ]; then
+					local API_DATA=`json_from_vars ${@} | jq -c -M .${1}`
+				else
+					local API_DATA=`json_from_vars ${@}`
+				fi
+			elif ! (( ${#@} )); then
+				echo POST requires json data, API_DATA was empty. 1>&2
+				return 1
+			else
+				local API_DATA="$@"
+			fi
+			curl -X ${API_X} -H "${JSON}" -H "${OAUTH}" -d "${API_DATA}" "${API_URL}" 
+			;;
+		GET|DELETE)
+			curl -k -X ${API_X} -H "${JSON}" -H "${OAUTH}" "${API_URL}"
+			echo "${API_URL}" 1>&2
+			;;
+		*)
+			echo Unknown curl arg \"-X ${DO_API_X}\"
+			return 2
+			;;
+	esac
+}
+function GET_REF(){
+	local VAR=$1
+	local REF=${2-${!VAR}}
+	eval unset ${VAR}
+	if IS_REF "${REF}"; then
+		# treat all references as arrays
+		eval ${VAR}=\( \"\${${REF}[@]}\" \)
+	else
+		# reference must be data
+		eval ${VAR}=\"\${REF}\"
+	fi
+}
+function IS_REF(){
+	local REF=$1
+	# test 1: are their any special characters
+	# test 2: is first character a digit
+	# test 3: is reference set
+	! [[ "${REF//[^[:alpha:]_[:digit:]]/@}" =~ @ ]] &&
+	[[ "${REF:0:1}" =~ [[:alpha:]_] ]] &&
+	(( ${!REF+1} ))
+}
+function object_from_preceeding_vars(){
+	echo -n
+}
+function json_from_vars(){
+	local i
+	local VAR=$1
+	shift
+	# if multiple variables were presented join them into a single json object
+	if (( ${#@} )); then
+		jq -M -c -s '.[0] + .[1]' <(${FUNCNAME} ${VAR}) <(${FUNCNAME} "$@")
+		return	
+	fi
+	# get the contents of the variable VAR
+	eval local  VAL=( \"\${${VAR}[@]}\" )
+	# if the contents of VAR (VAL) are a list of variables then treat VAR as an object
+	while true; do
+		for i in `seq 0 $(( ${#VAL[*]} - 1 ))`; do
+			# test if contents contain special characters that would disqualify them as variables
+			if [[ "${VAL[$i]//[^[:alpha:]_[:digit:]]/@}" =~ @ ]]; then
+				break 2
+			# test if contents are a set variable
+			elif ! (( ${!VAL[$i]+1} )); then
+				break 2
+			fi
+		done
+		# recusivelly create the object and then nest it under the parent
+		${FUNCNAME} ${VAL[@]} | jq -s -M -c ".[] | { ${VAR}: . }"
+		return
+	done
+	# iterate threw each index
+	for i in `seq 0 $(( ${#VAL[*]} - 1 ))`; do
+		# escape escapes
+		VAL[$i]=${VAL[$i]//\\/\\\\}
+		# escape double quotes
+		VAL[$i]=${VAL[$i]//\"/\\\"}
+		# don't enclose numbers in double quotes
+		# don't enclose null|true|false in double quotes
+		value_is_number "${VAL[$i]}" ||
+		grep -q '^\(true\|false\|null\)$' <<< "${VAL[$i]}" ||
+		VAL[$i]=\"${VAL[$i]}\"
+		# don't append comma to last index
+		(( ${#VAL[*]} - 1 > i ))     && VAL[$i]=${VAL[$i]},
+	done
+	# generate JSON
+	if (( ${#VAL[*]} - 1 )); then
+		# if bash var was array
+		cat <<-JQ | jq -n -M -c "`cat`"
+			{
+				${VAR}: [ ${VAL[@]//\":ARRAY:\"*/} ]
+			}
+		JQ
+	else
+		# if bash var was string
+		cat <<-JQ | jq -n -M -c "`cat`"
+			{
+				${VAR}: ${VAL}
+			}
+		JQ
+	fi
+}
+function value_is_number(){
+	(( ${#1} )) || return 1
+	#local value=${1//[[:digit:].]/} # this strips out any characters that are not digits or decimal points
+	echo ${1//[\$\`]/} |
+	egrep '(^[[:digit:]]+$)|(^[[:digit:]]*[.][[:digit:]]*$)' |
+	egrep -q -v '^[.]$'
+	# the first egrep confirms that the value is formated as a number with or without a single decimal place
+	# the second egrep command eliminates the posibility of a value with only a decimal place (a dot)
+}
+main "$@"
