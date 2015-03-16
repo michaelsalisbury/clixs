@@ -20,7 +20,7 @@ function main(){
 	chroot "${path}" /bin/mkdir    -p /proc /sys
 	chroot "${path}" /bin/mount    -t proc none /proc
 	chroot "${path}" /bin/mount    -t sysfs sys /sys
-	chroot "${path}" /bin/hostname -F /etc/hostname
+	#chroot "${path}" /bin/hostname -F /etc/hostname
 	
 	echo Entering chroot \"${path}\"
 	chroot "${path}"

@@ -64,11 +64,7 @@ function main(){
 		echo -n \  
 		get_disk_by_id_path                          < "${SMART_REPORT}"
 		echo -n \ 
-		get_smartctl_attrib 10 Temperature_Celsius   < "${SMART_REPORT}"
-		echo -n \ 
 		get_smartctl_attrib 10 Reallocated_Sector_Ct < "${SMART_REPORT}"
-		echo -n \ 
-		get_smartctl_attrib 10 Power_Cycle_Count     < "${SMART_REPORT}"
 		echo -n \ 
 		get_power_on_hours                           < "${SMART_REPORT}"
 		echo -n \ 
@@ -79,10 +75,8 @@ function main(){
 
 		echo
 	done < <(ls -1 /dev/disk/by-id/* | sed -n '/part/d;/ata/p') |
-	sort |
-	sed '1i DEV FAMILY SIZE __ ://dev/disk/by-id/ata-[MODEL]_[SERIAL] C SEC PCC HOURS ALGN TABLE' |
-	column -t -s ' '
-	#sed '1i DEV FAMILY SIZE __ PATH:/dev/disk/by-id/ata-[MODEL]_[SERIAL] C SEC HOURS ALIGN TABLE' |
+	sed '1i DEV FAMILY SIZE ___ PATH:/dev/disk/by-id/ata-[MODEL]_[SERIAL] SEC HOURS ALIGN TABLE' |
+	column -t
 
 	#cat   /dev/shm/$$_${FUNCNAME}_dev_sdj
 	#echo ------------------------------------------------
@@ -99,10 +93,7 @@ function get_smartctl_attrib(){
 	exec 7<<-AWK
 		${regsplit}
 		{
-			if (\$2 == "${_key}") {F=1; printf \$${_field} }
-		}
-		END{
-			if(!F)printf "-"
+			if (\$2 == "${_key}") { printf \$${_field} }
 		}
 	AWK
 	awk -f <(cat <&7 7<&-)
@@ -158,7 +149,7 @@ function get_disk_by_id_path(){
 		if [ -L "${_path}" ]; then
 			echo -n ${_path}
 		elif [ -L "/dev/disk/by-id/${_path}" ]; then
-			echo -n ${_path} | sed 's/ata-//'
+			echo -n ${_path}
 		else
 			echo -n NA
 		fi

@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# AWK function
 read -d $'' regsplit <<-AWK
 		function regsplit(str,array,regexp)
 		{	dif = match(str,regexp) ? substr(str,RSTART,RLENGTH) : ""
@@ -45,7 +44,6 @@ function main(){
 		DRIVE_ID=$(basename $_DEV)
 		DRIVE_LETTER=$(basename $(readlink -f "${_DEV}"))
 		SMART_REPORT="/dev/shm/$$_${FUNCNAME}_${DRIVE_LETTER}_${DRIVE_ID}"
-		#[ "${DRIVE_LETTER}" == "sdi" ] || continue
 		smartctl -a ${_DEV} > "${SMART_REPORT}" &
 	done < <(ls -1 /dev/disk/by-id/* | sed -n '/part/d;/ata/p')
 	wait
@@ -54,35 +52,25 @@ function main(){
 		DRIVE_ID=$(basename $_DEV)
 		DRIVE_LETTER=$(basename $(readlink -f "${_DEV}"))
 		SMART_REPORT="/dev/shm/$$_${FUNCNAME}_${DRIVE_LETTER}_${DRIVE_ID}"
-		#[ "${DRIVE_LETTER}" == "sdi" ] || continue
-		#continue
-		#echo ${DRIVE_LETTER} 1>&2
-		echo -n "${DRIVE_LETTER}"\ 
-		get_smartctl_info Model Family               < "${SMART_REPORT}" | tr \  _
+		echo -n $(basename ${_DEV})\ 
+		get_smartctl_info Model Family               < "${SMART_REPORT}" | tr \ _
+		get_smartctl_info Model Family               < /dev/shm/$$_${FUNCNAME}${_DEV//\//_} | tr \  _
 		echo -n \  
-		get_smartctl_info_capacity                   < "${SMART_REPORT}"
+		get_smartctl_info_capacity                   < /dev/shm/$$_${FUNCNAME}${_DEV//\//_}
 		echo -n \  
-		get_disk_by_id_path                          < "${SMART_REPORT}"
+		get_disk_by_id_path                          <  /dev/shm/$$_${FUNCNAME}${_DEV//\//_}
 		echo -n \ 
-		get_smartctl_attrib 10 Temperature_Celsius   < "${SMART_REPORT}"
+		get_smartctl_attrib 10 Reallocated_Sector_Ct < /dev/shm/$$_${FUNCNAME}${_DEV//\//_}
 		echo -n \ 
-		get_smartctl_attrib 10 Reallocated_Sector_Ct < "${SMART_REPORT}"
+		get_power_on_hours                           < /dev/shm/$$_${FUNCNAME}${_DEV//\//_}
 		echo -n \ 
-		get_smartctl_attrib 10 Power_Cycle_Count     < "${SMART_REPORT}"
-		echo -n \ 
-		get_power_on_hours                           < "${SMART_REPORT}"
-		echo -n \ 
-		get_alignment ${_DEV}
-		echo -n \ 
-		get_partition_type ${_DEV}
-		
+		echo -n $(sgdisk -D ${_DEV})
+
 
 		echo
 	done < <(ls -1 /dev/disk/by-id/* | sed -n '/part/d;/ata/p') |
-	sort |
-	sed '1i DEV FAMILY SIZE __ ://dev/disk/by-id/ata-[MODEL]_[SERIAL] C SEC PCC HOURS ALGN TABLE' |
-	column -t -s ' '
-	#sed '1i DEV FAMILY SIZE __ PATH:/dev/disk/by-id/ata-[MODEL]_[SERIAL] C SEC HOURS ALIGN TABLE' |
+	sed '1i DEV FAMILY SIZE ___ PATH:/dev/disk/by-id/ata-[MODEL]_[SERIAL] SEC HOURS ALIGN' |
+	column -t
 
 	#cat   /dev/shm/$$_${FUNCNAME}_dev_sdj
 	#echo ------------------------------------------------
@@ -99,10 +87,7 @@ function get_smartctl_attrib(){
 	exec 7<<-AWK
 		${regsplit}
 		{
-			if (\$2 == "${_key}") {F=1; printf \$${_field} }
-		}
-		END{
-			if(!F)printf "-"
+			if (\$2 == "${_key}") { printf \$${_field} }
 		}
 	AWK
 	awk -f <(cat <&7 7<&-)
@@ -158,7 +143,7 @@ function get_disk_by_id_path(){
 		if [ -L "${_path}" ]; then
 			echo -n ${_path}
 		elif [ -L "/dev/disk/by-id/${_path}" ]; then
-			echo -n ${_path} | sed 's/ata-//'
+			echo -n ${_path}
 		else
 			echo -n NA
 		fi
@@ -172,12 +157,8 @@ function get_smartctl_info_capacity(){
 		${regsplit}
 		BEGIN { REG = "\[[\.0-9 GMTB]*\]" }
 		{
-			#STR = \$0
-			#STR = regsplit(STR,KEY_VAL,REG)
-			STR = regsplit(\$0,KEY_VAL,REG)
-			gsub(/[\[\]]/,"",STR)
-			printf STR
-			#printf regsplit(STR,KEY_VAL,REG)
+			STR = \$0
+			printf regsplit(STR,KEY_VAL,REG)
 		}
 	AWK
 }
@@ -194,24 +175,6 @@ function get_smartctl_info(){
 			if (KEY_VAL[1] ~/^${_key}\$/) { printf KEY_VAL[2] }
 		}
 	AWK
-}
-function get_alignment(){
-	(( ${#@} )) || EXIT_ERROR 1
-	local _DEV=$1
-	sgdisk -D "${_DEV}" |
-		tail -1 |
-		xargs echo -n
-}
-function get_partition_type(){
-	(( ${#@} )) || EXIT_ERROR 1
-	local _DEV=$1
-	gdisk -l "${_DEV}" |
-		grep -A 4 "Partition table scan:" |
-		tail -n +2 |
-		sed 's/ //g;/notpresent/d' |
-		cut -f1 -d: |
-		xargs echo -n |
-		tr \  ,
 }
 function EXIT_ERROR(){
 	

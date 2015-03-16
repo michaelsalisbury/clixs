@@ -68,8 +68,6 @@ function main(){
 		echo -n \ 
 		get_smartctl_attrib 10 Reallocated_Sector_Ct < "${SMART_REPORT}"
 		echo -n \ 
-		get_smartctl_attrib 10 Power_Cycle_Count     < "${SMART_REPORT}"
-		echo -n \ 
 		get_power_on_hours                           < "${SMART_REPORT}"
 		echo -n \ 
 		get_alignment ${_DEV}
@@ -80,9 +78,8 @@ function main(){
 		echo
 	done < <(ls -1 /dev/disk/by-id/* | sed -n '/part/d;/ata/p') |
 	sort |
-	sed '1i DEV FAMILY SIZE __ ://dev/disk/by-id/ata-[MODEL]_[SERIAL] C SEC PCC HOURS ALGN TABLE' |
+	sed '1i DEV FAMILY SIZE __ PATH:/dev/disk/by-id/ata-[MODEL]_[SERIAL] C SEC HOURS ALIGN TABLE' |
 	column -t -s ' '
-	#sed '1i DEV FAMILY SIZE __ PATH:/dev/disk/by-id/ata-[MODEL]_[SERIAL] C SEC HOURS ALIGN TABLE' |
 
 	#cat   /dev/shm/$$_${FUNCNAME}_dev_sdj
 	#echo ------------------------------------------------
