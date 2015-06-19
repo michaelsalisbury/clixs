@@ -6,13 +6,27 @@ function main(){
 	#local filter; read filter <<< "wow"
 	#echo ${filter}
 
-	echo one two three | replay
+	#echo one two three | replay
 
+	exec 3<> <(cat &)
+	echo hello >&3
+	read data < <(cat <&3)
+	echo wow :: $data
+	echo goomba >&3
+	#echo wonba  >>&3
+	read data < <(cat <&3)
+	echo wow :: $data
+	
+
+	echo 
+
+	exec 3<&-
 
 }
 function replay(){
+	echo -n
 	#tee >(cat) >&0
-	cat
+	#cat
 	#DATA=1234 echo ${DATA[@]}
 
 

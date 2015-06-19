@@ -4,8 +4,7 @@ function main(){
 	# START_OBJECT
 	SYSTEM='10.173.161.111'
 	API_USER='root'
-	#API_PASS='xxx'
-	API_PASS='COSTech2010!'
+	API_PASS='xxx'
 	API_URL_PREFIX=${SYSTEM}'/api/v1.0'
 	HTTP_METHOD='https'
 	OBJECT=
@@ -16,27 +15,24 @@ function main(){
 	
 	#API_ GET "storage/volume/" | jq .
 	# START_OBJECT
-	#nfs_ro="false"
-        #nfs_quiet="false"
+	nfs_ro="false"
+        nfs_quiet="false"
 	nfs_paths=( ":ARRAY:" "/mnt/dpool/HOME/bochen/Windows" )
 	nfs_network="10.173.161.0/24 10.173.158.0/24 10.173.152.0/24 10.173.119.64"
-	#id="9"
+	id="9"
 	nfs_alldirs="true"
 	nfs_comment="HOME-bochen-Windows"
-	nfs_security="sys"
-	#nfs_hosts=""
-	#nfs_mapall_group=""
-	#nfs_mapall_user=""
-	#nfs_maproot_group=""
-	#nfs_maproot_user=""
+	nfs_hosts=""
+	nfs_mapall_group=""
+	nfs_mapall_user=""
+	nfs_maproot_group=""
+	nfs_maproot_user=""
 	object_from_preceeding_vars DATA START_OBJECT
 	#json_from_vars DATA | jq -c -M .DATA
-	json_from_vars DATA | jq .
+	#json_from_vars DATA | jq .
 
-	#API_ POST "sharing/nfs/" DATA
-	#API_ GET "sharing/nfs/" | jq .
-	API_ GET "account/groups/" | jq .
-	API_ GET "account/groups/36" | jq .
+
+	API_ GET "sharing/nfs/" | jq .
 
 }
 function API_(){
@@ -67,7 +63,7 @@ function API_(){
 			else
 				local API_DATA="$@"
 			fi
-			curl -k -X ${API_X} -H "${JSON}" -H "${OAUTH}" -d "${API_DATA}" "${API_URL}" 
+			curl -X ${API_X} -H "${JSON}" -H "${OAUTH}" -d "${API_DATA}" "${API_URL}" 
 			;;
 		GET|DELETE)
 			curl -k -X ${API_X} -H "${JSON}" -H "${OAUTH}" "${API_URL}"
@@ -114,7 +110,8 @@ function object_from_preceeding_vars(){
 		sed -n "/^[[:space:]#]*${START_VARS}\$/,$((BASH_LINENO-1)) p" "${0}"	|
 		tac |
 		sed -n "1,/^[[:space:]#]*${START_VARS}\$/{s/^[[:space:]]*\([a-zA-Z_][a-zA-Z_0-9]*\)=.*/\1/p}" |
-		tac
+		tac |
+		tail -n +2
 	)
 }
 function json_from_vars(){

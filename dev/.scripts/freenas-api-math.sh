@@ -2,10 +2,11 @@
 
 function main(){
 	# START_OBJECT
-	SYSTEM='10.173.161.111'
+	SYSTEM='10.173.119.105'
 	API_USER='root'
 	#API_PASS='xxx'
-	API_PASS='COSTech2010!'
+	#API_PASS='COSTech2010!'
+	API_PASS='1qaz@WSX'
 	API_URL_PREFIX=${SYSTEM}'/api/v1.0'
 	HTTP_METHOD='https'
 	OBJECT=
@@ -13,30 +14,36 @@ function main(){
 	#OAUTH="Authorization: Bearer $TOKEN"
 	OAUTH="Authorization: Basic "$(printf "${API_USER}:${API_PASS}" | base64)
 
-	
-	#API_ GET "storage/volume/" | jq .
-	# START_OBJECT
-	#nfs_ro="false"
-        #nfs_quiet="false"
-	nfs_paths=( ":ARRAY:" "/mnt/dpool/HOME/bochen/Windows" )
-	nfs_network="10.173.161.0/24 10.173.158.0/24 10.173.152.0/24 10.173.119.64"
-	#id="9"
-	nfs_alldirs="true"
-	nfs_comment="HOME-bochen-Windows"
-	nfs_security="sys"
-	#nfs_hosts=""
-	#nfs_mapall_group=""
-	#nfs_mapall_user=""
-	#nfs_maproot_group=""
-	#nfs_maproot_user=""
-	object_from_preceeding_vars DATA START_OBJECT
-	#json_from_vars DATA | jq -c -M .DATA
-	json_from_vars DATA | jq .
+	#API_ GET "account/groups/" | jq .
+	#API_ GET "account/users/" | jq '.[]|select(.bsdusr_uid==65)'
+	#API_ GET "account/users/" | jq '.[].bsdusr_username'
+	#API_ GET "account/users/" | jq '.[]|select(.bsdusr_uid>=1000)'
+	echo TEST
+	#API_ GET "account/users/" 2>/dev/null 2>/dev/null | jq '.[]|select(.bsdusr_uid==1003)|[ .id, .bsdusr_username ]'
+	#API_ GET "account/users/" 2>/dev/null 2>/dev/null | jq '.[]|select(.bsdusr_uid==1003)|( .id, .bsdusr_username )'
+	API_ GET "account/users/" 2>/dev/null 2>/dev/null |
+		jq '.[]|select(.bsdusr_uid>=1000)|{ id, bsdusr_username, bsdusr_uid,  }'
+	echo TEST2
+	#API_ DELETE "account/users/30/"
 
-	#API_ POST "sharing/nfs/" DATA
-	#API_ GET "sharing/nfs/" | jq .
-	API_ GET "account/groups/" | jq .
-	API_ GET "account/groups/36" | jq .
+	return
+
+	# START_OBJECT
+	bsdusr_username="mytestuser"
+	bsdusr_home="/mnt/dpool/HOME/LOCAL/mytestuser"
+	bsdusr_uid="1003"
+	bsdusr_password="${RANDOM}alpha${RANDOM}"
+	bsdusr_full_name="test user"
+	bsdusr_creategroup="true"
+	bsdusr_shell="/usr/local/bin/bash"
+	
+	object_from_preceeding_vars DATA START_OBJECT
+	json_from_vars DATA | jq .
+	API_ POST "account/users/" DATA | jq .
+
+
+	return
+	
 
 }
 function API_(){
@@ -69,8 +76,12 @@ function API_(){
 			fi
 			curl -k -X ${API_X} -H "${JSON}" -H "${OAUTH}" -d "${API_DATA}" "${API_URL}" 
 			;;
-		GET|DELETE)
+		GET)
 			curl -k -X ${API_X} -H "${JSON}" -H "${OAUTH}" "${API_URL}"
+			echo "${API_URL}" 1>&2
+			;;
+		DELETE)
+			curl -k -X ${API_X} -H "${OAUTH}" "${API_URL}"
 			echo "${API_URL}" 1>&2
 			;;
 		*)
