@@ -1,0 +1,32 @@
+#!/bin/bash
+
+
+function main(){
+	local VM_NAME="Ubuntu-1404-ZFS"
+	# import VAR LogFldr
+	#eval local $(vboxmanage showvminfo "${VM_NAME}" -machinereadable | grep ^LogFldr=)
+	#echo ${LogFldr}
+	#local VM_LOG=$(find "${LogFldr}" -name \*.log)
+	local VM_LOG=$(vbox_get_vm_log_file "${VM_NAME}")
+	echo ${VM_LOG}
+	exit
+
+	local TIME OLD_STATE NEW_STATE
+	tail -n 0 -f "${VM_LOG}" |
+	mawk -W interactive '/Changing the VM state from/{print $1,$7,$NF}' |
+	while read TIME OLD_STATE NEW_STATE; do
+		if [ "${NEW_STATE//[^[:alpha:]]/}" == "RUNNING" ]; then
+			echo STARTING
+
+		fi
+
+
+	done
+	
+
+
+
+
+}
+source vbox_functions.sh
+main "$@"

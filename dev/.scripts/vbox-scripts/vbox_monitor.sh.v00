@@ -1,0 +1,29 @@
+#!/bin/bash
+
+
+function main(){
+	local VM_NAME="Ubuntu-1404-ZFS"
+	# import VAR LogFldr
+	eval local $(vboxmanage showvminfo "${VM_NAME}" -machinereadable | grep ^LogFldr=)
+	echo ${LogFldr}
+	local VM_LOG=$(find "${LogFldr}" -name \*.log)
+	echo ${VM_LOG}
+
+	tail -n 0 -f "${VM_LOG}" |
+	mawk -W interactive '/Changing the VM state from/{print $1,$7,$NF}'
+	#mawk -W interactive '{print $1,$7,$NF}'
+	#awk '{print $1,$7,$NF; system("");}'
+	#awk '{print $1,$7,$NF; fflush(stdout);}'
+	#awk '{print $1,$7,$NF; fflush();}'
+	#awk '/Changing the VM state from/{print $1,$7,$NF; fflush("")}'
+	#awk '/Changing the VM state from/{print $1,$7,$NF}'
+	#sed -n '/Changing the VM state from/p'
+	#while read LINE; do
+	#	awk '/Changing the VM state from/{print $1,$7,$NF}' <<< "${LINE}"
+	#done
+
+
+
+
+}
+main "$@"

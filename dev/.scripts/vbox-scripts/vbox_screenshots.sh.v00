@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# GLOBAL DEFAULTS
+	GV_SCREENSHOT_TTL='60'		# arg -t in minutes
+	GV_SCREENSHOT_INT='500'		# arg -i in miliseconds
+	GV_SCREENSHOT_RUN='true'	# sets false if valid running vbox machine names supplyied
+
+function main(){
+	echo hi
+
+
+}
+function args(){
+	# set switch/arg defaults
+
+
+	#switches_verifier "$@"
+	local OPTIND=
+	local OPTARG=
+	local OPTION=
+	local OPTERR=1
+	while getopts "" OPTION; do
+		local switches_last_option=$OPTION
+		local switches_last_optarg=$OPTARG
+
+		# soucre dependancies if nessisary
+		case $OPTION in
+ 
+
+			?)	;;
+		esac
+	done
+}
+function switch_set_default(){
+	local ARG=\-${1//-/}    # switch/arg
+	local VALUE=$2          # default value for switch/arg
+	# echo command for eval with calling function
+	cat <<-EVAL
+		eval [[ "\$*" =~ ${ARG}[[:space:]]- ]]  \
+		|| [ "${ARG}" == "\${@: -1}" ]          \
+		&& set -- "\${@/${ARG}/${ARG}${VALUE}}"
+	EVAL
+}
+
+main "$@"
