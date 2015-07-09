@@ -1,0 +1,80 @@
+#!/bin/bash
+
+
+zfsSYSTEM_LAST=
+zfsROOT_LAST=
+
+while read INITRD; do
+	# variables
+	zfsROOT=$(  awk -F'/' '{print $(NF-1)}' <<< "${INITRD}")
+	zfsSYSTEM=$(awk -F'/' '{print $(NF-2)}' <<< "${INITRD}")
+	grubBASE=${INITRD%%/${zfsSYSTEM}*}
+	zfsBASE=${grubBASE#/boot/zfs/}
+	zfsPOOL=$(awk -F'/' '{print $3}' <<< "${INITRD}")
+	INITRD=$(basename "${INITRD}")
+	#echo ${zfsSYSTEM}
+	#echo ${grubBASE}
+	#echo ${zfsBASE}
+	#echo ${zfsPOOL}
+	#echo ${zfsBASE}/${zfsSYSTEM}/${zfsROOT}
+
+	# skip filesystems that don't exist in the pool
+	zfs get type -Hp "${zfsBASE}/${zfsSYSTEM}/${zfsROOT}" &> /dev/null || continue
+
+	# if   zfsSYSTEM_LAST is unset start group menu
+	if ! (( ${zfsSYSTEM_LAST:+1} )); then
+		cat <<-GRUB
+			submenu 'ZFS, ${zfsBASE}/${zfsSYSTEM}' {
+		GRUB
+	# else zfsSYSTEM changed close zfsROOT group menu, unset zfsROOT, close zfsSYSTEM group menu, start new zfsSYSTEM group menu
+	elif [ "${zfsSYSTEM_LAST}" != "${zfsSYSTEM}" ]; then
+		cat <<-GRUB
+			 	}
+			}
+			submenu 'ZFS, ${zfsBASE}/${zfsSYSTEM}' {
+		GRUB
+		zfsROOT_LAST=
+	fi
+
+	# if   zfsROOT is unset start group menu
+	if ! (( ${zfsROOT_LAST:+1} )); then
+		cat <<-GRUB
+			 	submenu '${zfsBASE}/${zfsSYSTEM} :: ${zfsROOT}' {
+		GRUB
+	# else zfsROOT changed close group menu and start a new one
+	elif [ "${zfsROOT_LAST}" != "${zfsROOT}" ]; then
+		cat <<-GRUB
+			 	}
+			 	submenu '${zfsBASE}/${zfsSYSTEM} :: ${zfsROOT}' {
+		GRUB
+	fi
+
+	#
+	cat <<-GRUB
+		 		menuentry '${zfsSYSTEM}_${zfsROOT}_${INITRD#initrd.img-}' {
+		 			### "${zfsBASE}/${zfsSYSTEM}/${zfsROOT}" :: ${INITRD}
+		 			linux   /vmlinuz-3.13.0-32-generic root=UUID=edca95d1-d294-4bd0-bea4-f53bc13084b0 ro  text max_loop=64
+		 			initrd  /initrd.img-3.13.0-32-generic
+		 		}
+	GRUB
+
+	zfsSYSTEM_LAST=${zfsSYSTEM}
+	zfsROOT_LAST=${zfsROOT}
+done < <(find /boot/zfs -type f -name initrd.img-* | sort)
+	if (( ${zfsROOT_LAST:+1} )); then
+		cat <<-GRUB
+			 	}
+		GRUB
+	fi
+	if (( ${zfsSYSTEM_LAST:+1} )); then
+		cat <<-GRUB
+			}
+		GRUB
+	fi
+
+
+	# close zfsROOT group menu
+	# close zfsSYSTEM group menu
+
+
+
