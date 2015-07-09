@@ -1,0 +1,38 @@
+#!/bin/bash
+
+
+function main(){
+	whoami | grep -q ^root$ || exit 1
+	local NETSTAT='netstat -tunpae'
+	cat <<-AWK |
+		BEGIN{
+			NETSTAT="netstat -tunpae"
+			SSH_OPT["StrictHostKeychecking"]="no"
+			SSH_OPT["PasswordAuthentication"]="no"
+			#SSH_OPT["RSAAuthentication"]="yes"
+			SSH_OPT["PubkeyAuthentication"]="yes"
+			SSH_OPT["ConnectionAttempts"]=1
+			SSH_OPT["ConnectTimeout"]=1
+			for (i in SSH_OPT) SSH_OPTS=SSH_OPTS " -o " i "=" SSH_OPT[i]
+		}
+		\$12!="sshd"{next}
+		\$9!="1000"{next}
+		{
+			PORT=\$5
+			PID=\$11
+			PPID="ps --no-heading -o ppid -p " PID
+			PPID | getline PPID
+			SOC=NETSTAT " | awk '/" PPID "/{print \$5, \$9}'"
+			SOC | getline SOC
+			SSH="ssh -n -p " PORT SSH_OPTS " localhost hostname"
+			SSH | getline SSH_OUT
+			
+			print PORT, PID, PPID, SOC, SSH_OUT
+		}
+		
+
+	AWK
+      	awk -F "[ :/]+"  -f <(cat) < <(${NETSTAT}) |
+	column -t
+}
+main "$@"
