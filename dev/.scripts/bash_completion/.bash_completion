@@ -1,0 +1,10 @@
+BASH_COMPLETION_USER_DIR="${HOME}/.bash_completion.d"
+
+if [[ -d $BASH_COMPLETION_USER_DIR && -r $BASH_COMPLETION_USER_DIR && \
+	-x $BASH_COMPLETION_USER_DIR ]]; then
+	for i in $(LC_ALL=C command ls "$BASH_COMPLETION_USER_DIR"); do
+		[[ ${i##*.} == @(v[0-9][0-9]*) ]] && continue
+		i=$BASH_COMPLETION_USER_DIR/$i
+		[[ -f $i && -r $i ]] && . "$i"
+	done
+fi

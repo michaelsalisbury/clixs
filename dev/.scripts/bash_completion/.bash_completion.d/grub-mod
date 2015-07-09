@@ -1,0 +1,70 @@
+#!/bin/bash
+
+__grub_list_menuentries_raw () {
+    local config_file=$1
+	cat <<-AWK | awk -F "[\"']" -f <(cat) "${config_file}"
+		/^[ \t]*menuentry[ \t]/{
+			menuentry=\$2
+			if (submenu_l)
+				for (submenu_i = 1; submenu_i <= submenu_l; submenu_i++)
+					printf submenus[submenu_i]">"
+			print menuentry
+		}
+		/^[ \t]*submenu[ \t]/{
+			submenu_l++
+			submenus[submenu_l]=\$2
+		}
+		/}[ \t]*$/{
+			if (menuentry) {
+				menuentry=""
+			} else if (submenu_l) {
+				delete submenus[submenu_l]
+				submenu_l--
+			}
+		}
+	AWK
+}
+__grub_list_menuentries_new () {
+    local cur="${COMP_WORDS[COMP_CWORD]}"
+    local config_file=$(__grub_dir)/grub.cfg
+
+    if [ -f "$config_file" ];then
+        local IFS=$'\n'
+        COMPREPLY=( $(compgen \
+            -W "$(__grub_list_menuentries_raw $config_file)" \
+            -- "$cur" )) #'# Help emacs syntax highlighting
+    fi
+}
+
+# in addition to replacing __grub_list_menuentries with __grub_list_menuentries_new in the _grub_set_entry command
+# we need to remove the "-o filenames" from the complete command that enables autocomplete for grub-set-default and grub-reboot
+# the "-o filenames" is a poor choice since many of grubs auto generated titles contain forward slashes
+__grub_autocomplete_sed_tweaks="/^[[:space:]]*__grub_list_menuentries$/s/$/_new/
+				/^[[:space:]]*complete -F _grub_set_entry/s/-o filenames//"
+. <(sed "${__grub_autocomplete_sed_tweaks}" /etc/bash_completion.d/grub)
+
+_my_zfs_utils () {
+	local script="${HOME}/.scripts/my-zfs-utils.sh"
+	if [ -f "$script" ];then
+		COMPREPLY=()
+		local cur=`_get_cword`
+		local prev=${COMP_WORDS[COMP_CWORD-1]}
+		
+		case "${COMP_WORDS[1]}" in
+			grub_reboot|\
+			grub_set_default)
+				__grub_list_menuentries_new
+				return
+				;;
+			*)	local list=$("${script}" help);;
+		esac
+
+	        local IFS=$'\n'
+		COMPREPLY=( $(compgen -W "${list}" -- "$cur" ))
+	fi
+}
+__my_zfs_utils_program="my-zfs-utils"
+complete -F _my_zfs_utils -o filenames ${__my_zfs_utils_program}
+unset __my_zfs_utils_program
+
+
