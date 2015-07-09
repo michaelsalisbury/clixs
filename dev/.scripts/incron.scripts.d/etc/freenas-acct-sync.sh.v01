@@ -1,0 +1,238 @@
+#!/bin/bash
+
+function json_object_to_vars(){
+	local json_var_prefix=${2:+${1}}
+	local json_query=${2:-${1}}
+	while read line; do
+		eval ${json_var_prefix}${line}
+		eval ${json_var_prefix}${FUNCNAME}+=\${json_var_prefix}\${line%%=*}\\\ 
+	done < <(jq -r -M "${json_query}" | sed '1d;$d;s/": /=/;s/,$//;s/^ *"//')
+		eval ${json_var_prefix}${FUNCNAME}+=\${json_var_prefix}\${FUNCNAME}
+}
+function main(){
+	SYSTEM='10.173.119.105'
+	API_USER='root'
+	API_PASS='1qaz@WSX'
+	API_URL_PREFIX=${SYSTEM}'/api/v1.0'
+	HTTP_METHOD='https'
+	OBJECT=
+	JSON="Content-Type: application/json"
+	OAUTH="Authorization: Basic "$(printf "${API_USER}:${API_PASS}" | base64)
+
+	# aquire account list from freenas
+	accounts=$(API_ GET "account/users/" 2>/dev/null)
+	
+	min_account_id='1000'
+	max_account_id='2000'
+	freenas_user_home_root='/mnt/dpool/HOME/LOCAL'
+	freenas_user_shell='/usr/local/bin/bash'
+
+	while read USR_NAME USR_ID USR_COM ; do
+		#parse Full Name, Room#, Work Phone, Home Phone, Other/e-mail
+		IFS=$',' read USR_INFO_FULLNAME USR_INFO_ROOM USR_INFO_WORK USR_INFO_HOME USR_INFO_EMAIL <<< "${USR_COM}"
+
+
+		# parse the freenas account list for a user with specific UID
+		json_object_to_vars ".[]|select(.bsdusr_uid==${USR_ID})|." <<< "${accounts}"
+
+		jq ".[]|select(.bsdusr_uid==${USR_ID})|." <<< "${accounts}"
+
+		# if ID exist in freenas then verify/fix username, full name, e-mail
+		if (( id )); then
+			while (( USR_ATTRIBUTE_TEST_CNT++ < 10 )); do
+				# do usernames match
+				if [ "${USR_NAME}" != "${bsdusr_username}" ]; then
+					echo fix username
+				elif [ "${USR_INFO_FULLNAME}" != "${bsdusr_fullname}" ]; then
+					echo fix fullname
+				elif [ "${USR_INFO_EMAIL}" != "${bsdusr_email}" ]; then
+					echo fix e-mail
+				else
+					echo break
+					break
+				fi
+			done
+		else
+		# create user on freenas
+			# START_OBJECT
+			bsdusr_username="${USR_NAME}"
+			bsdusr_home="${freenas_user_home_root}/${USR_NAME}"
+			bsdusr_uid="${USR_ID}"
+			bsdusr_password="${RANDOM}password${RANDOM}"
+			bsdusr_full_name="${USR_INFO_FULLNAME}"
+			bsdusr_creategroup="true"
+			bsdusr_shell="${freenas_user_shell}"
+			object_from_preceeding_vars DATA START_OBJECT
+			json_from_vars DATA | jq .
+			#API_ POST "account/users/" DATA | jq .
+
+			echo create user $USR_NAME
+			echo -n	
+		fi
+		
+		
+
+		unset ${json_object_to_vars}
+		unset ${!USR_*}
+		unset USR_ATTRIBUTE_TEST_CNT
+	done < <(cat <<-AWK | awk -F: -f <(cat) /etc/passwd
+			{
+				UID=\$3
+				USR=\$1
+				COM=\$5
+			}
+			UID>=${min_account_id} && UID<=${max_account_id} {
+				print USR, UID, COM
+			}
+		AWK
+		)
+}
+function API_(){
+	# if arg #1 or arg #2 is unset we should pobably throw an error
+	# arg #1 is a curl action GET|DELETE|POST
+	# arg #2 is a url entry 
+	# arg #3 sould be a json string or variable reference; POST action only otherwise ignored
+	local API_X=${1^^}
+	local API_URL=${2}
+	GET_REF API_URL
+	#local OAUTH="Authorization: Bearer $TOKEN"
+	local OAUTH="Authorization: Basic "$(printf "${API_USER}:${API_PASS}" | base64)
+	local JSON="Content-Type: application/json"
+	local API_URL="${HTTP_METHOD}://${API_URL_PREFIX}/${API_URL}"
+	case "${API_X}" in
+		POST|PUT)
+			shift 2
+			# test arg #1 checking for a variable reference; if true build json from vars
+			if IS_REF "$1"; then
+				if [ "${1^^}" == "DATA" ]; then
+					local API_DATA=`json_from_vars ${@} | jq -c -M .${1}`
+				else
+					local API_DATA=`json_from_vars ${@}`
+				fi
+			elif ! (( ${#@} )); then
+				echo POST requires json data, API_DATA was empty. 1>&2
+				return 1
+			else
+				local API_DATA="$@"
+			fi
+			curl -k -X ${API_X} -H "${JSON}" -H "${OAUTH}" -d "${API_DATA}" "${API_URL}" 
+			;;
+		GET)
+			curl -k -X ${API_X} -H "${JSON}" -H "${OAUTH}" "${API_URL}"
+			echo "${API_URL}" 1>&2
+			;;
+		DELETE)
+			curl -k -X ${API_X} -H "${OAUTH}" "${API_URL}"
+			echo "${API_URL}" 1>&2
+			;;
+		*)
+			echo Unknown curl arg \"-X ${DO_API_X}\"
+			return 2
+			;;
+	esac
+}
+function GET_REF(){
+	local VAR=$1
+	local REF=${2-${!VAR}}
+	eval unset ${VAR}
+	if IS_REF "${REF}"; then
+		# treat all references as arrays
+		eval ${VAR}=\( \"\${${REF}[@]}\" \)
+	else
+		# reference must be data
+		eval ${VAR}=\"\${REF}\"
+	fi
+}
+function IS_REF(){
+	local REF=$1
+	# test 1: are their any special characters
+	# test 2: is first character a digit
+	# test 3: is reference set
+	! [[ "${REF//[^[:alpha:]_[:digit:]]/@}" =~ @ ]] &&
+	[[ "${REF:0:1}" =~ [[:alpha:]_] ]] &&
+	(( ${!REF+1} ))
+}
+function object_from_preceeding_vars(){
+	# ARG #1 the variable name of the array to generate
+	# ARG #2 the start line of the variables to place inside the array
+	local VAR
+	local OBJECT=${1}
+	local START_VARS=${2}
+	eval unset "${OBJECT}"
+
+	while read VAR; do
+		eval "${OBJECT}[\${#${OBJECT}[*]}]="\${VAR}
+	done < <(	
+		sed -n "/^[[:space:]#]*${START_VARS}\$/,$((BASH_LINENO-1)) p" "${0}"	|
+		tac |
+		sed -n "1,/^[[:space:]#]*${START_VARS}\$/{s/^[[:space:]]*\([a-zA-Z_][a-zA-Z_0-9]*\)=.*/\1/p}" |
+		tac
+	)
+}
+function json_from_vars(){
+	local i
+	local VAR=$1
+	shift
+	# if multiple variables were presented join them into a single json object
+	if (( ${#@} )); then
+		jq -M -c -s '.[0] + .[1]' <(${FUNCNAME} ${VAR}) <(${FUNCNAME} "$@")
+		return	
+	fi
+	# get the contents of the variable VAR
+	eval local  VAL=( \"\${${VAR}[@]}\" )
+	# if the contents of VAR (VAL) are a list of variables then treat VAR as an object
+	while true; do
+		for i in `seq 0 $(( ${#VAL[*]} - 1 ))`; do
+			# test if contents contain special characters that would disqualify them as variables
+			if [[ "${VAL[$i]//[^[:alpha:]_[:digit:]]/@}" =~ @ ]]; then
+				break 2
+			# test if contents are a set variable
+			elif ! (( ${!VAL[$i]+1} )); then
+				break 2
+			fi
+		done
+		# recusivelly create the object and then nest it under the parent
+		${FUNCNAME} ${VAL[@]} | jq -s -M -c ".[] | { ${VAR}: . }"
+		return
+	done
+	# iterate threw each index
+	for i in `seq 0 $(( ${#VAL[*]} - 1 ))`; do
+		# escape escapes
+		VAL[$i]=${VAL[$i]//\\/\\\\}
+		# escape double quotes
+		VAL[$i]=${VAL[$i]//\"/\\\"}
+		# don't enclose numbers in double quotes
+		# don't enclose null|true|false in double quotes
+		value_is_number "${VAL[$i]}" ||
+		grep -q '^\(true\|false\|null\)$' <<< "${VAL[$i]}" ||
+		VAL[$i]=\"${VAL[$i]}\"
+		# don't append comma to last index
+		(( ${#VAL[*]} - 1 > i ))     && VAL[$i]=${VAL[$i]},
+	done
+	# generate JSON
+	if (( ${#VAL[*]} - 1 )); then
+		# if bash var was array
+		cat <<-JQ | jq -n -M -c "`cat`"
+			{
+				${VAR}: [ ${VAL[@]//\":ARRAY:\"*/} ]
+			}
+		JQ
+	else
+		# if bash var was string
+		cat <<-JQ | jq -n -M -c "`cat`"
+			{
+				${VAR}: ${VAL}
+			}
+		JQ
+	fi
+}
+function value_is_number(){
+	(( ${#1} )) || return 1
+	#local value=${1//[[:digit:].]/} # this strips out any characters that are not digits or decimal points
+	echo ${1//[\$\`]/} |
+	egrep '(^[[:digit:]]+$)|(^[[:digit:]]*[.][[:digit:]]*$)' |
+	egrep -q -v '^[.]$'
+	# the first egrep confirms that the value is formated as a number with or without a single decimal place
+	# the second egrep command eliminates the posibility of a value with only a decimal place (a dot)
+}
+main "$@"

@@ -1,0 +1,506 @@
+#!/bin/bash
+
+function set_global_vars(){
+	# PATHS
+	COMM=${0##*[/]}
+	EXT=${0##*.}
+	#WORK=${0%[/]*}
+	WORK=${0%/${COMM}}
+	[ "${WORK:0:1}" != "/" ] && WORK=$(cd "${WORK:-.}"; pwd -L)
+	EXEC="${WORK}${WORK:+/}${COMM}"
+	APP=${COMM%.*}
+	TMP="/dev/shm/${APP}"
+	#TMPR="${TMP}_${RANDOM}_"
+	TMPR="${TMP}_${BASHPID}_"
+	# SSH
+	SSHCP="~/.ssh/${APP}-socket_%r@%h:%u"
+	# LOGS
+	LOG="/var/log/incron.scripts/${APP}.log"
+	# lock time out
+	LOCK_TIMEOUT='60'
+	set_DEFAULT_TRAPS
+}
+function set_INCRON_ACTION_TEST(){
+	# INCRON
+	declare -A INCRON_ACTION_TEST
+	for INCRON_ACTION in IN_ACCESS        IN_CREATE\
+	                     IN_ATTRIB        IN_OPEN\
+	                     IN_MODIFY        IN_CLOSE_WRITE\
+	                     IN_MOVED_TO      IN_CLOSE_NOWRITE\
+	                     IN_MOVED_FROM    IN_DELETE\
+	                     IN_MOVE_SELF     IN_DELETE_SELF
+		do INCRON_ACTION_TEST[${INCRON_ACTION}]=true; done
+}
+function set_SSH_OPT(){
+	# SSH
+	declare -A SSH_OPTS
+	SSH_OPTS["StrictHostKeychecking"]="no"
+	SSH_OPTS["PasswordAuthentication"]="no"
+	SSH_OPTS["PubkeyAuthentication"]="yes"
+	SSH_OPTS["ConnectionAttempts"]=1
+	SSH_OPTS["ConnectTimeout"]=1
+	SSH_OPTS["ControlPersist"]="2h"
+	SSH_OPTS["ControlMaster"]="auto"
+	SSH_OPTS["ControlPath"]="${SSHCP:-~/.ssh/${APP:-ssh}-socket_%r@%h:%p}"
+	for key in ${!SSH_OPTS[@]}; do
+		SSH_OPT="${SSH_OPT}${SSH_OPT:+ }-o ${key}=${SSH_OPTS[${key}]}"
+	done
+}
+function set_DEFAULT_TRAPS(){
+	echo ${BASHPID} > "${TMPR}PID"
+	# trap -l (list signals) SIGINT (-2:ctrl-c)
+	#       0) EXIT; end of script or "exit" command, "$?" returns exit code from "exit" command
+	#	1) SIGHUP	 2) SIGINT	 3) SIGQUIT	 4) SIGILL	 5) SIGTRAP
+	#	6) SIGABRT	 7) SIGBUS	 8) SIGFPE	 9) SIGKILL	10) SIGUSR1
+	#	11) SIGSEGV	12) SIGUSR2	13) SIGPIPE	14) SIGALRM	15) SIGTERM
+	local _TRAP_f=${1:-_EXIT_CLEANUP}
+	local _TRAP_i
+	local _TRAPS=( EXIT SIGHUP  SIGINT  SIGQUIT SIGILL  SIGTRAP
+			    SIGABRT SIGBUS  SIGFPE  SIGKILL SIGUSR1
+			    SIGSEGV SIGUSR2 SIGPIPE SIGALRM SIGTERM )
+	for _TRAP_i in {0..3} {14..15} ; do
+		trap "${_TRAP_f} ${BASHPID} ${_TRAP_i} ${_TRAPS[${_TRAP_i}]}" ${_TRAPS[${_TRAP_i}]}
+	done
+}
+function _EXIT_CLEANUP(){
+	local _EXIT_STATUS=$?
+	local _SIGNAL_NAME=${3:-SIG_}
+	local _SIGNAL=${2:-0}
+	local _PID=${1:-${BASHPID}}
+	local _PID_FILE="${TMPR}PID"
+	local _PID_RECORD=$(<"${_PID_FILE}")
+	local _FUNCTREE=( ${FUNCNAME[*]:1} )
+	trap - EXIT
+	if (( _SIGNAL )); then
+		echo
+		rm -f "${TMPR}"*
+		echo SIG ${_SIGNAL} ${_SIGNAL_NAME} :: PID ${_PID_RECORD} \"${APP}\" ${_FUNCTREE[*]/#/\<\< }
+		list_child_processes_rev ${_PID_RECORD}
+		kill_child_processes ${_PID_RECORD}
+		kill_child_processes ${_PID_RECORD} -2
+		exit ${_SIGNAL}
+	elif ! (( _EXIT_STATUS )); then
+		rm -f "${TMPR}"*
+		exit ${_EXIT_STATUS}
+	else
+		echo
+		rm -f "${TMPR}"*
+		echo EXIT ${_EXIT_STATUS} :: PID ${BASHPID} \"${APP}\" ${_FUNCTREE[*]/#/\<\< }
+		exit ${_EXIT_STATUS}
+	fi
+}
+function list_child_processes2(){
+	local fd_SED
+	exec {fd_SED}<<-SED
+		1{
+			x
+			d
+		}
+		1!{
+			H
+			\$!d
+			\${
+				x
+				s/[^[:digit:]]\+/\n/g
+				s/^\n[[:digit:]]\+\n\|\n$//g
+			}
+		}
+	SED
+	echo $(sed -f <(cat <&${fd_SED} {fd_SED}<&-) <(pstree -A -p ${1:-${BASHPID}}))
+}
+function list_child_processes_rev(){
+	local fd_SED
+	exec {fd_SED}<<-SED
+		1{
+			x
+			d
+		}
+		1!{
+			H
+			\$!d
+			\${
+				x
+				s/[^[:digit:]]\+/\n/g
+				s/^\n[[:digit:]]\+\n\|\n$//g
+			}
+		}
+	SED
+	echo $(tac <(sed -f <(cat <&${fd_SED} {fd_SED}<&-) <(pstree -A -p ${1:-${BASHPID}})))
+}
+function kill_child_processes(){
+	local _SIGNAL _CPIDS _PID=$1
+	shift
+	for _SIGNAL in ${*:--15}; do
+		_CPIDS=$(list_child_processes_rev ${_PID})
+		(( ${#_CPIDS} )) && kill ${_SIGNAL} ${_CPIDS} 2>/dev/null
+	done	
+}
+function sync_lock_(){
+	#local lock_path="${WORK}/${APP}.lock"
+	#local lock_path_update_request="${WORK}/${APP}.rerun"
+	#local lock_timeout=${LOCK_TIMEOUT:-60}
+	local lock_timeout=${LOCK_TIMEOUT:-60}
+	local lock_rerun='.rerun'
+	local lock_log='.log'
+	local lock_path=${lock_path:-${WORK}/.${APP}.lock}
+	#local lock_path_update_request=${lock_path_update_request:-${lock_path}${lock_rerun}}
+	local lock_path_rerun=${lock_path_rerun:-${lock_path}${lock_rerun}}
+	local lock_path_log=${lock_path_log:-${lock_path}${lock_log}}
+
+	#while [[ "${1//[^[:alpha:]-]/_}" != +(--|) ]]; do
+	case "$1" in
+		-w|--write-log)		[ -e "${lock_path}" ] || date +%s > "${lock_path}" &
+					shift; echo "$*" > "${lock_path_log}";;
+		-T|--tail-log)		shift; tail -n ${1-10} "${lock_path_log}";;
+		-H|--head-log)		shift; head -n ${1-10} "${lock_path_log}";;
+		-v|--verify-log)	shift; grep -q -x -F "$*" "${lock_path_log}";;
+		-a|--ammend-log)	[ -e "${lock_path}" ] || date +%s > "${lock_path}" &
+					shift
+					grep -q -x -F "$*" "${lock_path_log}" ||
+					echo "$*" >> "${lock_path_log}";;
+		-W|--wait-lock)		while ! ${FUNCNAME} -e; do
+						${FUNCNAME} -t && return 1 || sleep 1
+					done
+					return;;
+		-E|--engage-rerun)	[ -e "${lock_path}" ] &&
+					! [ -e "${lock_path_rerun}" ] &&
+					touch "${lock_path_rerun}";;
+		-e|--enable)		! [ -e "${lock_path}" ] &&
+					date +%s > "${lock_path}";;
+		# --clear-update request, return true only if lock_path file exists
+		-R|--clear-rerun)	rm "${lock_path_rerun}" 2>/dev/null;;
+		-L|--clear-log)		rm "${lock_path_log}" 2>/dev/null;;
+		# --release returns false only if the lock_path_rerun file exists
+		-r|--release)		rm -f "${lock_path}" &
+					rm -f "${lock_path_log}" &
+					! rm  "${lock_path_rerun}" 2>/dev/null;;
+		-i|-I|--is-locked)	[ -e "${lock_path}" ];;
+		# returns seconds lapsed since the lock was set
+		-l|--lapsed)		[ -e "${lock_path}" ] && bc <<< "$(date +%s) - $(<"${lock_path}")" || return 1;;
+		# --timed-out returns true if lock_timout has been reached or the lock files does not exists
+		-t|--timed-out)	[ -e "${lock_path}" ] &&
+					return $(bc <<< "\($(date +%s) - ${lock_timeout}\) < $(<"${lock_path}")") ||
+					return 0;;
+		# returns false if lock_path does not exist
+		-u|-U|--request-update)	[ -e "${lock_path}" ] && touch "${lock_path_rerun}" ||
+					! rm -f "${lock_path_rerun}";;
+		*)			return 1;;
+	esac
+	#	(( $? )) || { shift; continue; }
+	#done
+}
+function sed_escape_string(){
+	local sed_special_chars=$'[$^.\/*'
+	sed 's/\(['${sed_special_chars}']\)/\\\1/g'
+}
+# function readfd: file descriptor is flushed to variable REPLY[${fd}] and printed to stdout; (${fd} is the supplied file descriptor)
+#                   multiple fd's can be requested, only the last fd reports false if empty (not the same as closed)
+function readfd(){
+	local _name _fd IFS=$''
+	(( $# )) || set -- 3
+	for _fd in $*; do
+		_name=${_fd##[^[:alpha:]_]*}
+		_fd=${!_name:=${_fd}}
+		if [ -e "/proc/${BASHPID}/fd/${_fd}" ]; then
+			echo    -n $'\255'  >&${_fd}
+			# the "-r" argument in the following read command preserves escaped characters
+			read -r -d $'\255' -u ${_fd} REPLY[${_fd}]
+			case "${FUNCNAME[1]}" in
+				flushfd)	;;
+				*)		printf %s "${REPLY[${_fd}]}"
+			esac
+		else
+			unset REPLY[${_fd}]
+		fi
+	done
+	(( ${#REPLY[${_fd}]} ))
+}
+# function flushfd: is quiet readfd.
+#                   file descriptor is flushed to variable REPLY[${fd}] but not printed; (${fd} is the supplied file descriptor)
+#                   multiple fd's can be requested, only the last fd reports false if empty (not the same as closed)
+function flushfd(){
+	readfd "$@"
+}
+# function teefd: first arg is the file desciptor to print and clone
+#                 remaining args are the file desciptors to create/clone
+#                 if all or all but the first arg are un-set then teefd prints the fd and reclones into itself
+function teefd(){
+	local _fd _name _sfd=${1:-3}
+	case "${FUNCNAME[1]}" in
+		clonefd)	flushfd ${_sfd};;	
+		*)		readfd ${_sfd};;
+	esac
+	shift
+	(( $# )) || set -- ${_sfd}
+	for _fd in $*; do
+		_name=${_fd##[^[:alpha:]_]*}
+		_fd=${!_name:=${_fd}}
+		[ -e "/proc/${BASHPID}/fd/${_fd}" ] || eval "exec ${_fd}<><(:)"
+		printf %s "${REPLY[${_sfd}]}" >&${_fd}
+	done
+	(( ${#REPLY[${_sfd}]} ))
+}
+# function clonefd: is teefd quiet; arguments work the same
+function clonefd(){
+	teefd "$@"
+}
+function mkfd(){
+	local _fd _name
+	(( $# )) || set -- 3
+	for _fd in $*; do
+		_name=${_fd##[^[:alpha:]_]*}
+		_fd=${!_name:=${_fd}}
+		[ -e "/proc/${BASHPID}/fd/${_fd}" ] || eval "exec ${_fd}<><(:)"
+	done
+}
+function clearfd(){
+	local _fd _name
+	(( $# )) || set -- 3
+	for _fd in $*; do
+		_name=${_fd##[^[:alpha:]_]*}
+		_fd=${!_name:=${_fd}}
+		eval "exec ${_fd}<><(:)"
+	done
+}
+function closefd(){
+	local _fd _name
+	(( $# )) || set -- 3
+	for _fd in $*; do
+		_name=${_fd##[^[:alpha:]_]*}
+		_fd=${!_name:=${_fd}}
+		eval "exec ${_fd}<&-"
+	done
+}
+function randomfd(){
+	local _fd _loop='3'
+	for _fd in $*; do
+		while (( _loop-- )); do
+			eval "exec {${_fd}}<><(:)" 2>/dev/null && break
+		done
+	done
+}
+function get_host_list_alt(){
+	(( $# )) || set -- "${HOSTS}"
+	tac <(awk '!x[$0]++' <(tac <(sed '/^[[:space:]]*\(#\|$\)/d' <(cat "$@" 2>/dev/null))))
+}
+function get_host_list(){
+	(( $# )) || set -- "${HOSTS}" 
+	awk '!x[$0]++' <(sed '/^[[:space:]]*\(#\|$\)/d' <(cat "$@" 2>/dev/null))
+}
+function get_local_host(){
+	< <(get_host_list "$@") grep -x -i -F -f <(hostname -f;hostname -I;hostname -s)
+}
+function get_master_host(){
+	< <(get_host_list "$@") head -1
+}
+function get_slave_hosts(){
+	< <(get_host_list "$@") tail -n +2
+}
+function get_remote_hosts(){
+	< <(get_host_list "$@") grep -x -v -i -F "${LOCAL_HOST-$(get_local_host)}"
+}
+function cnt_remote_hosts(){
+	< <(get_remote_hosts) wc -l
+}
+function cnt_remote_hosts_online(){
+	< <(< <(get_remote_hosts "$@") run_cmd_on_hosts -h -c -- hostname -f) wc -l
+}
+function is_online(){
+	(( $(cnt_remote_hosts_online) ))
+}
+function is_master(){
+	< <(get_master_host) grep -x -q -i -F "${1-${LOCAL_HOST-$(get_local_host)}}"
+}
+function is_slave(){
+	< <(get_slave_hosts) grep -x -q -i -F "${1-${LOCAL_HOST-$(get_local_host)}}"
+}
+function write_file_to_host(){
+	local _PATH=$1
+	local _HOST=$2
+	< "${_PATH}" ssh ${SSH_OPT} ${_HOST} "cat > \"${_PATH}\""
+}
+function write_file_to_hosts(){
+	local _PATH _HOST _FILE
+	while [[ "${1//[^[:alpha:]-]/_}" != +(--|) ]]; do
+		local _arg= && case "${_arg:=$1}" in
+			-l|--local|local)	local RUN_LOCAL='true';;
+			-f|--file|file)		shift; local _PATH=1 _FILE=${!1};;
+			*)			false;;
+		esac
+		(( $? )) || { shift; continue; }
+		if ! (( ${_PATH+1} )) && [ -f "${1}" ] || [ -p "${1}" ]; then
+			local _PATH=$1
+			local _FILE=$(<"${_PATH}")
+		elif (( ${_PATH+1} )) && [ -f "${1}" ]; then
+			local _PATH=$1
+		else
+			false
+		fi
+		(( $? )) || { shift; continue; }
+		shift
+	done
+	${RUN_LOCAL:-false} && <<< "${_FILE}" cat > "${_PATH}" &
+	while read _HOST; do
+		<<< "${_FILE}" ssh ${SSH_OPT} ${_HOST} "cat > \"${_PATH}\"" &
+	done
+	wait
+}
+function run_cmd_on_host(){
+	echo -n
+}
+function var_is_unset(){
+	while (( $# )); do (( ${!1+1} )) && return $# || shift; done
+}
+function var_is_set(){
+	while (( $# )); do (( ${!1+1} )) && shift || return $#; done
+}
+function var_is_empty(){
+	while (( $# )); do (( ${!1+1} )) && ! (( ${!1:+1} )) && shift || return $#; done
+}
+function var_has_data(){
+	while (( $# )); do (( ${!1+1} )) && (( ${!1:+1} )) && shift || return $#; done
+}
+function var_is_function(){
+	while (( $# )); do typeset -F $1 &>/dev/null && shift || return $#; done
+}
+function var_is_array(){
+	while (( $# )); do [[ "$(typeset -p $1 2>/dev/null)" =~ ^declare\ -a ]]	&& shift || return $#; done
+}
+function var_is_associative_array(){
+	while (( $# )); do [[ "$(typeset -p $1 2>/dev/null)" =~ ^declare\ -A ]]	&& shift || return $#; done
+}
+function var_to_array(){
+	local _ref IFS=$1 # delim
+	shift
+	for _ref in $*; do
+		eval read -d \$'' -a ${_ref} <<< "${!_ref}"
+	done
+}
+function run_cmd_on_hosts(){
+	local    fd_STATUS_OUT fd_SSH_IN
+	randomfd fd_STATUS_OUT fd_SSH_IN
+	while [[ "${1//[^[:alpha:]-]/_}" != +(--|) ]]; do
+		local _arg= && case "${_arg:=$1}" in
+			-l|--local|local)	local RUN_LOCAL='true';;
+			-c|--cmd|cmd)		local RUN_COMMAND='true';;
+			-t|--tag|tag)		local TAG_REPLY='true';;
+			-T|--no-tag-empty)	local TAG_REPLY='true'; local NO_TAG_EMPTY='/.\+/';;
+			-e|--err|err)		local DROP_ERR='true';;
+			-h|--hide-offline)	local HIDE_OFFLINE='true';;
+			*)			false;;
+		esac
+		(( $? )) || { shift; continue; }
+		# test for variable or function
+		typeset -p "$1" 2>/dev/null >& ${fd_SSH_IN} &&
+			shift && continue
+		typeset -f "$1" 2>/dev/null >& ${fd_SSH_IN} && {
+			local _function=$1 _dep=_$1
+			shift
+			# this checks for the existance of an array with a list of dependencies
+			# this list can include variables and functions
+			# it will cause a recursive behavior of dependent functions including their dependencies
+			# array name must match the function name but be lead by an aditional underscore
+			var_is_array ${_dep} && _dep+=[*] && set -- ${!_dep} "$@"
+			continue
+		}
+		# other
+		shift
+	done
+	shift
+	if ${RUN_COMMAND:-false}; then
+		# run custom line of code
+		echo "$@" >& ${fd_SSH_IN}
+	elif (( ${#_function} )); then
+		# run a function
+		echo ${_function} "$@" >& ${fd_SSH_IN}
+	else
+		return 1
+	fi
+	# flush commands to REPLY[${fd_SSH_IN}]
+	flushfd fd_SSH_IN
+	# local
+	randomfd fd_LOCAL_OUT fd_LOCAL_ERR
+	if ${RUN_LOCAL:-false}; then
+			<<< "${REPLY[${fd_SSH_IN}]}" bash 1>& ${fd_LOCAL_OUT} 2>& ${fd_LOCAL_ERR}
+			#<<< "${REPLY[${fd_SSH_IN}]}" bash 2>& ${fd_LOCAL_ERR} >& ${fd_LOCAL_OUT}
+			if ${TAG_REPLY:-false}; then
+				${DROP_ERR:-false} ||
+				sed "${NO_TAG_EMPTY}s/^/${LOCAL_HOST-$(get_local_host)} EE /" <(readfd fd_LOCAL_ERR) >& ${fd_STATUS_OUT}
+				sed "${NO_TAG_EMPTY}s/^/${LOCAL_HOST-$(get_local_host)} :: /" <(readfd fd_LOCAL_OUT) >& ${fd_STATUS_OUT}
+			else
+				${DROP_ERR:-false} ||
+				readfd fd_LOCAL_ERR >& ${fd_STATUS_OUT}
+				readfd fd_LOCAL_OUT >& ${fd_STATUS_OUT}
+			fi
+	fi &
+	# remote
+	while read HOST; do
+		{
+			randomfd fd_SSH_OUT fd_SSH_ERR
+			<<< "${REPLY[${fd_SSH_IN}]}" ssh -q ${SSH_OPT} ${HOST} bash 1>&${fd_SSH_OUT} 2>&${fd_SSH_ERR}
+			#<<< "${REPLY[${fd_SSH_IN}]}" ssh -q ${SSH_OPT} ${HOST} bash 2>& ${fd_SSH_ERR} >& ${fd_SSH_OUT}
+			if (( $? )) && ! ${HIDE_OFFLINE:-false} && ! ssh -n -q ${SSH_OPT} ${HOST}; then
+				echo ${HOST} '**'  OFF-LINE >& ${fd_STATUS_OUT}
+			elif ${TAG_REPLY:-false}; then
+				${DROP_ERR:-false} ||
+				sed "${NO_TAG_EMPTY}s/^/${HOST} EE /" <(readfd fd_SSH_ERR) >& ${fd_STATUS_OUT}
+				sed "${NO_TAG_EMPTY}s/^/${HOST} :: /" <(readfd fd_SSH_OUT) >& ${fd_STATUS_OUT}
+			else
+				${DROP_ERR:-false} ||
+				readfd fd_SSH_ERR >& ${fd_STATUS_OUT}
+				readfd fd_SSH_OUT >& ${fd_STATUS_OUT}
+			fi
+		} &
+	done
+	wait
+	readfd  fd_STATUS_OUT
+	closefd fd_STATUS_OUT
+}
+function mk_version(){
+	local _target=$1
+	local _versions_base=${2:-$1}
+	local _versions_to_keep='3' # this is only effective when the archive directory exists
+	local _archive="${_target%/*}/archive"
+	local _archives_base="${_archive}/${_versions_base##*/}"
+	get_version "$@" && return
+	randomfd fd_AWK && cat <<-AWK >& ${fd_AWK}
+		END{
+			LEN=length(\$NF)
+			\$NF="0000"(\$NF+1)
+			print substr(\$NF,length(\$NF)-LEN+1,LEN)
+		}
+	AWK
+	local _versions=$(ls -1 "${_versions_base}".v*)
+	local _versions=$(awk -Fv -f <(readfd fd_AWK) <<< "${_versions}")
+	cat "${_target}" > "${_versions_base}.v${_versions}"
+	[ -x "${_target}" ] && chmod +x "${_versions_base}.v${_versions}"
+	# if archive folder exist move all but the 3 most current
+	# we perform a copy and delete instead of move because it's harder to track with incrond
+	if [ -d "${_archive}" ]; then
+		cp -n -- $(head -n -${_versions_to_keep} <(ls -1 "${_versions_base}".v*)) "${_archive}/". 2>/dev/null
+		rm -f -- $(head -n -${_versions_to_keep} <(ls -1 "${_versions_base}".v*))
+	fi
+	get_version "$@"
+}
+function get_version(){
+	local _target=$1
+	local _versions_base=${2:-$1}
+	local _archive="${_target%/*}/archive"
+	local _archives_base="${_archive}/${_versions_base##*/}"
+	local    fd_sha1sum fd_vlist fd_alist
+	randomfd fd_sha1sum fd_vlist fd_alist
+	# process archives if they exist
+	[ -d "${_archive}" ]                                       &&
+	sha1sum "${_archives_base}".v* 2>/dev/null  >& ${fd_alist} &&
+	< <(readfd fd_alist) sed "s|$| ${_target}|" >& ${fd_alist} &
+	# process versions
+	sha1sum "${_versions_base}".v*              >& ${fd_vlist} &&
+	< <(readfd fd_vlist) sed "s|$| ${_target}|" >& ${fd_vlist} &
+	# generate target sha1sum
+	cat     "${_target}"                        >& ${fd_sha1sum} &&
+	< <(readfd fd_sha1sum) sha1sum              >& ${fd_sha1sum} &&
+	< <(readfd fd_sha1sum) awk '{print $1}'     >& ${fd_sha1sum} &
+ 	wait
+	# return sha1sum and versioned file that matches target
+	grep -h -F -f <(readfd fd_sha1sum) <(readfd fd_vlist) <(readfd fd_alist)
+}

@@ -1,0 +1,99 @@
+#!/bin/bash
+
+
+function process_args(){
+	echo -n
+
+}
+function process_filters(){
+	# The include filter must process true or not exist to then move on
+	#   and process the exclude filters
+	# The existence of fixed filters trump the regex filters
+	if
+		if [ -f "${INCLUDE_FIXED}" ]; then
+			grep -q -x -F -f "${INCLUDE_FIXED}" <<< "${INCRON_MATCH}"
+		elif [ -f "${INCLUDE_REGEX}" ]; then
+			grep -q -x -f "${INCLUDE_REGEX}" <<< "${INCRON_MATCH}"
+		fi
+	then
+		if [ -f "${EXCLUDE_FIXED}" ]; then
+			grep -q -v -x -F -f "${EXCLUDE_FIXED}" <<< "${INCRON_MATCH}"
+		elif [ -f "${EXCLUDE_REGEX}" ]; then
+			grep -q -v -x -f "${EXCLUDE_REGEX}" <<< "${INCRON_MATCH}"
+		fi
+	else
+		false
+	fi
+}
+function process_args(){
+	while [[ "${1//[^-]/.}" != +(--|) ]]; do
+		INCRON_ACTION=${1//[^[:alpha:]_]/.}
+		${INCRON_ACTION_TEST[${INCRON_ACTION}]:-false} &&
+			export INCRON_ACTION &&
+			shift &&
+			continue
+		
+		#if [ -d "$(readlink -f "$(dirname "${*}")")" ]; then
+		#	export INCRON_MATCH="${*}"
+		#	shift
+		#	break
+		#fi		
+		shift
+	done
+	shift
+	export INCRON_MATCH=${INCRON_MATCH:-${*}}
+}
+function list_action_app_names(){
+	ls -1 "${WORK}" |
+	sed -n "s/^${APP}@\(.*\)\.\(fixed\|regex\)\.include$/\1/p" |
+	sort -u
+}
+function process_action(){
+	INCLUDE_FIXED="${WORK}/${APP}@${ACTION}.fixed.include"
+	INCLUDE_REGEX="${WORK}/${APP}@${ACTION}.regex.include"
+	EXCLUDE_FIXED="${WORK}/${APP}@${ACTION}.fixed.exclude"
+	EXCLUDE_REGEX="${WORK}/${APP}@${ACTION}.regex.exclude"
+	ACTION="${WORK}/${ACTION}.${EXT}"
+	process_filters || return 1
+	"${ACTION}" "$@"
+}
+function process_actions(){
+	list_action_app_names |
+	while read ACTION; do
+		process_action "$@"
+	done
+}
+function main(){
+	touch "${INCLUDE_REGEX}"
+	process_args "$@"
+	process_filters || return 1
+	process_actions "$@"
+}
+### global vars
+# PATHS
+APP=${0##*[/]}
+EXT=${0##*.}
+WORK=${0%[/]*}
+EXEC="${WORK}/${APP}"
+APP=${APP%.*}
+TMP="/dev/shm/${APP}"
+# LOGS
+LOG="/var/log/incron.scripts/${APP}.log"
+# Filters :: includes are processed before excludes
+#            fixed filters trump regex filters
+INCLUDE_FIXED="${WORK}/${APP}.fixed.include"
+INCLUDE_REGEX="${WORK}/${APP}.regex.include"
+EXCLUDE_FIXED="${WORK}/${APP}.fixed.exclude"
+EXCLUDE_REGEX="${WORK}/${APP}.regex.exclude"
+# INCRON
+declare -A INCRON_ACTION_TEST
+for INCRON_ACTION in IN_ACCESS        IN_CREATE\
+                     IN_ATTRIB        IN_OPEN\
+                     IN_MODIFY        IN_CLOSE_WRITE\
+                     IN_MOVED_TO      IN_CLOSE_NOWRITE\
+                     IN_MOVED_FROM    IN_DELETE\
+                     IN_MOVE_SELF     IN_DELETE_SELF
+	do INCRON_ACTION_TEST[${INCRON_ACTION}]=true; done
+
+main "$@" | tee -a "${LOG}"
+

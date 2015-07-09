@@ -1,0 +1,116 @@
+#!/bin/bash
+
+function process_args(){
+	(( $# )) || sed -- auto
+	while [[ "${1//[^[:alpha:]-]/_}" != +(--|) ]]; do
+		local _arg= && case "${_arg:=$1}" in
+			-a|--auto|auto)		ACTION='auto';;
+			-s|--status|status)	ACTION='status';;
+			-d|--disable|stop)	ACTION='stop';;
+			-e|--enable|start)	ACTION='start';;
+			-b|--backup|backup)	ACTION='backup';;
+			-v|--version|version)	ACTION='version';;
+			-h|--help|help)		ACTION='help';;
+			*)			ACTION='help';;
+		esac
+		shift
+	done
+}
+function main(){
+	process_args "$@"
+	action_${ACTION} "$@"
+	return $?
+}
+function action_help(){
+	cat <<-HELP
+		-a|--auto|auto)		
+		-s|--status|status)	checks incron or incron.bk on all hosts
+		-d|--disable|stop)	backup incron locally and clear incron on all hosts
+		-e|--enable|start)	restore incron locally and distribute to all hosts
+		-b|--backup|backup)	copy incron to incron.bk and then run version
+		-v|--version|version)	if missing generate version file for incron then display current
+		-h|--help|help)		this message
+		*)			no args assumes help
+	HELP
+}
+declare -a _action_status_cmd=( WORK INCRON )
+function action_status_cmd(){
+	local _incron="${WORK}/${INCRON}"
+	local    HOST=$(hostname -f)
+	local  STATUS=$(cat "${_incron}.status")
+	local SHA1SUM=$(sha1sum "${_incron}")
+	local SHA1SUM=$(awk '{print $1}' <<< "${SHA1SUM}")
+	echo $HOST :: $SHA1SUM :: $STATUS
+}
+function action_status(){
+	< <(get_remote_hosts) run_cmd_on_hosts -l action_status_cmd
+}
+function action_stop(){
+	local _incron="${WORK}/${INCRON}"
+	[[ -L "${_incron}" ]] && [[ -f "${_incron}" ]] && [[ -s "${_incron}" ]] || { echo ERROR :: ${FUNCNAME}; return 1; }
+	action_backup
+	echo -n                  > "${_incron}"        &
+	echo -n STOPPED          > "${_incron}.status" &
+	write_file_to_remote_hosts "${_incron}"        &
+	write_file_to_remote_hosts "${_incron}.status" &
+	wait
+	action_status
+}
+function action_start(){
+	local _incron="${WORK}/${INCRON}"
+	if ! [[ -L "${_incron}" ]]; then
+		echo ERROR :: ${FUNCNAME} :: incron symbolic link
+		return 1
+	elif ! [[ -f "${_incron}.bk" ]] && ! [[ -s "${_incron}.bk" ]]; then
+		if ! randomfd fd_version; then
+			echo ERROR :: ${FUNCNAME} :: error generating fd
+			return 2
+		elif ! ls -1 "${_incron}".v* 2>/dev/null >& ${fd_version}; then
+			echo ERROR :: ${FUNCNAME} :: error listing \"${_incron}\" versions \(.vxx\)
+			return 3
+		elif ! tail -1 <(readfd fd_version) >& ${fd_version}; then
+			echo ERROR :: ${FUNCNAME} :: error with tail of \"${_incron}\" versions
+			return 4
+		elif ! [[ -s "$(teefd fd_version)" ]]; then
+			echo ERROR :: ${FUNCNAME} :: missing \"${_incron}\" versions \"$(readfd fd_version)\"
+			return 5
+		else
+			cat "$(readfd fd_version)" > "${_incron}.bk"
+		fi
+	fi
+	cat "${_incron}.bk"      > "${_incron}"        &
+	echo -n RUNNING          > "${_incron}.status" &
+	write_file_to_remote_hosts "${_incron}"        &
+	write_file_to_remote_hosts "${_incron}.status" &
+	wait
+	action_status
+}
+function action_backup(){
+	local _incron="${WORK}/${INCRON}"
+	[[ -L "${_incron}" ]] && [[ -f "${_incron}" ]] && [[ -s "${_incron}" ]] || { echo ERROR :: ${FUNCNAME}; return 1; }
+	diff   "${_incron}"   "${_incron}.bk" &>/dev/null ||
+	readfd "${_incron}" > "${_incron}.bk"
+	action_version "$@" &>/dev/null
+}
+function action_version(){
+	local _incron="${WORK}/${INCRON}"
+	if [[ -f "${_incron}.bk" ]] && [[ -s "${_incron}.bk" ]]; then
+		mk_version "${_incron}.bk" "${_incron}"
+	fi
+	if [[ -L "${_incron}" ]] && [[ -f "${_incron}" ]] && [[ -s "${_incron}" ]]; then
+		mk_version "${_incron}"
+	fi
+		mk_version "/etc/incron.scripts.d/src/scripts.common.sh"
+		mk_version "${EXEC}"
+
+}
+###############################################
+. /etc/incron.scripts.d/src/scripts.common.sh
+set_global_vars
+set_SSH_OPT
+###############################################
+ACTION=
+INCRON='incron'
+HOSTS="${WORK}${WORK:+/}${APP}.hosts"
+###############################################
+< <(main "$@") tee "${LOG}"

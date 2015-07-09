@@ -1,0 +1,276 @@
+main :: network_status_check START
+network_status_check :: Network up.
+main :: network_status_check FINSH
+main :: START-MASTER :: $@ = COSDLPBMM1v1.net.ucf.edu /etc/incron.scripts.d/src
+sync_hosts :: START :: $@ = COSDLPBMM1v1.net.ucf.edu /etc/incron.scripts.d/src
+sync_host_status :: START :: $@ = COSDLPBMM1v2.net.ucf.edu
+22571 :: /etc/incron.scripts.d/src :: (sync_host_status) - SSH-UP "COSDLPBMM1v2.net.ucf.edu"
+22571 :: /etc/incron.scripts.d/src :: (sync) - MODIFY COSDLPBMM1v2.net.ucf.edu
+22571 :: unison :: (sync) :: new file ----> nohup.out
+22571 :: unison :: (sync) :: [BGN] Copying nohup.out from /etc/incron.scripts.d/src to //COSDLPBMM1v2.net.ucf.edu//etc/incron.scripts.d/src
+22571 :: unison :: (sync) :: Failed: The source file /etc/incron.scripts.d/src/nohup.out
+22571 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+22571 :: unison :: (sync) :: 100% 00:00 ETAFailed [nohup.out]: The source file /etc/incron.scripts.d/src/nohup.out
+22571 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+22571 :: unison :: (sync) ::  Synchronization incomplete at 11:42:17 (0 items transferred, 0 skipped, 1 failed)
+22571 :: unison :: (sync) :: failed: nohup.out
+22571 :: /etc/incron.scripts.d/src :: (sync) - _TRY_1 ERR 2 TRANSFERED 0 SKIPPED 0 FAILED 0 LAPSE 1.372319747
+22571 :: /etc/incron.scripts.d/src :: (sync) - _POST_ ERR 2 HOST COSDLPBMM1v2.net.ucf.edu
+sync_host_status :: START :: $@ = COSDLPBMM1v3.net.ucf.edu
+22571 :: /etc/incron.scripts.d/src :: (sync_host_status) - SSH-UP "COSDLPBMM1v3.net.ucf.edu"
+22571 :: /etc/incron.scripts.d/src :: (sync) - MODIFY COSDLPBMM1v3.net.ucf.edu
+22571 :: unison :: (sync) :: new file ----> nohup.out
+22571 :: unison :: (sync) :: [BGN] Copying nohup.out from /etc/incron.scripts.d/src to //COSDLPBMM1v3.net.ucf.edu//etc/incron.scripts.d/src
+22571 :: unison :: (sync) :: Failed: The source file /etc/incron.scripts.d/src/nohup.out
+22571 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+22571 :: unison :: (sync) :: 100% 00:00 ETAFailed [nohup.out]: The source file /etc/incron.scripts.d/src/nohup.out
+22571 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+22571 :: unison :: (sync) ::  Synchronization incomplete at 11:42:19 (0 items transferred, 0 skipped, 1 failed)
+22571 :: unison :: (sync) :: failed: nohup.out
+22571 :: /etc/incron.scripts.d/src :: (sync) - _TRY_1 ERR 2 TRANSFERED 0 SKIPPED 0 FAILED 0 LAPSE 1.467232334
+22571 :: /etc/incron.scripts.d/src :: (sync) - _POST_ ERR 2 HOST COSDLPBMM1v3.net.ucf.edu
+sync_host_status :: START :: $@ = COSDLPBMM1v4.net.ucf.edu
+22571 :: /etc/incron.scripts.d/src :: (sync_host_status) - SSH-UP "COSDLPBMM1v4.net.ucf.edu"
+22571 :: /etc/incron.scripts.d/src :: (sync) - MODIFY COSDLPBMM1v4.net.ucf.edu
+22571 :: unison :: (sync) :: new file ----> nohup.out
+22571 :: unison :: (sync) :: [BGN] Copying nohup.out from /etc/incron.scripts.d/src to //COSDLPBMM1v4.net.ucf.edu//etc/incron.scripts.d/src
+22571 :: unison :: (sync) :: Failed: The source file /etc/incron.scripts.d/src/nohup.out
+22571 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+22571 :: unison :: (sync) :: 100% 00:00 ETAFailed [nohup.out]: The source file /etc/incron.scripts.d/src/nohup.out
+22571 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+22571 :: unison :: (sync) ::  Synchronization incomplete at 11:42:21 (0 items transferred, 0 skipped, 1 failed)
+22571 :: unison :: (sync) :: failed: nohup.out
+22571 :: /etc/incron.scripts.d/src :: (sync) - _TRY_1 ERR 2 TRANSFERED 0 SKIPPED 0 FAILED 0 LAPSE 1.442833544
+22571 :: /etc/incron.scripts.d/src :: (sync) - _POST_ ERR 2 HOST COSDLPBMM1v4.net.ucf.edu
+sync_host_status :: START :: $@ = COSDLPBMM1v9.net.ucf.edu
+22571 :: /etc/incron.scripts.d/src :: (sync_host_status) - SSH-ERR 255 "COSDLPBMM1v9.net.ucf.edu"\; Skipping.
+main :: network_status_check START
+network_status_check :: Network up.
+main :: network_status_check FINSH
+main :: START-MASTER :: $@ = COSDLPBMM1v1.net.ucf.edu /etc/incron.scripts.d/src
+sync_hosts :: START :: $@ = COSDLPBMM1v1.net.ucf.edu /etc/incron.scripts.d/src
+sync_host_status :: START :: $@ = COSDLPBMM1v2.net.ucf.edu
+23881 :: /etc/incron.scripts.d/src :: (sync_host_status) - SSH-UP "COSDLPBMM1v2.net.ucf.edu"
+23881 :: /etc/incron.scripts.d/src :: (sync) - MODIFY COSDLPBMM1v2.net.ucf.edu
+23881 :: unison :: (sync) :: changed ----> nohup.out
+23881 :: unison :: (sync) :: [BGN] Updating file nohup.out from /etc/incron.scripts.d/src to //COSDLPBMM1v2.net.ucf.edu//etc/incron.scripts.d/src
+23881 :: unison :: (sync) :: Failed: The source file /etc/incron.scripts.d/src/nohup.out
+23881 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+23881 :: unison :: (sync) :: 100% 00:00 ETAFailed [nohup.out]: The source file /etc/incron.scripts.d/src/nohup.out
+23881 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+23881 :: unison :: (sync) ::  Synchronization incomplete at 11:47:13 (0 items transferred, 0 skipped, 1 failed)
+23881 :: unison :: (sync) :: failed: nohup.out
+23881 :: /etc/incron.scripts.d/src :: (sync) - _TRY_1 ERR 2 TRANSFERED 0 SKIPPED 0 FAILED 0 LAPSE 1.391888669
+23881 :: /etc/incron.scripts.d/src :: (sync) - _POST_ ERR 2 HOST COSDLPBMM1v2.net.ucf.edu
+sync_host_status :: START :: $@ = COSDLPBMM1v3.net.ucf.edu
+23881 :: /etc/incron.scripts.d/src :: (sync_host_status) - SSH-UP "COSDLPBMM1v3.net.ucf.edu"
+23881 :: /etc/incron.scripts.d/src :: (sync) - MODIFY COSDLPBMM1v3.net.ucf.edu
+23881 :: unison :: (sync) :: changed ----> nohup.out
+23881 :: unison :: (sync) :: [BGN] Updating file nohup.out from /etc/incron.scripts.d/src to //COSDLPBMM1v3.net.ucf.edu//etc/incron.scripts.d/src
+23881 :: unison :: (sync) :: Failed: The source file /etc/incron.scripts.d/src/nohup.out
+23881 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+23881 :: unison :: (sync) :: 100% 00:00 ETAFailed [nohup.out]: The source file /etc/incron.scripts.d/src/nohup.out
+23881 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+23881 :: unison :: (sync) ::  Synchronization incomplete at 11:47:15 (0 items transferred, 0 skipped, 1 failed)
+23881 :: unison :: (sync) :: failed: nohup.out
+23881 :: /etc/incron.scripts.d/src :: (sync) - _TRY_1 ERR 2 TRANSFERED 0 SKIPPED 0 FAILED 0 LAPSE 1.461687753
+23881 :: /etc/incron.scripts.d/src :: (sync) - _POST_ ERR 2 HOST COSDLPBMM1v3.net.ucf.edu
+sync_host_status :: START :: $@ = COSDLPBMM1v4.net.ucf.edu
+23881 :: /etc/incron.scripts.d/src :: (sync_host_status) - SSH-UP "COSDLPBMM1v4.net.ucf.edu"
+23881 :: /etc/incron.scripts.d/src :: (sync) - MODIFY COSDLPBMM1v4.net.ucf.edu
+23881 :: unison :: (sync) :: changed ----> nohup.out
+23881 :: unison :: (sync) :: [BGN] Updating file nohup.out from /etc/incron.scripts.d/src to //COSDLPBMM1v4.net.ucf.edu//etc/incron.scripts.d/src
+23881 :: unison :: (sync) :: Failed: The source file /etc/incron.scripts.d/src/nohup.out
+23881 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+23881 :: unison :: (sync) :: 100% 00:00 ETAFailed [nohup.out]: The source file /etc/incron.scripts.d/src/nohup.out
+23881 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+23881 :: unison :: (sync) ::  Synchronization incomplete at 11:47:17 (0 items transferred, 0 skipped, 1 failed)
+23881 :: unison :: (sync) :: failed: nohup.out
+23881 :: /etc/incron.scripts.d/src :: (sync) - _TRY_1 ERR 2 TRANSFERED 0 SKIPPED 0 FAILED 0 LAPSE 1.487903672
+23881 :: /etc/incron.scripts.d/src :: (sync) - _POST_ ERR 2 HOST COSDLPBMM1v4.net.ucf.edu
+sync_host_status :: START :: $@ = COSDLPBMM1v9.net.ucf.edu
+23881 :: /etc/incron.scripts.d/src :: (sync_host_status) - SSH-ERR 255 "COSDLPBMM1v9.net.ucf.edu"\; Skipping.
+main :: network_status_check START
+network_status_check :: Network up.
+main :: network_status_check FINSH
+main :: START-MASTER :: $@ = COSDLPBMM1v1.net.ucf.edu /etc/incron.scripts.d/src
+sync_hosts :: START :: $@ = COSDLPBMM1v1.net.ucf.edu /etc/incron.scripts.d/src
+sync_host_status :: START :: $@ = COSDLPBMM1v2.net.ucf.edu
+25036 :: /etc/incron.scripts.d/src :: (sync_host_status) - SSH-UP "COSDLPBMM1v2.net.ucf.edu"
+25036 :: /etc/incron.scripts.d/src :: (sync) - MODIFY COSDLPBMM1v2.net.ucf.edu
+25036 :: unison :: (sync) :: changed ----> nohup.out
+25036 :: unison :: (sync) :: [BGN] Updating file nohup.out from /etc/incron.scripts.d/src to //COSDLPBMM1v2.net.ucf.edu//etc/incron.scripts.d/src
+25036 :: unison :: (sync) :: Failed: The source file /etc/incron.scripts.d/src/nohup.out
+25036 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+25036 :: unison :: (sync) :: 100% 00:00 ETAFailed [nohup.out]: The source file /etc/incron.scripts.d/src/nohup.out
+25036 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+25036 :: unison :: (sync) ::  Synchronization incomplete at 11:49:25 (0 items transferred, 0 skipped, 1 failed)
+25036 :: unison :: (sync) :: failed: nohup.out
+25036 :: /etc/incron.scripts.d/src :: (sync) - _TRY_1 ERR 2 TRANSFERED 0 SKIPPED 0 FAILED 0 LAPSE 1.401102015
+25036 :: /etc/incron.scripts.d/src :: (sync) - _POST_ ERR 2 HOST COSDLPBMM1v2.net.ucf.edu
+sync_host_status :: START :: $@ = COSDLPBMM1v3.net.ucf.edu
+25036 :: /etc/incron.scripts.d/src :: (sync_host_status) - SSH-UP "COSDLPBMM1v3.net.ucf.edu"
+25036 :: /etc/incron.scripts.d/src :: (sync) - MODIFY COSDLPBMM1v3.net.ucf.edu
+25036 :: unison :: (sync) :: changed ----> nohup.out
+25036 :: unison :: (sync) :: [BGN] Updating file nohup.out from /etc/incron.scripts.d/src to //COSDLPBMM1v3.net.ucf.edu//etc/incron.scripts.d/src
+25036 :: unison :: (sync) :: Failed: The source file /etc/incron.scripts.d/src/nohup.out
+25036 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+25036 :: unison :: (sync) :: 100% 00:00 ETAFailed [nohup.out]: The source file /etc/incron.scripts.d/src/nohup.out
+25036 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+25036 :: unison :: (sync) ::  Synchronization incomplete at 11:49:27 (0 items transferred, 0 skipped, 1 failed)
+25036 :: unison :: (sync) :: failed: nohup.out
+25036 :: /etc/incron.scripts.d/src :: (sync) - _TRY_1 ERR 2 TRANSFERED 0 SKIPPED 0 FAILED 0 LAPSE 1.477090981
+25036 :: /etc/incron.scripts.d/src :: (sync) - _POST_ ERR 2 HOST COSDLPBMM1v3.net.ucf.edu
+sync_host_status :: START :: $@ = COSDLPBMM1v4.net.ucf.edu
+25036 :: /etc/incron.scripts.d/src :: (sync_host_status) - SSH-UP "COSDLPBMM1v4.net.ucf.edu"
+25036 :: /etc/incron.scripts.d/src :: (sync) - MODIFY COSDLPBMM1v4.net.ucf.edu
+25036 :: unison :: (sync) :: changed ----> nohup.out
+25036 :: unison :: (sync) :: [BGN] Updating file nohup.out from /etc/incron.scripts.d/src to //COSDLPBMM1v4.net.ucf.edu//etc/incron.scripts.d/src
+25036 :: unison :: (sync) :: Failed: The source file /etc/incron.scripts.d/src/nohup.out
+25036 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+25036 :: unison :: (sync) :: 100% 00:00 ETAFailed [nohup.out]: The source file /etc/incron.scripts.d/src/nohup.out
+25036 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+25036 :: unison :: (sync) ::  Synchronization incomplete at 11:49:29 (0 items transferred, 0 skipped, 1 failed)
+25036 :: unison :: (sync) :: failed: nohup.out
+25036 :: /etc/incron.scripts.d/src :: (sync) - _TRY_1 ERR 2 TRANSFERED 0 SKIPPED 0 FAILED 0 LAPSE 1.411328033
+25036 :: /etc/incron.scripts.d/src :: (sync) - _POST_ ERR 2 HOST COSDLPBMM1v4.net.ucf.edu
+sync_host_status :: START :: $@ = COSDLPBMM1v9.net.ucf.edu
+25036 :: /etc/incron.scripts.d/src :: (sync_host_status) - SSH-ERR 255 "COSDLPBMM1v9.net.ucf.edu"\; Skipping.
+main :: network_status_check START
+network_status_check :: Network up.
+main :: network_status_check FINSH
+main :: START-MASTER :: $@ = COSDLPBMM1v1.net.ucf.edu /etc/incron.scripts.d/src
+sync_hosts :: START :: $@ = COSDLPBMM1v1.net.ucf.edu /etc/incron.scripts.d/src
+sync_host_status :: START :: $@ = COSDLPBMM1v2.net.ucf.edu
+26322 :: /etc/incron.scripts.d/src :: (sync_host_status) - SSH-UP "COSDLPBMM1v2.net.ucf.edu"
+26322 :: /etc/incron.scripts.d/src :: (sync) - MODIFY COSDLPBMM1v2.net.ucf.edu
+26322 :: unison :: (sync) :: changed ----> nohup.out
+26322 :: unison :: (sync) :: [BGN] Updating file nohup.out from /etc/incron.scripts.d/src to //COSDLPBMM1v2.net.ucf.edu//etc/incron.scripts.d/src
+26322 :: unison :: (sync) :: Failed: The source file /etc/incron.scripts.d/src/nohup.out
+26322 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+26322 :: unison :: (sync) :: 100% 00:00 ETAFailed [nohup.out]: The source file /etc/incron.scripts.d/src/nohup.out
+26322 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+26322 :: unison :: (sync) ::  Synchronization incomplete at 11:53:48 (0 items transferred, 0 skipped, 1 failed)
+26322 :: unison :: (sync) :: failed: nohup.out
+26322 :: /etc/incron.scripts.d/src :: (sync) - _TRY_1 ERR 2 TRANSFERED 0 SKIPPED 0 FAILED 0 LAPSE .416911137
+26322 :: /etc/incron.scripts.d/src :: (sync) - _POST_ ERR 2 HOST COSDLPBMM1v2.net.ucf.edu
+sync_host_status :: START :: $@ = COSDLPBMM1v3.net.ucf.edu
+26322 :: /etc/incron.scripts.d/src :: (sync_host_status) - SSH-UP "COSDLPBMM1v3.net.ucf.edu"
+26322 :: /etc/incron.scripts.d/src :: (sync) - MODIFY COSDLPBMM1v3.net.ucf.edu
+26322 :: unison :: (sync) :: changed ----> nohup.out
+26322 :: unison :: (sync) :: [BGN] Updating file nohup.out from /etc/incron.scripts.d/src to //COSDLPBMM1v3.net.ucf.edu//etc/incron.scripts.d/src
+26322 :: unison :: (sync) :: Failed: The source file /etc/incron.scripts.d/src/nohup.out
+26322 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+26322 :: unison :: (sync) :: 100% 00:00 ETAFailed [nohup.out]: The source file /etc/incron.scripts.d/src/nohup.out
+26322 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+26322 :: unison :: (sync) ::  Synchronization incomplete at 11:53:49 (0 items transferred, 0 skipped, 1 failed)
+26322 :: unison :: (sync) :: failed: nohup.out
+26322 :: /etc/incron.scripts.d/src :: (sync) - _TRY_1 ERR 2 TRANSFERED 0 SKIPPED 0 FAILED 0 LAPSE .462138827
+26322 :: /etc/incron.scripts.d/src :: (sync) - _POST_ ERR 2 HOST COSDLPBMM1v3.net.ucf.edu
+sync_host_status :: START :: $@ = COSDLPBMM1v4.net.ucf.edu
+26322 :: /etc/incron.scripts.d/src :: (sync_host_status) - SSH-UP "COSDLPBMM1v4.net.ucf.edu"
+26322 :: /etc/incron.scripts.d/src :: (sync) - MODIFY COSDLPBMM1v4.net.ucf.edu
+26322 :: unison :: (sync) :: changed ----> nohup.out
+26322 :: unison :: (sync) :: [BGN] Updating file nohup.out from /etc/incron.scripts.d/src to //COSDLPBMM1v4.net.ucf.edu//etc/incron.scripts.d/src
+26322 :: unison :: (sync) :: Failed: The source file /etc/incron.scripts.d/src/nohup.out
+26322 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+26322 :: unison :: (sync) :: 100% 00:00 ETAFailed [nohup.out]: The source file /etc/incron.scripts.d/src/nohup.out
+26322 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+26322 :: unison :: (sync) ::  Synchronization incomplete at 11:53:50 (0 items transferred, 0 skipped, 1 failed)
+26322 :: unison :: (sync) :: failed: nohup.out
+26322 :: /etc/incron.scripts.d/src :: (sync) - _TRY_1 ERR 2 TRANSFERED 0 SKIPPED 0 FAILED 0 LAPSE .459194374
+26322 :: /etc/incron.scripts.d/src :: (sync) - _POST_ ERR 2 HOST COSDLPBMM1v4.net.ucf.edu
+sync_host_status :: START :: $@ = COSDLPBMM1v9.net.ucf.edu
+26322 :: /etc/incron.scripts.d/src :: (sync_host_status) - SSH-ERR 255 "COSDLPBMM1v9.net.ucf.edu"\; Skipping.
+main :: network_status_check START
+network_status_check :: Network up.
+main :: network_status_check FINSH
+main :: START-MASTER :: $@ = COSDLPBMM1v1.net.ucf.edu /etc/incron.scripts.d/src
+sync_hosts :: START :: $@ = COSDLPBMM1v1.net.ucf.edu /etc/incron.scripts.d/src
+sync_host_status :: START :: $@ = COSDLPBMM1v2.net.ucf.edu
+28068 :: /etc/incron.scripts.d/src :: (sync_host_status) - SSH-UP "COSDLPBMM1v2.net.ucf.edu"
+28068 :: /etc/incron.scripts.d/src :: (sync) - MODIFY COSDLPBMM1v2.net.ucf.edu
+28068 :: unison :: (sync) :: changed ----> nohup.out
+28068 :: unison :: (sync) :: [BGN] Updating file nohup.out from /etc/incron.scripts.d/src to //COSDLPBMM1v2.net.ucf.edu//etc/incron.scripts.d/src
+28068 :: unison :: (sync) :: Failed: The source file /etc/incron.scripts.d/src/nohup.out
+28068 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+28068 :: unison :: (sync) :: 100% 00:00 ETAFailed [nohup.out]: The source file /etc/incron.scripts.d/src/nohup.out
+28068 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+28068 :: unison :: (sync) ::  Synchronization incomplete at 11:59:41 (0 items transferred, 0 skipped, 1 failed)
+28068 :: unison :: (sync) :: failed: nohup.out
+28068 :: /etc/incron.scripts.d/src :: (sync) - _TRY_1 ERR 2 TRANSFERED 0 SKIPPED 0 FAILED 0 LAPSE 1.418185061
+28068 :: /etc/incron.scripts.d/src :: (sync) - _POST_ ERR 2 HOST COSDLPBMM1v2.net.ucf.edu
+sync_host_status :: START :: $@ = COSDLPBMM1v3.net.ucf.edu
+28068 :: /etc/incron.scripts.d/src :: (sync_host_status) - SSH-UP "COSDLPBMM1v3.net.ucf.edu"
+28068 :: /etc/incron.scripts.d/src :: (sync) - MODIFY COSDLPBMM1v3.net.ucf.edu
+28068 :: unison :: (sync) :: changed ----> nohup.out
+28068 :: unison :: (sync) :: [BGN] Updating file nohup.out from /etc/incron.scripts.d/src to //COSDLPBMM1v3.net.ucf.edu//etc/incron.scripts.d/src
+28068 :: unison :: (sync) :: Failed: The source file /etc/incron.scripts.d/src/nohup.out
+28068 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+28068 :: unison :: (sync) :: 100% 00:00 ETAFailed [nohup.out]: The source file /etc/incron.scripts.d/src/nohup.out
+28068 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+28068 :: unison :: (sync) ::  Synchronization incomplete at 11:59:43 (0 items transferred, 0 skipped, 1 failed)
+28068 :: unison :: (sync) :: failed: nohup.out
+28068 :: /etc/incron.scripts.d/src :: (sync) - _TRY_1 ERR 2 TRANSFERED 0 SKIPPED 0 FAILED 0 LAPSE 1.467801746
+28068 :: /etc/incron.scripts.d/src :: (sync) - _POST_ ERR 2 HOST COSDLPBMM1v3.net.ucf.edu
+sync_host_status :: START :: $@ = COSDLPBMM1v4.net.ucf.edu
+28068 :: /etc/incron.scripts.d/src :: (sync_host_status) - SSH-UP "COSDLPBMM1v4.net.ucf.edu"
+28068 :: /etc/incron.scripts.d/src :: (sync) - MODIFY COSDLPBMM1v4.net.ucf.edu
+28068 :: unison :: (sync) :: changed ----> nohup.out
+28068 :: unison :: (sync) :: [BGN] Updating file nohup.out from /etc/incron.scripts.d/src to //COSDLPBMM1v4.net.ucf.edu//etc/incron.scripts.d/src
+28068 :: unison :: (sync) :: Failed: The source file /etc/incron.scripts.d/src/nohup.out
+28068 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+28068 :: unison :: (sync) :: 100% 00:00 ETAFailed [nohup.out]: The source file /etc/incron.scripts.d/src/nohup.out
+28068 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+28068 :: unison :: (sync) ::  Synchronization incomplete at 11:59:45 (0 items transferred, 0 skipped, 1 failed)
+28068 :: unison :: (sync) :: failed: nohup.out
+28068 :: /etc/incron.scripts.d/src :: (sync) - _TRY_1 ERR 2 TRANSFERED 0 SKIPPED 0 FAILED 0 LAPSE 1.443071392
+28068 :: /etc/incron.scripts.d/src :: (sync) - _POST_ ERR 2 HOST COSDLPBMM1v4.net.ucf.edu
+sync_host_status :: START :: $@ = COSDLPBMM1v9.net.ucf.edu
+28068 :: /etc/incron.scripts.d/src :: (sync_host_status) - SSH-ERR 255 "COSDLPBMM1v9.net.ucf.edu"\; Skipping.
+main :: network_status_check START
+network_status_check :: Network up.
+main :: network_status_check FINSH
+main :: START-MASTER :: $@ = COSDLPBMM1v1.net.ucf.edu /etc/incron.scripts.d/src
+sync_hosts :: START :: $@ = COSDLPBMM1v1.net.ucf.edu /etc/incron.scripts.d/src
+sync_host_status :: START :: $@ = COSDLPBMM1v2.net.ucf.edu
+29036 :: /etc/incron.scripts.d/src :: (sync_host_status) - SSH-UP "COSDLPBMM1v2.net.ucf.edu"
+29036 :: /etc/incron.scripts.d/src :: (sync) - MODIFY COSDLPBMM1v2.net.ucf.edu
+29036 :: unison :: (sync) :: changed ----> nohup.out
+29036 :: unison :: (sync) :: [BGN] Updating file nohup.out from /etc/incron.scripts.d/src to //COSDLPBMM1v2.net.ucf.edu//etc/incron.scripts.d/src
+29036 :: unison :: (sync) :: Failed: The source file /etc/incron.scripts.d/src/nohup.out
+29036 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+29036 :: unison :: (sync) :: 100% 00:00 ETAFailed [nohup.out]: The source file /etc/incron.scripts.d/src/nohup.out
+29036 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+29036 :: unison :: (sync) ::  Synchronization incomplete at 12:00:52 (0 items transferred, 0 skipped, 1 failed)
+29036 :: unison :: (sync) :: failed: nohup.out
+29036 :: /etc/incron.scripts.d/src :: (sync) - _TRY_1 ERR 2 TRANSFERED 0 SKIPPED 0 FAILED 0 LAPSE .424705524
+29036 :: /etc/incron.scripts.d/src :: (sync) - _POST_ ERR 2 HOST COSDLPBMM1v2.net.ucf.edu
+sync_host_status :: START :: $@ = COSDLPBMM1v3.net.ucf.edu
+29036 :: /etc/incron.scripts.d/src :: (sync_host_status) - SSH-UP "COSDLPBMM1v3.net.ucf.edu"
+29036 :: /etc/incron.scripts.d/src :: (sync) - MODIFY COSDLPBMM1v3.net.ucf.edu
+29036 :: unison :: (sync) :: changed ----> nohup.out
+29036 :: unison :: (sync) :: [BGN] Updating file nohup.out from /etc/incron.scripts.d/src to //COSDLPBMM1v3.net.ucf.edu//etc/incron.scripts.d/src
+29036 :: unison :: (sync) :: Failed: The source file /etc/incron.scripts.d/src/nohup.out
+29036 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+29036 :: unison :: (sync) :: 100% 00:00 ETAFailed [nohup.out]: The source file /etc/incron.scripts.d/src/nohup.out
+29036 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+29036 :: unison :: (sync) ::  Synchronization incomplete at 12:00:53 (0 items transferred, 0 skipped, 1 failed)
+29036 :: unison :: (sync) :: failed: nohup.out
+29036 :: /etc/incron.scripts.d/src :: (sync) - _TRY_1 ERR 2 TRANSFERED 0 SKIPPED 0 FAILED 0 LAPSE .449005926
+29036 :: /etc/incron.scripts.d/src :: (sync) - _POST_ ERR 2 HOST COSDLPBMM1v3.net.ucf.edu
+sync_host_status :: START :: $@ = COSDLPBMM1v4.net.ucf.edu
+29036 :: /etc/incron.scripts.d/src :: (sync_host_status) - SSH-UP "COSDLPBMM1v4.net.ucf.edu"
+29036 :: /etc/incron.scripts.d/src :: (sync) - MODIFY COSDLPBMM1v4.net.ucf.edu
+29036 :: unison :: (sync) :: changed ----> nohup.out
+29036 :: unison :: (sync) :: [BGN] Updating file nohup.out from /etc/incron.scripts.d/src to //COSDLPBMM1v4.net.ucf.edu//etc/incron.scripts.d/src
+29036 :: unison :: (sync) :: Failed: The source file /etc/incron.scripts.d/src/nohup.out
+29036 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+29036 :: unison :: (sync) :: 100% 00:00 ETAFailed [nohup.out]: The source file /etc/incron.scripts.d/src/nohup.out
+29036 :: unison :: (sync) :: has been modified during synchronization. Transfer aborted.
+29036 :: unison :: (sync) ::  Synchronization incomplete at 12:00:54 (0 items transferred, 0 skipped, 1 failed)
+29036 :: unison :: (sync) :: failed: nohup.out
+29036 :: /etc/incron.scripts.d/src :: (sync) - _TRY_1 ERR 2 TRANSFERED 0 SKIPPED 0 FAILED 0 LAPSE .513023271
+29036 :: /etc/incron.scripts.d/src :: (sync) - _POST_ ERR 2 HOST COSDLPBMM1v4.net.ucf.edu
+sync_host_status :: START :: $@ = COSDLPBMM1v9.net.ucf.edu
+29036 :: /etc/incron.scripts.d/src :: (sync_host_status) - SSH-ERR 255 "COSDLPBMM1v9.net.ucf.edu"\; Skipping.

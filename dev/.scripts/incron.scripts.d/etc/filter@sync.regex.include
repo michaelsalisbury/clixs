@@ -1,0 +1,6 @@
+/etc/incron.scripts.d/etc/[^/]*
+/etc/default/useradd
+/etc/passwd
+/etc/group
+/etc/shadow
+/etc/hosts

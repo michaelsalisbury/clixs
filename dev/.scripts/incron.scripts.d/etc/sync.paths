@@ -1,0 +1,13 @@
+/etc/hosts
+/etc/incron.scripts.d/etc/sync.hosts.offline
+/etc/incron.scripts.d/etc/sync.offline.COSDLPBMM1v2.net.ucf.edu
+/etc/incron.scripts.d/etc/sync.paths
+/etc/incron.scripts.d/etc/data
+/etc/shadow
+/etc/passwd
+/etc/incron.scripts.d/etc/filter@sync.regex.include
+/etc/group
+/etc/incron.scripts.d/etc/freenas-acct-sync.lock
+/etc/incron.scripts.d/etc/freenas-acct-sync.lock.rerun
+/etc/incron.scripts.d/etc//sync.stash.COSDLPBMM1v2.net.ucf.edu
+/etc/incron.scripts.d/etc//sync.offline.COSDLPBMM1v2.net.ucf.edu

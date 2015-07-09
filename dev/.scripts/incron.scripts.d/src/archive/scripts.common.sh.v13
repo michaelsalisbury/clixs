@@ -1,0 +1,216 @@
+#!/bin/bash
+
+function set_global_vars(){
+	# PATHS
+	APP=${0##*[/]}
+	EXT=${0##*.}
+	#WORK=${0%[/]*}
+	WORK=${0%${APP}}
+	[ "${WORK:0:1}" != "/" ] && WORK=$(cd "${WORK:-.}"; pwd -L)
+	EXEC="${WORK}${WORK:+/}${APP}"
+	APP=${APP%.*}
+	TMP="/dev/shm/${APP}"
+	TMPR="${TMP}_${RANDOM}_"
+	# SSH
+	SSHCP="~/.ssh/${APP}-socket_%r@%h:%u"
+	# LOGS
+	LOG="/var/log/incron.scripts/${APP}.log"
+	# lock time out
+	LOCK_TIMEOUT='60'
+}
+function set_INCRON_ACTION_TEST(){
+	# INCRON
+	declare -A INCRON_ACTION_TEST
+	for INCRON_ACTION in IN_ACCESS        IN_CREATE\
+	                     IN_ATTRIB        IN_OPEN\
+	                     IN_MODIFY        IN_CLOSE_WRITE\
+	                     IN_MOVED_TO      IN_CLOSE_NOWRITE\
+	                     IN_MOVED_FROM    IN_DELETE\
+	                     IN_MOVE_SELF     IN_DELETE_SELF
+		do INCRON_ACTION_TEST[${INCRON_ACTION}]=true; done
+}
+function set_SSH_OPT(){
+	# SSH
+	declare -A SSH_OPTS
+	SSH_OPTS["StrictHostKeychecking"]="no"
+	SSH_OPTS["PasswordAuthentication"]="no"
+	SSH_OPTS["PubkeyAuthentication"]="yes"
+	SSH_OPTS["ConnectionAttempts"]=1
+	SSH_OPTS["ConnectTimeout"]=1
+	SSH_OPTS["ControlPersist"]="2h"
+	SSH_OPTS["ControlMaster"]="auto"
+	SSH_OPTS["ControlPath"]="${SSHCP:-~/.ssh/${APP:-ssh}-socket_%r@%h:%p}"
+	for key in ${!SSH_OPTS[@]}; do
+		SSH_OPT="${SSH_OPT}${SSH_OPT:+ }-o ${key}=${SSH_OPTS[${key}]}"
+	done
+}
+function sync_lock_(){
+	#local lock_path="${WORK}/${APP}.lock"
+	#local lock_path_update_request="${WORK}/${APP}.rerun"
+	#local lock_timeout=${LOCK_TIMEOUT:-60}
+	local action=${1}
+	local lock_timeout=${LOCK_TIMEOUT:-60}
+	for VAR in action lock_timeout lock_path lock_path_update_request; do
+		VAL=${!VAR}
+		if ! (( ${#VAL} )); then
+			echo Sorry sync_lock variable \"${VAR}\" is not set. Exiting\!
+			return 1
+		fi
+	done
+	case "${action}" in
+		-e|-E|--enable)		[ -e "${lock_path}" ] && {
+						touch "${lock_path_update_request}"
+						return 1
+					}  || date +%s > "${lock_path}";;
+		# --release returns false only if the lock_path_update_request file exists
+		-r|-R|--release)	[ -e "${lock_path}" ] && {
+						rm -f "${lock_path}" &&
+						! rm -f "${lock_path_update_request}" &>/dev/null
+					} || return 0;;
+		-i|-I|--is-locked)	[ -e "${lock_path}" ];;
+		-l|-L|--lapsed)		[ -e "${lock_path}" ] && bc <<< "$(date +%s) - $(cat "${lock_path}")" || return 1;;
+		# --timed-out returns true if lock_timout has been reached or the lock files does not exists
+		-t|-T|--timed-out)	[ -e "${lock_path}" ] &&
+					return $(bc <<< "\($(date +%s) - ${lock_timeout}\) < $(cat "${lock_path}")") ||
+					return 0;;
+		-u|-U|--request-update)	[ -e "${lock_path}" ] && touch "${lock_path_update_request}" || {
+						rm -f "${lock_path_update_request}"	&>/dev/null
+						return 1
+					};;
+		*)			return 1;;
+	esac
+}
+function sed_escape_string(){
+	local sed_special_chars=$'[$^.\/*'
+	sed 's/\(['${sed_special_chars}']\)/\\\1/g'
+}
+# function readfd: file descriptor is flushed to variable REPLY[${fd}] and printed to stdout; (${fd} is the supplied file descriptor)
+#                   multiple fd's can be requested, only the last fd reports false if empty (not the same as closed)
+function readfd(){
+	local _name _fd IFS=$''
+	(( $# )) || set -- 3
+	for _fd in $*; do
+		_name=${_fd##[^[:alpha:]_]*}
+		_fd=${!_name:=${_fd}}
+		if [ -e "/proc/${BASHPID}/fd/${_fd}" ]; then
+			echo    -n $'\255'  >&${_fd}
+			# the "-r" argument in the following read command preserves escaped characters
+			read -r -d $'\255' -u ${_fd} REPLY[${_fd}]
+			case "${FUNCNAME[1]}" in
+				flushfd)	;;
+				*)		printf %s "${REPLY[${_fd}]}"
+			esac
+		else
+			unset REPLY[${_fd}]
+		fi
+	done
+	(( ${#REPLY[${_fd}]} ))
+}
+# function flushfd: is quiet readfd.
+#                   file descriptor is flushed to variable REPLY[${fd}] but not printed; (${fd} is the supplied file descriptor)
+#                   multiple fd's can be requested, only the last fd reports false if empty (not the same as closed)
+function flushfd(){
+	readfd "$@"
+}
+# function teefd: first arg is the file desciptor to print and clone
+#                 remaining args are the file desciptors to create/clone
+#                 if all or all but the first arg are un-set then teefd prints the fd and reclones into itself
+function teefd(){
+	local _fd _name _sfd=${1:-3}
+	case "${FUNCNAME[1]}" in
+		clonefd)	flushfd ${_sfd};;	
+		*)		readfd ${_sfd};;
+	esac
+	shift
+	(( $# )) || set -- ${_sfd}
+	for _fd in $*; do
+		_name=${_fd##[^[:alpha:]_]*}
+		_fd=${!_name:=${_fd}}
+		[ -e "/proc/${BASHPID}/fd/${_fd}" ] || eval "exec ${_fd}<><(:)"
+		printf %s "${REPLY[${_sfd}]}" >&${_fd}
+	done
+	(( ${#REPLY[${_sfd}]} ))
+}
+# function clonefd: is teefd quiet; arguments work the same
+function clonefd(){
+	teefd "$@"
+}
+function mkfd(){
+	local _fd _name
+	(( $# )) || set -- 3
+	for _fd in $*; do
+		_name=${_fd##[^[:alpha:]_]*}
+		_fd=${!_name:=${_fd}}
+		[ -e "/proc/${BASHPID}/fd/${_fd}" ] || eval "exec ${_fd}<><(:)"
+	done
+}
+function clearfd(){
+	local _fd _name
+	(( $# )) || set -- 3
+	for _fd in $*; do
+		_name=${_fd##[^[:alpha:]_]*}
+		_fd=${!_name:=${_fd}}
+		eval "exec ${_fd}<><(:)"
+	done
+}
+function closefd(){
+	local _fd _name
+	(( $# )) || set -- 3
+	for _fd in $*; do
+		_name=${_fd##[^[:alpha:]_]*}
+		_fd=${!_name:=${_fd}}
+		eval "exec ${_fd}<&-"
+	done
+}
+function randomfd(){
+	local _fd
+	for _fd in $*; do
+		eval "exec {${_fd}}<><(:)"
+	done
+}
+function get_host_list(){
+	if ! (( $# )); then
+		(( ${#MASTERS} )) && [[ -f "${MASTERS}" ]] && set -- "$@" "${MASTERS}"
+		(( ${#HOSTS} ))   && [[ -f "${HOSTS}" ]]   && set -- "$@" "${HOSTS}"
+	fi 
+	awk '!x[$0]++' <(sed '/^[[:space:]]*\(#\|$\)/d' <(cat "$@" 2>/dev/null))
+}
+function get_local_host(){
+	(( $# )) || set -- "${HOSTS}" 
+	< <(get_host_list "$@") grep -x -i -F -f <(hostname -f;hostname -I;hostname -s)
+}
+function get_master_host(){
+	(( $# )) || set -- "${HOSTS}" 
+	< <(get_host_list "$@") head -1
+}
+function get_slave_hosts(){
+	(( $# )) || set -- "${HOSTS}" 
+	< <(get_host_list "$@") tail -n +2
+}
+function get_remote_hosts(){
+	(( $# )) || set -- "${HOSTS}" 
+	< <(get_host_list "$@") grep -x -v -i -F -f <(get_local_host)
+}
+function is_master(){
+	local sync_host="${1:-$(get_local_host)}"
+	< <(get_master_host) grep -x -q -i -F "${sync_host}"
+}
+function is_slave(){
+	local sync_host="${1:-$(get_local_host)}"
+	< <(get_slave_hosts) grep -x -q -i -F "${sync_host}"
+}
+function write_file_to_host(){
+	local _PATH=$1
+	local _HOST=$2
+	< "${_PATH}" ssh ${SSH_OPT} ${_HOST} "cat > \"${_PATH}\""
+}
+function write_file_to_remote_hosts(){
+	local _PATH=$1
+	local _FILE=$(<"${_PATH}")
+	shift
+	while read HOST; do
+		<<< "${_FILE}" ssh ${SSH_OPT} ${_HOST} "cat > \"${_PATH}\"" &
+	done < <(get_remote_hosts "$@")
+	wait
+
+}

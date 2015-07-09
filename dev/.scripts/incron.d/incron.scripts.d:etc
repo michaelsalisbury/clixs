@@ -1,0 +1,3 @@
+/etc/incron.scripts.d/etc IN_CREATE,IN_DELETE,IN_MODIFY /etc/incron.scripts.d/etc/filter.sh $% -- $@/$#
+/etc IN_CLOSE_WRITE,IN_MODIFY /etc/incron.scripts.d/etc/filter.sh $% -- $@/$#
+/etc/default IN_CLOSE_WRITE,IN_MODIFY /etc/incron.scripts.d/etc/filter.sh $% -- $@/$#

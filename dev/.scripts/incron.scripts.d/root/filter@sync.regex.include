@@ -1,0 +1,5 @@
+/etc/incron.scripts.d/root/[^/]*
+/root/\.ssh/authorized_keys
+/root/\.bash_profile
+/root/\.bashrc
+/root/\.bash_aliases

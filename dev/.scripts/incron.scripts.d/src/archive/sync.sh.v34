@@ -1,0 +1,328 @@
+#!/bin/bash
+
+function main(){
+	local sync_host
+	local sync_path
+	# INCRON_MATCH
+	if (( ${#INCRON_MATCH} )); then
+		set -- "$(get_local_host)" "${INCRON_MATCH}"
+	else
+		while [[ "${1//[^[:alpha:]-]/_}" != +(--|) ]]; do
+			case "${1}" in
+				# force master node check
+				-e)	elect_to_master_check; exit $?;;
+				# force local host to master node status and sync host file
+				-m)	elect_local_to_master; exit $?;;
+				-s)	show_status; exit $?;;
+				-v)	show_version; exit $?;;
+				-c)	shift; < <(get_remote_hosts) run_cmd_on_hosts -l -T -c -- "$@"; exit $?;;
+				# test
+				-t)	component_test; exit $?;;
+				*)	false;;
+			esac
+			(( $? )) || { shift; continue; }
+			if is_slave "${1}"; then
+				sync_host="${1}"
+				shift
+				sync_path="${1}"
+				shift
+				continue
+			elif [ -e "${1}" ]; then
+				sync_path="${1}"
+				shift
+				continue
+			fi
+
+			shift
+		done
+		[ "${1//[^[:alpha:]-]/_}" == "--" ] && shift
+		# find sync_path if not set
+		if ! (( ${#sync_path} )); then		
+			if ! (( ${#1} )); then
+				sync_path="$(pwd -L)"
+			elif [ -e "${*}" ]; then
+				sync_path="${*}"
+			else
+				echo ERROR :: Path not valid.  Exiting\!
+				exit 1
+			fi
+		fi
+		# generate full path if not absolute
+		if [ "${sync_path:0:1}" != "/" ]; then
+			local sync_base=${sync_path##*[/]}
+			local sync_dir=${sync_path%${sync_base}}
+			local sync_path="$(cd "${sync_dir:-.}"; pwd -L)/${sync_base}"
+		fi
+		# reset arguments
+		set -- "${sync_host:-$(get_local_host)}" "${sync_path}"
+	fi
+	if is_master; then
+		sync_hosts "${@}"
+	else
+		relay_to_master "${@}"
+	fi
+}
+function sync_hosts(){
+	local sync_host=$1
+	local sync_path=$2
+	local unison_cnt
+	local unison_err
+	local unison_opt
+	local unison_max_tries=10
+	local unison_opt_defaults="-auto -batch -times -confirmbigdel=false -logfile=${ULOG}"
+	local _OFFLINE=$(<"${OFFLINE}")
+	sync_lock -e "${sync_path}" || { echo BLOCKED :: "${sync_path}"; return 1; }
+	while read HOST; do
+		unison_opt=${unison_opt_defaults}
+		if [ -f "${sync_path}" ] || [ -d "${sync_path}" ]; then
+			echo Unison :: MODIFY :: ${HOST} :: \"${sync_path}\".
+		elif ! [ -e "${sync_path}"]; then
+			echo Unison :: DELETE :: ${HOST} :: \"${sync_path}\".
+		else
+			echo Unison :: _SKIP_ :: ${HOST} :: \"${sync_path}\".
+			continue
+		fi
+		unset unison_cnt
+		# ssh :: verify that HOST is up
+		if ssh -q -n ${SSH_OPT} ${HOST}; then
+			<<< "SSH :: Persistent connection to host \"${HOST}\" established." sed 'h;s/./_/g;G;p;x;s/./^/g'
+			[[ "${_OFFLINE}" =~ "${HOST}"$'\n'|$'\n'"${HOST}"|"${HOST}" ]] &&
+			_OFFLINE=${_OFFLINE/${BASH_REMATCH}/}
+		else
+			<<< "SSH :: Connection to host \"${HOST}\" failed with error code $?. Skipping." sed 'h;s/./!/g;G;p;x;s/./^/g'
+			[[ "${_OFFLINE}" =~ "${HOST}"$'\n'|$'\n'"${HOST}"|"${HOST}" ]] ||
+			_OFFLINE+=$'\n'"${HOST}"
+			continue
+		fi
+		# unison ::
+		while (( unison_cnt++ < unison_max_tries )); do
+			unison ${unison_opt} -sshargs "${SSH_OPT}" "${sync_path}" ssh://${HOST}/"${sync_path}"
+			unison_err=$?
+			<<< "Unison :: _EXIT_ :: ${unison_err}" sed 'h;s/./#/g;G;p;x;s/./#/g'
+			case "${unison_err}" in
+				0)	break;;
+				1)	unison_opt+=" -force=newer";;
+				3)	unison_opt="${unison_opt_defaults} -ignorearchives";;
+				*)	break;;
+			esac
+		done
+		<<< "Unison :: _POST_ :: ${HOST} :: \"${sync_path}\"" sed 'p;s/./#/g'
+	done < <(get_host_sync_order "${sync_host}")
+	sync_lock -r "${sync_path}"
+	diff "${OFFLINE}" <(echo "${_OFFLINE}") || echo "${_OFFLINE}" > "${OFFLINE}"
+}
+function sync_lock(){
+	local lock_path=${TMP}":"$(sed 's/[^[:alpha:][:digit:]_./-]/_/g;s/[/]/:/g' <<< "${2}")
+	local lock_path_update_request="${lock_path}.rerun"
+	sync_lock_ ${1}
+}
+function get_host_sync_order(){
+	local _sync_host=$1
+	(( ${#sync_host} )) &&
+	grep -x -v -i -F "$(get_local_host)" <<< "${_sync_host}"
+	grep -x -v -i -F "${_sync_host}" <(
+		get_host_list_alt <(get_remote_hosts "${MASTERS}" "${HOSTS}") "${OFFLINE}") 
+}
+function elect_local_to_master(){
+	echo ${FUNCNAME} :: Testing
+	local master_host=$(< <(get_master_host) sed_escape_string)
+	local local_host=$( < <(get_local_host)  sed_escape_string)
+	local    fd_SED_IN fd_SED_OUT
+	randomfd fd_SED_IN fd_SED_OUT
+	cat <<-SED >& ${fd_SED_IN}
+		s/^[[:space:]]*\(${master_host}\)[[:space:]]*\$/MASTER_NODE_PLACE_HOLDER/
+		s/^[[:space:]]*\(${local_host}\)[[:space:]]*\$/${master_host}/
+		s/MASTER_NODE_PLACE_HOLDER/${local_host}/
+	SED
+	sed -f <(readfd ${fd_SED_IN}) "${HOSTS}" >& ${fd_SED_OUT}
+	flushfd ${fd_SED_OUT}
+	printf %s "${REPLY[${fd_SED_OUT}]}" > "${HOSTS}" &
+	while read HOST; do
+		echo syncing... ${HOST}
+		< <(printf %s "${REPLY[${fd_SED_OUT}]}") ssh -q ${SSH_OPT} ${HOST} "cat > \"${HOSTS}\"" &
+	done < <(get_remote_hosts)
+	wait
+	rm -vf -- "${SHA1SUM}"*
+	rm -vf -- "${MODTIME}"*
+	(( ${#@} )) && main "$@"
+}
+function elect_peer_to_master(){
+	echo ${FUNCNAME} ::  sync host file with other nodes and re-submit sync_path for update
+	local sha1sum=$1
+	mv -vf "${SHA1SUM}${sha1sum}" "${HOSTS}"
+	rm -vf -- "${SHA1SUM}"*
+	rm -vf -- "${MODTIME}"*
+	echo '$@' :: "$@"
+	(( ${#@} )) && echo re-run main
+	exit
+	(( ${#@} )) && main "$@"
+}
+function elect_to_master_check(){
+	##### sha1sums :: a list of sha1sums of the sync_path on all available peers ordered by popularity
+	local sha1sums=$(get_sha1sum_remote_hosts -- "${HOSTS}")
+	##### sha1sums_lines :: the number of different versions of the sync_path
+	local sha1sums_lines=$(wc -l <<< "${sha1sums}")
+	##### 
+	local host_cnt0 sha1sum0
+	read  host_cnt0 sha1sum0 <<< "${sha1sums}"
+	local host_cnt1 sha1sum1
+	read  host_cnt1 sha1sum1 <<< "${sha1sums#*$'\n'}"
+	##### 
+	echo sha1sum0 :: ${sha1sum0}
+	echo sha1sum1 :: ${sha1sum1}
+	##### sha1sums_diff :: the delta between the 2 top most popular versions of the sync_path
+	local sha1sums_diff=$(( ${host_cnt0:-0} - ${host_cnt1:-0} ))
+	#####
+	local HOSTS_sha1sum
+	read  HOSTS_sha1sum xxx < <(sha1sum "${HOSTS}")
+	local HOSTS_age=$(stat -c +%Y "${HOSTS}")
+	#####
+	if (( sha1sums_lines == 0 )); then
+		echo ERROR :: no other nodes on-line.
+		echo ERROR :: develop code to delay sync untill other nodes come on-line. Exiting\!
+		exit 1
+	elif (( sha1sums_lines == 1 )) && [ "${sha1sum0}" == "${HOSTS_sha1sum}" ]; then
+		echo ${FUNCNAME} :: Only one version of \"${HOSTS}\" found match local host.
+		elect_local_to_master "${@}"
+
+	elif (( sha1sums_lines == 1 )) && [ "${sha1sum0}" != "${HOSTS_sha1sum}" ]; then
+		echo ${FUNCNAME} :: Only one version of \"${HOSTS}\" found differing from local host.
+		elect_peer_to_master ${sha1sum0} "${@}"
+
+	elif (( sha1sums_lines > 1 )) && [ "${sha1sum0}" == "${HOSTS_sha1sum}" ]; then
+		echo ${FUNCNAME} :: Multiple versions of \"${HOSTS}\" found, popular version matches local host.
+		elect_local_to_master "${@}"
+
+	elif (( sha1sums_lines > 1 )) && (( sha1sums_diff > 1 )); then
+		echo ${FUNCNAME} :: Multiple versions of \"${HOSTS}\" found, popular version does not match local host.
+		elect_peer_to_master ${sha1sum0} "${@}"
+
+	elif (( sha1sums_lines > 1 )) && (( sha1sums_diff == 0 )) && [ "${sha1sum1}" == "${HOSTS_sha1sum}" ]; then
+		echo ${FUNCNAME} :: Multiple versions of \"${HOSTS}\" found, alternate version less popular than local host.
+		elect_local_to_master "${@}"
+
+	elif (( sha1sums_lines > 1 )) && (( sha1sums_diff == 1 )) && [ "${sha1sum1}" != "${HOSTS_sha1sum}" ]; then
+		echo ${FUNCNAME} :: Multiple versions of \"${HOSTS}\" found, neither popular versions match local host.
+		elect_peer_to_master ${sha1sum0} "${@}"
+		
+	elif (( sha1sums_lines > 1 )) && (( sha1sums_diff == 1 )) && [ "${sha1sum1}" == "${HOSTS_sha1sum}" ]; then
+		echo ${FUNCNAME} :: Multiple versions of \"${HOSTS}\" found, alternate version equally popular as local host.
+		if (( HOSTS_age > $(tail -1 "${TMP}_${sha1sum0}_age") )); then
+			echo ${FUNCNAME} :: Multiple versions of \"${HOSTS}\" found, alternate version older than local host.
+			elect_local_to_master "${@}"
+		else
+			echo ${FUNCNAME} :: Multiple versions of \"${HOSTS}\" found, alternate version newer than local host.
+			elect_peer_to_master ${sha1sum0} "${@}"
+		fi
+	else
+		echo ERROR :: unknown state while attempting to elect a new master node. Exiting\!
+		exit 1
+	fi
+}
+function get_sha1sum_remote_hosts(){
+	local    fd_SSH_IN fd_SSH_OUT fd_SORT_OUT sync_path=$2
+	randomfd fd_SSH_IN fd_SSH_OUT fd_SORT_OUT
+	cat <<-SSH >& ${fd_SSH_IN}
+		echo -n \$(stat -c %Y "${sync_path}") \$(sha1sum "${sync_path}")
+		cat "${sync_path}"
+	SSH
+	flushfd ${fd_SSH_IN}
+	while read HOST; do
+		{
+			randomfd fd_BASH
+			<<< "${REPLY[${fd_SSH_IN}]}" ssh -q ${SSH_OPT} ${HOST} bash >& ${fd_BASH} && {
+				read -u ${fd_BASH} sync_path_modtime sha1sum sync_path
+				readfd    fd_BASH          > "${SHA1SUM}${sha1sum}"
+				echo ${sync_path_modtime} >> "${MODTIME}${sha1sum}"
+				echo ${sha1sum}           >&  ${fd_SSH_OUT}
+			}
+		} &
+	done < <(get_remote_hosts)
+	wait
+	< <(readfd ${fd_SSH_OUT})  sort >& ${fd_SORT_OUT}
+	< <(readfd ${fd_SORT_OUT}) uniq -c
+}
+
+function relay_to_master(){
+	while read HOST; do
+		if [ "$(get_local_host)" == "${HOST}" ]; then
+			elect_to_master_check "$@"
+			return
+		fi
+		_err= _loop='2' && while (( _loop-- )); do
+			ssh -n ${SSH_OPT} ${HOST} "${EXEC}" "$@" && break
+		done
+		case "${_err:=$?}" in
+			255)	echo Failed to relay to host \"${HOST}\" :: "$@";;
+			127)	echo Failed to run EXEC \"${EXEC}\" on host \"${HOST}\" :: "$@";;
+			0)	return;;
+			*)	echo EXEC \"${EXEC}\" on host \"${HOST}\" threw ERROR \"${_err}\" :: "$@"
+				return ${_err};;
+		esac
+	done < <(grep -x -v -i -F -f <(get_host_list "${DENIED}") <(get_host_list "${MASTERS}" "${HOSTS}"))
+}
+function component_test(){
+	echo Component Testing...
+
+
+	local HOST='COSDLPBMM1v1.net.ucf.edu'
+	local HOST='COSDLPBMM1v9.net.ucf.edu'
+	#local _OFFLINE=$(<"${OFFLINE}")
+	local _OFFLINE=$(<"${HOSTS}")
+	#[[ "${_OFFLINE}" =~ "${HOST}"$'\n'|$'\n'"${HOST}"|"${HOST}" ]] || _OFFLINE+=$'\n'"${HOST}"
+	[[ "${_OFFLINE}" =~ "${HOST}"$'\n'|$'\n'"${HOST}"|"${HOST}" ]] && _OFFLINE=${_OFFLINE/${BASH_REMATCH}/}
+	echo "${_OFFLINE}"
+	return
+
+
+	echo get_local_host
+	get_local_host
+	echo get_host_list
+	get_host_list
+	echo get_master_host
+	get_master_host
+	echo get_slave_hosts
+	get_slave_hosts
+	echo get_sha1sum_remote_hosts
+	get_sha1sum_remote_hosts -- "/etc/incron.scripts.d/src/sync.hosts"
+	cat "${MODTIME}"*
+	rm -vf "${TMPR}"*
+	echo SSH_OPT :: ${SSH_OPT} 
+
+	echo var_is_unset
+	var_is_unset SSH_OPT && echo unset || echo set
+	var_is_unset BOOBS && echo unset || echo set
+	
+	echo Exiting\!
+	exit 1
+
+}
+function show_version(){
+	mk_version "/etc/incron.scripts.d/src/scripts.common.sh"
+	mk_version "${EXEC}"
+}
+. /etc/incron.scripts.d/src/scripts.common.sh
+set_global_vars
+set_SSH_OPT
+### global vars
+
+# LOGS
+ULOG="/var/log/incron.scripts/${APP}.unison"
+
+# variables USER and HOME must be exported for unison to run
+# variables USER and HOME are not set in cron or incron
+export USER=${USER:-$(whoami)}
+export HOME=${HOME:-$(eval echo ~${USER})}
+HOSTS="${WORK}${WORK:+/}${APP}.hosts"
+MASTERS="${HOSTS}.masters"
+OFFLINE="${HOSTS}.offline"
+DENIED="${HOSTS}.denied"
+SHA1SUM="${TMPR}sha1sum_"
+MODTIME="${TMPR}modtime_"
+
+# config
+# sync_hosts      :: local unison_max_tries=10
+# relay_to_master :: local max_relay_attempts=2
+
+
+main "$@" | tee -a "${LOG}"

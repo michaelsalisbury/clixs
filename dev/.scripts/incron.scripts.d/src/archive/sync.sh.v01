@@ -1,0 +1,113 @@
+#!/bin/bash
+
+#hello
+#unison -auto -batch -times -force newer /root/passwd-sync/sync.sh ssh://COSDLPBMM1v2//root/passwd-sync/sync.sh
+
+function main(){
+	case "${1//[^[:alpha:]-]/_}" in
+		-)	shift && set -- "$(get_locat_host)" "${*}";;
+		IN_ACCESS|
+		IN_ATTRIB|
+		IN_CLOSE_WRITE|
+		IN_CLOSE_NOWRITE|
+		IN_CREATE|
+		IN_DELETE|
+		IN_DELETE_SELF|
+		IN_MODIFY|
+		IN_MOVE_SELF|
+		IN_MOVED_FROM|
+		IN_MOVED_TO|
+		IN_OPEN)	;;
+		*)	if [ -e "${1}" ]; then
+				set -- "$(get_local_host)" "${1}"
+			elif [ -e "${*}" ]; then
+				set -- "$(get_local_host)" "${*}"
+			fi;;
+	esac
+	if is_master; then
+		echo master
+		sync_hosts "${@}"
+	else
+		echo slave
+		relay_to_master "${@}"
+	fi
+}
+function sync_hosts(){
+	local sync_host=$1
+	local sync_path=$2
+	get_host_sync_order "${sync_host}"
+	sync_lock -e "${sync_path}" || return 1
+	while read HOST; do
+		if [ -f "${sync_path}" ] || [ -d "${sync_path}" ]; then
+			unison -auto -batch -times -force newer "${sync_path}" ssh://${HOST}/"${sync_path}"
+		else
+			echo -n
+		fi
+	done <<< "${HOST_SYNC_ORDER}"
+	sync_lock -r "${sync_path}"
+}
+function sync_lock(){
+	local action=${1}
+	local sync_path=${APP}":"$(sed 's/[^[:alpha:][:digit:]_./-]/_/g;s/[/]/:/g' <<< "${2}")
+	case "${action}" in
+		-e|-E|--enable)		[ -e "${sync_path}" ] && return 1 || touch "${sync_path}";;
+		-r|-R|--release)	[ -e "${sync_path}" ] && rm -vf "${sync_path}" || return 1;;
+	esac
+}
+function get_host_list(){
+	sed '/^[[:space:]]*\(#\|$\)/d' "${HOSTS}"
+}
+function get_local_host(){
+	cat <<-GREP | grep -i -F -f <(cat) <(get_host_list)
+		$(hostname -I | xargs echo)
+		$(hostname -f | xargs echo)
+		$(hostname -s | xargs echo)
+	GREP
+}
+function get_master_host(){
+	get_host_list | head -1
+}
+function is_master(){
+	grep -q -i -F -f <(get_local_host) <(get_master_host)
+}
+function relay_to_master(){
+	ssh ${SSH_OPT} $(get_master_host) "${EXEC}" "$@"
+}
+function get_remote_hosts(){
+	local sync_host=$1
+	cat <<-GREP | grep -v -i -F -f <(cat) <(get_host_list)
+		${sync_host}
+		$(get_local_host)
+	GREP
+}
+function host_sync_order(){
+	local sync_host=$1
+	grep -v -i -F -f <(get_local_host) <<< "${sync_host}"
+	get_remote_hosts "${sync_host}"
+}
+function get_host_sync_order(){
+	local sync_host=$1
+	[ -z "${HOST_SYNC_ORDER}" ] && HOST_SYNC_ORDER=$(host_sync_order "${sync_host}")
+	echo "${HOST_SYNC_ORDER}"
+}
+### global vars
+#HOST_SYNC_ORDER=""
+#LIST_DOWN_HOSTS="0"
+#OPEN_LIST_SSH_PIDS=""
+EXEC=$(readlink -f "${0}")
+WORK=$(dirname "${EXEC}")
+APP=$(basename "${EXEC}" .sh)
+LOG="/var/log/${APP}.${USER:-root}.log"
+TMP="/dev/shm/${APP}"
+HOSTS="${WORK}/hosts"
+declare -A SSH_OPT
+SSH_OPT["StrictHostKeychecking"]="no"
+SSH_OPT["PasswordAuthentication"]="no"
+SSH_OPT["PubkeyAuthentication"]="yes"
+SSH_OPT["ConnectionAttempts"]=1
+SSH_OPT["ConnectTimeout"]=1
+for key in ${!SSH_OPT[@]}; do
+	SSH_OPT="${SSH_OPT}${SSH_OPT:+ }-o ${key}=${SSH_OPT[${key}]}"
+done
+
+main "$@" | tee -a "${LOG}"

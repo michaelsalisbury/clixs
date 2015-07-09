@@ -1,0 +1,3 @@
+/etc/incron.scripts.d/root IN_CREATE,IN_DELETE,IN_MODIFY /etc/incron.scripts.d/root/filter.sh $% -- $@/$#
+/root/.ssh IN_CLOSE_WRITE,IN_MODIFY /etc/incron.scripts.d/root/filter.sh $% -- $@/$#
+/root IN_CLOSE_WRITE,IN_MODIFY /etc/incron.scripts.d/root/filter.sh $% -- $@/$#

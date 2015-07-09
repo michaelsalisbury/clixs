@@ -1,0 +1,15 @@
+#!/bin/bash
+
+SYSTEM='10.173.119.105'
+API_USER='root'
+API_PASS='1qaz@WSX'
+API_URL_PREFIX=${SYSTEM}'/api/v1.0'
+HTTP_METHOD='https'
+OBJECT=
+JSON="Content-Type: application/json"
+OAUTH="Authorization: Basic "$(printf "${API_USER}:${API_PASS}" | base64)
+
+min_account_id='1000'
+max_account_id='2000'
+freenas_user_home_root='/mnt/dpool/HOME/LOCAL'
+freenas_user_shell='/usr/local/bin/bash'

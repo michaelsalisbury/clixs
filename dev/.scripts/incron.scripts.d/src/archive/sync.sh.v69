@@ -1,0 +1,722 @@
+#!/bin/bash
+function show_help(){
+	cat <<-HELP
+		-f)	force path exists or fail
+		-e)	elect to master check
+		-m)	elect to master
+		-o)	sync host offline changes [hostname]
+		-u)	update offline host file, trigger [-o [hostname]]
+		-k)	kill all locally running instances
+		-K)	kill all local and remote running instances
+		-n)	show network status
+		-s)	show app status
+		-v)	show app versioning
+		-h)	show this message
+		-c)	run command on all hosts
+		-t)	testing
+	HELP
+}
+function main(){
+	local sync_host
+	local sync_path
+	# Network Status Check
+	network_status_check "$@"
+	# INCRON_MATCH
+	if (( ${INCRON_MATCH:+1} )); then
+		set -- "${LOCAL_HOST:=$(get_local_host)}" "${INCRON_MATCH}"
+		log INCRON_MATCH=${INCRON_MATCH} INCRON_ACTION=${INCRON_ACTION}
+		unset INCRON_MATCH
+	else
+		while [[ "${1//[^[:alpha:]-]/_}" != +(--|) ]]; do
+			case "${1}" in
+				# force master node check
+				-e)	elect_to_master_check; exit $?;;
+				# force local host to master node status and sync host file
+				-m)	elect_to_master; exit $?;;
+				# process the offline lists of a host
+				-o)	shift; sync_host_offline_changes $1; exit $?;;
+				# force update of offline host list, will trigger processing of offline lists
+				-u)	get_remote_hosts > "${OFFLINE}"; exit $?;;
+				# e-stop
+				-k)	killall_local; exit $?;;
+				-K)	shift; < <(get_remote_hosts) run_cmd_on_hosts -l -T TMP TMPR list_child_processes_rev killall_local; exit $?;;
+				# status
+				-n)	show_network_status; exit $?;;
+				-s)	show_status; exit $?;;
+				-v)	show_version; exit $?;;
+				-h)	show_help; exit $?;;
+				# test
+				-c)	shift; < <(get_remote_hosts) run_cmd_on_hosts -l -T -c -- "$@"; exit $?;;
+				-t)	shift; component_test "$@"; exit $?;;
+				-f)	local FORCE_MATCH_OR_FAIL=true;;
+				-*)	echo ERROR, malformed args :: "$@"; exit 1;;
+				*)	false;;
+			esac
+			(( $? )) || { shift; continue; }
+			if is_slave "${1}"; then
+				sync_host="${1}"
+				shift
+				sync_path="${1}"
+				shift
+				continue
+			elif [ -e "${1}" ]; then
+				sync_path="${1}"
+				shift
+				continue
+			fi
+
+			shift
+		done
+		[ "${1//[^[:alpha:]-]/_}" == "--" ] && shift
+		# find sync_path if not set
+		if ! (( ${#sync_path} )); then		
+			if ! (( $# )) && ! ${FORCE_MATCH_OR_FAIL:-false}; then
+				sync_path="$(pwd -L)"
+			elif [ -e "${*}" ]; then
+				sync_path="${*}"
+			else
+				echo ERROR :: Path not valid.  Exiting\!
+				exit 1
+			fi
+		fi
+		# generate full path if not absolute
+		if [ "${sync_path:0:1}" != "/" ]; then
+			local sync_base=${sync_path##*[/]}
+			local sync_dir=${sync_path%${sync_base}}
+			local sync_path="$(cd "${sync_dir:-.}"; pwd -L)/${sync_base}"
+		fi
+		# reset arguments
+		set -- "${sync_host:-${LOCAL_HOST:=$(get_local_host)}}" "${sync_path}"
+	fi
+	if is_master; then
+		sync_hosts "${@}"
+	else
+		relay_to_master "${@}"
+	fi
+}
+function sync_host_offline_changes(){
+	local _i _offline_list _offline_lists HOST=$1
+	# verify on-line
+	grep -qxiF "${HOST}" "${OFFLINE}" && return 1
+	# lists
+	local _offline_lists=( "${OFFLINE_STASH}${HOST}" 
+				"${OFFLINE_SYNC}${HOST}" )
+	# sync lists
+	for _i in ${!_offline_lists[*]}; do
+		at now <<< "\"${EXEC}\" ${HOST} \"${_offline_lists[${_i}]}\""
+	done
+
+	# process lists
+	for _offline_list_index in ${!_offline_lists[*]}; do
+		# verify host online && read line from list
+		while grep -qvxiFf "${OFFLINE}" <<< "${HOST}" &&
+		      [[ "$(head -1 "${_offline_lists[${_i}]}")" =~ .+ ]]; do
+			# remove MATCH from all down-stream files in list
+			for _offline_list in "${_offline_lists[@]:${_i}}"; do
+				remove_line_in_file "${_offline_list}" "${BASH_REMATCH}" &
+			done
+			main ${HOST} "${BASH_REMATCH}" &
+			wait $!
+		done
+	done
+}
+function sync_host_status(){
+	# return 0=online 1=offline 2=newly-online 3=newly-offline
+	local HOST=$1
+	ssh -q -n ${SSH_OPT} ${HOST}		& { local  _SSH_TEST=$!; }
+	grep -q -x -i -F "${HOST}" "${OFFLINE}"	& { local _GREP_TEST=$!; }
+	if wait ${_SSH_TEST}; then
+		log "SSH-UP \"${HOST}\""
+		if wait ${_GREP_TEST}; then
+			remove_line_in_file "${OFFLINE}" "${HOST}" &
+			at now <<< "\"${EXEC}\" -o ${HOST}"
+			return 2 # newly on-line
+		else
+			return 0
+		fi
+	else
+		log "SSH-ERR $? \"${HOST}\"\; Skipping."
+		if wait ${_GREP_TEST}; then
+			return 1
+		else
+			ammend_line_to_file "${OFFLINE}" "${HOST}" &
+			return 3
+		fi
+	fi
+}
+function sync_hosts(){
+	local sync_host=$1
+	local sync_path=$2
+	local sync_lock="${sync_path}.unison"
+	local sync_data=
+	# SYNC MESSAGE
+	if ! sync_target_type "$@"; then
+		log ${sync_target_type}
+		return 1
+	fi
+	# ENABLE LOCK
+	if sync_lock -e "${sync_lock}"; then
+		sync_lock -w ${BASHPID} "${sync_lock}"
+	elif sync_lock -E "${sync_lock}"; then
+		sync_lock -w ${BASHPID} "${sync_lock}"
+		log RERUN REQUEST
+		if ! sync_lock -W "${sync_lock}"; then
+			sync_lock -R "${sync_lock}"
+			return
+		fi
+	else
+		sync_lock -w ${BASHPID} "${sync_lock}"
+		log TERCIARY RERUN REQUEST
+		return
+	fi
+	sync_lock -R "${sync_lock}"
+	# SYNC ALL HOSTS
+	while read HOST; do
+		# check to see if host has already been sync'd
+		sync_lock -v "${HOST}" "${sync_lock}" && continue
+
+		# ssh :: verify HOST is up
+		sync_host_status ${HOST}
+		case $? in 1|3) continue;; esac
+
+		# get last log entry
+		sync_data=$(sync_lock -T 1 "${sync_lock}")
+
+		# unison
+		sync ${HOST} "${sync_path}"
+
+		# confirm last log entry, ensuring sync hasn't restarted
+		sync_lock -v "${sync_data}" "${sync_lock}" &&
+		sync_lock -a "${HOST}"      "${sync_lock}"
+
+	done < <(get_host_sync_order "${sync_host}")
+	# REMOVE LOCK
+	sync_lock -r "${sync_lock}"
+
+	# VERIFY SOME HOSTS REMAIN ONLINE
+	if ! grep -q -v -x -F -f "${OFFLINE}" <(get_remote_hosts); then
+		sync_lock -r "${NETWORK_STATUS}"
+		at now <<< "\"${EXEC}\" -e"
+		return
+	fi
+	# UPDATE OFFLINE HOST SYNC LOGS
+	while read HOST; do
+		ammend_line_to_file "${OFFLINE_SYNC}${HOST}" "${sync_path}" &
+	done < "${OFFLINE}"
+		ammend_line_to_file "${PATHS}"               "${sync_path}" &
+	wait
+}
+function remove_line_in_file(){
+	# returns true only if the _line exists and the file was writable
+	local _file=$1
+	local _line=$2
+	while ! sync_lock -e "${_file}"; do sleep 2; done
+	local _data=$(<"${_file}")$'\n'
+	if [[ "${_data}" =~ (^|$'\n')("${_line}"$'\n') ]]; then
+		_data=${_data/${BASH_REMATCH[2]}}
+		echo -n "${_data}" > "${_file}"
+	else
+		false
+	fi
+	local _err=$?
+	sync_lock -r "${_file}"
+	return ${_err}
+}
+function ammend_line_to_file(){
+	# returns true only if the _line did not exist and the file was writable
+	local _file=$1
+	local _line=$2
+	while ! sync_lock -e "${_file}"; do sleep 2; done
+	local _data=$(<"${_file}")
+	if ! [[ "${_data}" =~ (^|$'\n')"${_line}"($|$'\n') ]]; then
+		echo "${_line}" >> "${_file}"
+	else
+		false
+	fi
+	local _err=$?
+	sync_lock -r "${_file}"
+	return ${_err}
+}
+function sync_lock(){
+	local last_arg=$#
+	local lock_path=${TMP}":"$(sed 's/[^[:alpha:][:digit:]_./-]/_/g;s/[/]/:/g' <<< "${!last_arg}")
+	set -- "${@:1:$#-1}" # this removes the last_arg
+	sync_lock_ "$@"
+}
+function get_host_sync_order(){
+	local _sync_host=$1
+	(( ${#sync_host} )) &&
+	grep -x -v -i -F "${LOCAL_HOST:=$(get_local_host)}" <<< "${_sync_host}"
+	grep -x -v -i -F "${_sync_host}" <(
+		get_host_list_alt <(get_remote_hosts "${MASTERS}" "${HOSTS}") "${OFFLINE}")
+}
+function elect_to_master(){
+	echo ${FUNCNAME} :: elect self to master node and re-submit sync_path for update
+	local master_host=$(< <(get_master_host)                  sed_escape_string)
+	local local_host=$( <<< ${LOCAL_HOST:=$(get_local_host)}  sed_escape_string)
+	if ! sync_lock -e "${HOSTS}"; then
+		echo ${FUNCNAME} :: Hosts file \"${HOSTS}\" locked, elect in progress, resubmit request.
+	else
+		local _HOSTS=$(<"${HOSTS}")
+		local fd_SED_IN
+		exec {fd_SED_IN}<<-SED
+			s/^[[:space:]]*\(${master_host}\)[[:space:]]*\$/MASTER_NODE_PLACE_HOLDER/
+			s/^[[:space:]]*\(${local_host}\)[[:space:]]*\$/${master_host}/
+			s/MASTER_NODE_PLACE_HOLDER/${local_host}/
+		SED
+		_HOSTS=$(sed -f <(cat <&${fd_SED_IN} {fd_SED_IN}<&-) <<< "${_HOSTS}")
+		< <(get_remote_hosts <(echo "${_HOSTS}")) write_file_to_hosts -l <(echo "${_HOSTS}") "${HOSTS}"
+		sync_lock -r "${HOSTS}"
+		get_remote_hosts > "${OFFLINE}" &
+	fi
+		rm -f -- "${SHA1SUM}"* &
+		rm -f -- "${MODTIME}"* &
+		wait
+		(( $# )) && main "$@"
+}
+function demote_to_slave(){
+	echo ${FUNCNAME} ::  sync host file with other nodes and re-submit sync_path for update
+	local sha1sum=$1
+	shift
+	if ! [ -f "${SHA1SUM}${sha1sum}" ]; then
+		echo ${FUNCNAME} :: alternate host file not supplied via sha1sum. Exiting\!
+		exit 1
+	fi
+	local _HOSTS_NEW=$(<"${SHA1SUM}${sha1sum}")
+	if ! sync_lock -e "${HOSTS}"; then
+		echo ${FUNCNAME} :: Hosts file \"${HOSTS}\" locked, elect in progress, resubmit request.
+	else
+		echo "${_HOSTS_NEW}" > "${HOSTS}" &
+		sync_lock -r "${HOSTS}"
+		at now <<< "\"${EXEC}\" \"${OFFLINE_STASH}${LOCAL_HOST}\""
+	fi
+		rm -f -- "${SHA1SUM}"* &
+		rm -f -- "${MODTIME}"* &
+		wait
+		(( $# )) && main "$@"
+}
+function elect_to_master_check(){
+	##### sha1sums :: a list of sha1sums of the sync_path on all available peers ordered by popularity
+	local sha1sums=$(get_sha1sum_remote_hosts -- "${HOSTS}")
+	##### sha1sums_lines :: the number of different versions of the sync_path
+	local sha1sums_lines=$(wc -l <<< "${sha1sums}")
+	##### 
+	local host_cnt0 sha1sum0
+	read  host_cnt0 sha1sum0 <<< "${sha1sums}"
+	local host_cnt1 sha1sum1
+	read  host_cnt1 sha1sum1 <<< "${sha1sums#*$'\n'}"
+	##### 
+	echo sha1sum0 :: ${sha1sum0}
+	echo sha1sum1 :: ${sha1sum1}
+	##### sha1sums_diff :: the delta between the 2 top most popular versions of the sync_path
+	local sha1sums_diff=$(( ${host_cnt0:-0} - ${host_cnt1:-0} ))
+	#####
+	local HOSTS_sha1sum
+	read  HOSTS_sha1sum xxx < <(sha1sum "${HOSTS}")
+	local HOSTS_age=$(stat -c +%Y "${HOSTS}")
+	#####
+	if (( sha1sums_lines == 0 )); then
+		echo ERROR :: no other nodes on-line.
+		network_status_check
+	elif (( sha1sums_lines == 1 )) && [ "${sha1sum0}" == "${HOSTS_sha1sum}" ]; then
+		echo ${FUNCNAME} :: Only one version of \"${HOSTS}\" found match local host.
+		elect_to_master "${@}"
+
+	elif (( sha1sums_lines == 1 )) && [ "${sha1sum0}" != "${HOSTS_sha1sum}" ]; then
+		echo ${FUNCNAME} :: Only one version of \"${HOSTS}\" found differing from local host.
+		demote_to_slave ${sha1sum0} "${@}"
+
+	elif (( sha1sums_lines > 1 )) && [ "${sha1sum0}" == "${HOSTS_sha1sum}" ]; then
+		echo ${FUNCNAME} :: Multiple versions of \"${HOSTS}\" found, popular version matches local host.
+		elect_to_master "${@}"
+
+	elif (( sha1sums_lines > 1 )) && (( sha1sums_diff > 1 )); then
+		echo ${FUNCNAME} :: Multiple versions of \"${HOSTS}\" found, popular version does not match local host.
+		demote_to_slave ${sha1sum0} "${@}"
+
+	elif (( sha1sums_lines > 1 )) && (( sha1sums_diff == 0 )) && [ "${sha1sum1}" == "${HOSTS_sha1sum}" ]; then
+		echo ${FUNCNAME} :: Multiple versions of \"${HOSTS}\" found, alternate version less popular than local host.
+		elect_to_master "${@}"
+
+	elif (( sha1sums_lines > 1 )) && (( sha1sums_diff == 1 )) && [ "${sha1sum1}" != "${HOSTS_sha1sum}" ]; then
+		echo ${FUNCNAME} :: Multiple versions of \"${HOSTS}\" found, neither popular versions match local host.
+		demote_to_slave ${sha1sum0} "${@}"
+		
+		
+	elif (( sha1sums_lines > 1 )) && (( sha1sums_diff == 1 )) && [ "${sha1sum1}" == "${HOSTS_sha1sum}" ]; then
+		echo ${FUNCNAME} :: Multiple versions of \"${HOSTS}\" found, alternate version equally popular as local host.
+		if (( HOSTS_age > $(tail -1 "${TMP}_${sha1sum0}_age") )); then
+			echo ${FUNCNAME} :: Multiple versions of \"${HOSTS}\" found, alternate version older than local host.
+			elect_to_master "${@}"
+		else
+			echo ${FUNCNAME} :: Multiple versions of \"${HOSTS}\" found, alternate version newer than local host.
+			demote_to_slave ${sha1sum0} "${@}"
+		fi
+	else
+		echo ERROR :: unknown state while attempting to elect a new master node. Exiting\!
+		exit 1
+	fi
+}
+function get_sha1sum_remote_hosts(){
+	local    fd_SSH_IN fd_SSH_OUT fd_SORT_OUT sync_path=$2
+	randomfd fd_SSH_IN fd_SSH_OUT fd_SORT_OUT
+	cat <<-SSH >& ${fd_SSH_IN}
+		echo \$(stat -c %Y "${sync_path}") \$(sha1sum "${sync_path}")
+		cat "${sync_path}"
+	SSH
+	flushfd ${fd_SSH_IN}
+	while read HOST; do
+		{
+			randomfd fd_BASH
+			<<< "${REPLY[${fd_SSH_IN}]}" ssh -q ${SSH_OPT} ${HOST} bash >& ${fd_BASH} && {
+				read -u ${fd_BASH} sync_path_modtime sha1sum sync_path
+				readfd    fd_BASH          > "${SHA1SUM}${sha1sum}"
+				echo ${sync_path_modtime} >> "${MODTIME}${sha1sum}"
+				echo ${sha1sum}           >&  ${fd_SSH_OUT}
+			}
+		} &
+	done < <(get_remote_hosts)
+	wait
+	< <(readfd ${fd_SSH_OUT})  sort >& ${fd_SORT_OUT}
+	< <(readfd ${fd_SORT_OUT}) uniq -c
+}
+
+function relay_to_master(){
+	local sync_host=$1
+	local sync_path=$2
+	# SYNC MESSAGE
+	if ! sync_target_type "$@"; then
+		log ${sync_target_type}
+		return 1
+	fi
+	# RELAY
+	while read HOST; do
+		if [ "${HOST}" == "${LOCAL_HOST:=$(get_local_host)}" ]; then
+			elect_to_master_check "$@"
+			return
+		fi
+		for _loop in {1..0}; do
+			ssh -q -n ${SSH_OPT} ${HOST}
+			case "${_err:=$?}" in
+				255)	echo Failed to relay to host \"${HOST}\" :: "$@";;
+				127)	echo Failed to run EXEC \"${EXEC}\" on host \"${HOST}\" :: "$@";;
+				0)	break;;
+				*)	echo EXEC \"${EXEC}\" on host \"${HOST}\" threw ERROR \"${_err}\" :: "$@"
+					return ${_err};;
+			esac
+			(( _loop )) || continue	
+		done
+		if [ "${HOST}" == "${MASTER_HOST:=$(get_master_host)}" ]; then
+			sync ${MASTER_HOST} "${sync_path}"
+			break
+		else
+			ssh -n ${SSH_OPT} ${HOST} "\"${EXEC}\" ${sync_host} \"${sync_path}\"" && break
+		fi
+	done < <(grep -x -v -i -F -f <(get_host_list "${DENIED}") <(get_host_list "${HOSTS}"))
+}
+function sync_target_type(){
+	local sync_host=$1
+	local sync_path=$2
+	if [ -f "${sync_path}" ] || [ -d "${sync_path}" ]; then
+		eval ${FUNCNAME}='MODIFY'
+	elif ! [ -e "${sync_path}"]; then
+		eval ${FUNCNAME}='DELETE'
+	else
+		eval ${FUNCNAME}='_SKIP_'
+		return 1
+	fi
+}
+function sync_old(){
+	local sync_host=$1
+	local sync_path=$2
+	local unison_err=
+	local unison_opts=
+	#local unison_max_tries=4
+	local unison_defaults="-auto -batch -times -confirmbigdel=false -logfile=${ULOG}"
+	# UNISON
+	log "${sync_target_type}" ${sync_host}
+	for _loop in {1..5}; do
+		< <(unison ${unison_opts:=${unison_defaults}} -sshargs "${SSH_OPT}"\
+			"${sync_path}" ssh://${sync_host}/"${sync_path}" 2>&1
+			echo $?) log_unison
+		unison_err=$?
+		log _TRY_${_loop} ERR ${unison_err}
+		case "${unison_err}" in
+			0)	break;;
+			1)	unison_opts+=" -force=newer";;
+			3)	unison_opts="${unison_defaults} -ignorearchives";;
+			*)	break;;
+		esac
+	done
+	# DONE
+	log _POST_ ${sync_host}
+	return ${unison_err}
+}
+function sync(){
+	local sync_host=$1
+	local sync_path=$2
+	local unison_err=
+	local unison_transferred=
+	local unison_skipped=
+	local unison_failed=
+	local unison_opts=
+	local unison_line=
+	#local unison_max_tries=4
+	local unison_defaults="-auto -batch -times -confirmbigdel=false -logfile=${ULOG}"
+	local    fd_UNISON
+	randomfd fd_UNISON
+
+	exec {fd_LOG}> >(log_unison)
+	# UNISON
+	log "${sync_target_type}" ${sync_host}
+	for _loop in {1..1}; do
+		while read -a unison_line; do
+			case "${unison_line[@]}" in
+				ERROR*)
+					unison_err=${unison_line[1]}
+					continue;;
+				Synchronization\ complete*)
+					unison_transferred=${unison_line[4]#\(}
+					unison_skipped=${unison_line[7]}
+					unison_failed=${unison_line[9]};;
+				*)	;;
+			esac
+			echo "${BASHPID} :: unison :: (${FUNCNAME}) :: ${unison_line[@]}"
+			continue
+			
+			[ "${unison_line[0]}" == "ERROR" ] &&
+				unison_err=${unison_line[1]} &&
+				continue
+			[ "${unison_line[*]:0:2}" == "Synchronization complete" ] &&
+				unison_transferred=${unison_line[4]#\(} &&
+				unison_skipped=${unison_line[7]} &&
+				unison_failed=${unison_line[9]} &&
+				continue
+			# Nothing to do: replicas have not changed since last sync.
+			# Synchronization complete at 19:35:26  (1 item transferred, 0 skipped, 0 failed)
+		done < <(< <(
+			unison ${unison_opts:=${unison_defaults}} -sshargs "${SSH_OPT}"\
+			"${sync_path}" ssh://${sync_host}/"${sync_path}" 2>&1
+			echo ERROR $?
+			) tr -d \\r
+			# sed 's/\r[[:space:]]*\r/ ... /'
+		)
+		log _TRY_${_loop} ERR        ${unison_err}\
+				  TRANSFERED ${unison_transferred}\
+				  SKIPPED    ${unison_skipped}\
+				  FAILED     ${unison_failed}
+		case "${unison_err}" in
+			0)	break;;
+			1)	unison_opts+=" -force=newer";;
+			3)	unison_opts="${unison_defaults} -ignorearchives";;
+			*)	break;;
+		esac
+	done
+	# DONE
+	log _POST_ ${sync_host}
+	return ${unison_err}
+}
+function log_unison(){
+	local _cmd=$1
+	exec {fd_AWK}<<-AWK
+		NR>1 {
+			print "${BASHPID} :: unison :: (${FUNCNAME[1]}) :: ", line
+		}
+		{
+			line=\$0
+			sub(/\\r[[:space:]]*\\r/,"...",line)
+		}
+		END {
+			exit line
+		}
+	AWK
+	#awk -v chr="BGN" -f <(cat <&${fd_AWK} {fd_AWK}<&-)
+	awk -f <(cat <&${fd_AWK} {fd_AWK}<&-)
+}
+function log(){
+	echo ${BASHPID} :: ${sync_path} :: \(${FUNCNAME[1]}\) - "$*"
+}
+function killall_local(){
+	local _PID
+	for _PID in "${TMP}"_*_PID; do
+		# extract pid from file name
+		# verify pid does not match this instance
+		if [[ "${_PID}" =~ (^"${TMP}"_([[:digit:]]+)_PID$) ]] &&
+		   [[ "${BASH_REMATCH[2]}" != "$(<"${TMPR}PID")" ]]; then
+			# verify that pid is running and the correct target
+			local _COMM="/proc/${BASH_REMATCH[2]}/comm"
+			if [ -f "${_COMM}" ] && [ "$(<"${_COMM}")" == "${COMM}" ]; then
+				echo -n killing ${BASH_REMATCH[2]} ...\
+				list_child_processes_rev ${BASH_REMATCH[2]}
+				kill ${BASH_REMATCH[2]}
+			else
+				rm -f "${_PID}"
+			fi
+		fi
+	done 2>/dev/null
+	return
+}
+function network_status_check(){
+	local sync_host=$1
+	local sync_path=$2
+	local _loop=6
+	local _lap=10
+	local _next=$(date +%s)
+	while (( _loop-- )); do
+		if ! sync_lock -i "${NETWORK_STATUS}" &&
+		   show_network_status; then
+			echo ${FUNCNAME} :: Network Started, running elect_to_master_check.
+			elect_to_master_check "$@"
+			return
+		elif sync_lock -i "${NETWORK_STATUS}"; then
+			echo ${FUNCNAME} :: Network up.
+			return
+		elif (( _loop )); then
+			sleep $(( $(( _next += _lap )) - $(date +%s) ))
+		else
+			if (( $# )); then
+				local _OFFLINE_STASH="${OFFLINE_STASH}${LOCAL_HOST:=${LOCAL_HOST:=$(get_local_host)}}"
+				echo ${FUNCNAME} :: Network Down, lapse over $(( _lap * _loop )) seconds, stashing request.
+				if ! sync_lock -W "${_OFFLINE_STASH}"; then
+					echo ${FUNCNAME} :: Offline Stash \"${_OFFLINE_STASH}\" lock lapse exceeded. Exiting\!
+					exit 1
+				else
+					grep -q -x -F "${sync_path}" "${_OFFLINE_STASH}" || echo "$@" >> "${_OFFLINE_STASH}"
+					sync_lock -r "${_OFFLINE_STASH}"
+				fi
+			fi
+				echo ${FUNCNAME} :: Network Down, setting \"at\" to try again in $(( _lap * _loop )) second.
+				at now + $(( _lap * _loop * 2 / 60 )) minute <<< "\"${EXEC}\" -e"
+			exit 1
+		fi
+	done
+}
+function show_network_status(){
+	if sync_lock -i "${NETWORK_STATUS}" &&
+	 ! sync_lock -R "${NETWORK_STATUS}"; then
+		echo ${FUNCNAME} :: Network Up
+	elif is_online; then
+		sync_lock -i "${NETWORK_STATUS}" ||
+		sync_lock -e "${NETWORK_STATUS}"
+		echo ${FUNCNAME} :: Network Confirmed Up
+	elif sync_lock -r "${NETWORK_STATUS}"; then
+		echo ${FUNCNAME} :: Network Down, no re-run.
+		close_ssh_persistent_connections
+		return 1
+	else
+		echo ${FUNCNAME} :: Network Down, re-run detected.
+		close_ssh_persistent_connections
+		return 1
+	fi
+}
+function close_ssh_persistent_connections(){
+	local HOST
+	while read HOST; do
+		ssh -q ${SSH_OPT} -O exit -n ${HOST}
+	done < <(get_remote_hosts)
+}
+function component_test(){
+	echo Component Testing...
+
+
+	return
+	time {
+		local _last=$#
+		echo LAST :: "${!_last}"
+		set -- "${@:1:$#-1}" # some comment
+		echo $# :: \$\@ :: "$@"
+		local _2nd=$2
+		local _3rd=$3
+		echo _2nd :: "${_2nd}"
+		echo _3rd :: "${_3rd}"
+	}
+	
+
+	return
+	sync_lock -e "${NETWORK_STATUS}"
+	network_status_check
+	sync_lock -l "${NETWORK_STATUS}"
+	#component_test2 <(cat "${HOSTS}")
+	return
+	echo PID :: ${BASHPID}
+	#list_child_processes
+	#for i in {0..5}; do
+	sleep 600 &
+	sleep 600 &
+	sleep 600 &
+	for i in {0..600}; do
+		echo -n .
+		sleep 1
+	done
+	#kill_child_processes $1
+	return ${RANDOM:0:2}
+
+	local HOST='COSDLPBMM1v1.net.ucf.edu'
+	local HOST='COSDLPBMM1v9.net.ucf.edu'
+	#local _OFFLINE=$(<"${OFFLINE}")
+	local _OFFLINE=$(<"${HOSTS}")
+	#[[ "${_OFFLINE}" =~ "${HOST}"$'\n'|$'\n'"${HOST}"|"${HOST}" ]] || _OFFLINE+=$'\n'"${HOST}"
+	[[ "${_OFFLINE}" =~ "${HOST}"$'\n'|$'\n'"${HOST}"|"${HOST}" ]] && _OFFLINE=${_OFFLINE/${BASH_REMATCH}/}
+	echo "${_OFFLINE}"
+	return
+
+
+	echo get_local_host
+	get_local_host
+	echo get_host_list
+	get_host_list
+	echo get_master_host
+	get_master_host
+	echo get_slave_hosts
+	get_slave_hosts
+	echo get_sha1sum_remote_hosts
+	get_sha1sum_remote_hosts -- "/etc/incron.scripts.d/src/sync.hosts"
+	cat "${MODTIME}"*
+	rm -vf "${TMPR}"*
+	echo SSH_OPT :: ${SSH_OPT} 
+
+	echo var_is_unset
+	var_is_unset SSH_OPT && echo unset || echo set
+	var_is_unset BOOBS && echo unset || echo set
+	
+	echo Exiting\!
+	exit 1
+
+}
+function show_version(){
+	mk_version "/etc/incron.scripts.d/src/scripts.common.sh"
+	mk_version "${EXEC}"
+}
+. /etc/incron.scripts.d/src/scripts.common.sh
+set_global_vars
+set_SSH_OPT
+### global vars
+
+# LOGS
+ULOG="/var/log/incron.scripts/${APP}.unison"
+
+# variables USER and HOME must be exported for unison to run
+# variables USER and HOME are not set in cron or incron
+export USER=${USER:-$(whoami)}
+export HOME=${HOME:-$(eval echo ~${USER})}
+HOSTS="${WORK}/${APP}.hosts"
+HOSTS_NEW="${HOSTS}.new"
+HOSTS_OLD="${HOSTS}.old"
+MASTERS="${HOSTS}.masters"
+OFFLINE="${HOSTS}.offline"
+DENIED="${HOSTS}.denied"
+LOCAL_HOST=$(get_local_host)
+NETWORK_LOCK=$(readlink -e "${HOSTS}")
+NETWORK_STATUS="${NETWORK_LOCK}.network-status"
+OFFLINE_STASH="${WORK}/${APP}.stash."
+OFFLINE_SYNC="${WORK}/${APP}.offline."
+PATHS="${WORK}/${APP}.paths"
+SHA1SUM="${TMPR}sha1sum_"
+MODTIME="${TMPR}modtime_"
+
+# config
+# sync_hosts      :: local unison_max_tries=10
+# relay_to_master :: local max_relay_attempts=2
+#exec {fd_UNISON}> >(xargs echo ${BASHPID} :: unison ::)
+exec {fd_LOG}> >(tee -a "${LOG}")
+main "$@" >& ${fd_LOG}
