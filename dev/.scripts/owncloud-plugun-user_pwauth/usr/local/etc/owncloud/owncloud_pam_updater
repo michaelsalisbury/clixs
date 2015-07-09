@@ -1,0 +1,85 @@
+#!/bin/sh
+#
+# $FreeBSD: head/security/sssd/files/sssd.in 354743 2014-05-21 11:46:16Z feld $
+#
+
+# PROVIDE: owncloud pluggin user_pwauth
+# REQUIRE: DAEMON
+# BEFORE: LOGIN
+# KEYWORD: shutdown
+
+# Add the following lines to /etc/rc.conf to enable `sssd':
+#
+# owncloud_pwauth_enable="YES"
+#
+# See sssd(8) for sssd_flags
+#
+
+. /etc/rc.subr
+
+name=owncoud_pwauth
+rcvar=owncloud_pwauth_enable
+
+# read configuration and set defaults
+load_rc_config "$name"
+
+: ${owncloud_pwauth_enable:=NO}
+: ${owncloud_pwauth_daemon="winbind"}
+: ${owncloud_pwauth_scr="/usr/local/etc/owncloud/pwauth-owncloud_pam-modifier.sh"}
+: ${owncloud_pwauth_log="/usr/local/etc/owncloud/pwauth-owncloud_pam-modifier.log"}
+: ${owncloud_pwauth_pam="/etc/pam.d/pwauth.owncloud"}
+
+#command="/usr/local/sbin/$name"
+#command="/usr/bin/tail -0 -f ${owncloud_pwauth_log} | ${owncloud_pwauth_scr} ${owncloud_pwauth_pam}"
+pidfile="/var/run/$name.pid"
+required_files="${owncloud_pwauth_scr}"
+extra_commands="reload status"
+start_precmd=owncloud_pwauth_prestart
+start_cmd=owncloud_pwauth_start
+stop_cmd=owncloud_pwauth_stop
+status_cmd=owncloud_pwauth_status
+reload_cmd=owncloud_pwauth_reload
+
+owncloud_pwauth_prestart()
+{
+	touch            ${owncloud_pwauth_log}
+	/usr/bin/tail -r ${owncloud_pwauth_log} |\
+	/usr/bin/sed  -n "1,/^${owncloud_pwauth_daemon} clear$/ p" |\
+	/usr/bin/tail -r |\
+	${owncloud_pwauth_scr} ${owncloud_pwauth_pam}
+}
+owncloud_pwauth_start()
+{
+	ps -p $(cat ${pidfile}) >/dev/null &&\
+		kill $(cat ${pidfile}) &>/dev/null
+	sleep 1
+	echo -n > ${pidfile}
+	(
+		/usr/bin/tail -0 -f ${owncloud_pwauth_log} &
+		echo $! >> ${pidfile}
+	) |\
+	${owncloud_pwauth_scr} ${owncloud_pwauth_pam} &
+	echo $! >> ${pidfile}
+	owncloud_pwauth_status
+}
+owncloud_pwauth_stop()
+{
+	ps -p $(cat ${pidfile}) >/dev/null &&\
+		kill $(cat ${pidfile}) &>/dev/null
+	sleep 1
+	owncloud_pwauth_status
+}
+owncloud_pwauth_status()
+{
+	(
+		ps -fp $(cat ${pidfile}) ||\
+		echo $name is not running.
+	) | tail -n +2
+}
+owncloud_pwauth_reload()
+{
+	owncloud_pwauth_status
+	owncloud_pwauth_start
+}
+
+run_rc_command "$1"

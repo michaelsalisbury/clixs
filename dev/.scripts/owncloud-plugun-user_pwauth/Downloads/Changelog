@@ -1,0 +1,1363 @@
+Changelog ownCloud
+
+-----------------------------
+Release  "8.0.3"
+May 1st 2015
+
+- Fix several Constrain Violation Exceptions
+- Fix misleading Maintenance mode message
+- Timezone fixes for countries with 0.5 and 0.75 offsets
+- Fix usage of default share folder location
+- Reenable trashbin after failed rename
+- Fix disabling of APCu
+- Do not show update notification on mobile
+- Fix "Only variables should be passed by reference" error log spam
+- Add timeout to curl
+- Makes repair errors and warnings visible for the user when upgrading on the command line or in the web UI
+- Cron shall not operate in case we are in maintenance mode
+- Disable the cache updater when doing the encryption migration
+- Fix "Error while updating app" error
+- Internal Server Error after attempting to do "occ files:scan" 
+
+
+-----------------------------
+Release  "8.0.2"
+March 11. 2015
+
+- Prevent DB errors in certain high load sitatons
+- Fix installation and updating of apps from the app store
+- Fix documentation links
+- Fix file move/copy when out of storage space
+- Disable 3rd party apps during upgrade to prevent breaking ownCloud if incompatible apps are used
+- Fix compatibility with certain MariaDB versions
+- Print app upgrade information to console
+- Detect broken APC versions
+- Fix certain incompatibilities with older PHP 5.4 versions
+- Several smaller fixes
+
+
+-----------------------------
+Release  "7.0.5"
+March 11. 2015
+
+- LDAP user cleanup
+- Improved MSSQL compatibility
+- Add note about external user app to config.sample.php
+- Fix creation of ghost directories in certain situations
+- Fixes for password protected links
+- Fix upgrade with LDAP in certain situations
+- Fix Server2Server sharing if trailing slashes are missing
+- add config-option for an image's maximum filesize when generating previewse
+- Increase initial user count in user management to 50 
+- Note in config.sample.php that certain previews are not available on Windows
+- Drop useless "No reuse of etag" log output
+- Fix retrieval of LDAP user group in certain situationss
+- Better cleanup temporary files
+- Show spinner on file upload in IE8 and IE9
+- Fix links to app store
+- Return real mime type in PROPFIND
+- Check if files are deletable before trying to delete them
+- Several smaller fixes
+
+
+-----------------------------
+Release  "6.0.7"
+March 11. 2015
+
+- Remove some not needed error log messages
+- Removes the bogus leading slash in some sharing situations
+- Better cleanup temporary files
+- Several smaller fixes
+
+
+-----------------------------
+Release  "5.0.19"
+March 11. 2015
+
+- Several smaller fixes
+
+
+-----------------------------
+Release  "7.0.4"
+Dec 9. 2014
+
+- Added XMLWriter check
+- Better deleted outdated previews
+- Store storage credential in session only if needed
+- Don't disclose relative directory path for single shared files of user
+- Password reset fixes
+- Fix enable app only for a specific group
+- fixing port configuration in trusted domains
+- LDAP fixes
+- Make group search case sensitive
+- Allow admin to change users display name 
+- ldap performance improvements
+- config.php can now be read only
+- Several smaller fixes
+
+-----------------------------
+Release  "7.0.3"
+Oct 22. 2014
+
+- Some OS X server fixes
+- Several external storage fixes and improvements
+- Close session early to speedup apps page loading
+- Add overwrite.cli.url config option
+- Fix finding old versions in special cases
+- Make versions and encryption aware of copy operations
+- Force loading encryption app in all needed cases
+- Better filesystem scanning error messages
+- LDAP wizard fixes
+- Add configuration switch to enable preview mimetypes
+- Create backup of all encryption keys before recovery
+- Add displayname for admins
+- Better config.sample documentation
+- Better apps descriptions
+- Improve visual feedback if recovery key password gets changed
+- Fix some object store integration issues
+- Improved data directory configuration
+- Fix DAV permissions without create permissions
+- Fix filepicker home icon being partly hidden
+- Do only follow http and https redirects
+- Properly delete old previews
+- Prevent upgrades between more than one major versions
+- Several security fixes
+- Lots of smaller improvements
+
+-----------------------------
+Release  "6.0.6"
+Oct 22. 2014
+
+- Fix finding old versions in special cases
+- Make versions and encryption aware of copy operations
+- Force loading encryption app in all needed cases
+- Better filesystem scanning error messages
+- LDAP wizard fixes
+- Add configuration switch to enable preview mimetypes
+- Create backup of all encryption keys before recovery
+- Add displayname for admins
+- Several security fixes
+- Lots of smaller improvements
+
+-----------------------------
+Release  "5.0.18"
+Oct 22. 2014
+
+- Only allow http and https redirects
+- Documentation fixes
+- Several security fixes
+- Several smaller fixes
+
+-----------------------------
+Release  "7.0.2"
+Aug 26. 2014
+
+- App upgrading stability improvements
+- Make default share folder configurable
+- Improve readability of error messages
+- Log failed authentication
+- S3 key fixes
+- Fix range requests with encryption
+- Several LDAP fixes
+- Remove obsolete 'Download preparing' message for zip downloads
+- Remove not working checks from code checker
+- No error if we try to delete a file which no longer exists
+- Fix detection of system wide mount points
+- Simplify App navigation
+- Add group management to public api
+- Remove confusing 'automatic logon rejected' message
+- Implement a txt preview fallback for the case that ttf is not support
+- Fix tiny thumbnail bug
+- Don't display share permission if resharing was disabled by the admin
+- Close session right before the download starts
+- Fix date display in filepicker
+- Don't touch non-oc tables when doing the InnoDB repair step
+- Several Documents fixes
+- Correctly handle public uploads activities
+- Add better 4 image previews to gallery
+
+
+-----------------------------
+Release  "6.0.5"
+Aug 26. 2014
+
+- Documentation improvements
+- fix anonymous upload if logged-in 
+- Fix handling of special characters in group names
+- Fix downloading of big files in special situations
+- More consistent handling of debug mode
+- Fix sharing email notifications
+- Disabling upload button if upload is not possible
+- Fix detection of system wide mount points
+- Handle video viewer in sharing links correctly
+- Update encryption keys recursively if a folder was moved
+- Enable download button for public folders
+- Handle exceptions if file to too big for trash-bin correctly
+- Quota fixes
+- Avoid unnecessary writing to the DB when preferences are not changed
+- Disable download button if zip download is disabled
+- Fix searching for users in special situations
+- Mount-point handling fixes
+- Correctly handle storage stats for trash bin
+- Remove etag warning for trash bin
+- Hardened SFTP host verification
+
+-----------------------------
+Release  "7.0.1"
+Aug 4. 2014
+
+- Set maximum width for notification so they don´t overlap the whole header
+- Don't preload videos on public sharing
+- Fix preview size calculation under certain conditions
+- Fix to always show all available versions in the versions dropdown
+- Support WebDAV copy operation and make encryption aware of it
+- Make sure to set the expire date if a date is set as default
+- Improved link icon for better UX
+- Fix rendering of blank template
+- Only call exec if is is enabled by PHP
+- Limit app menu icon size
+- Show a warning in the personal settings and admin settins if the encyption keys are not yet initialized
+- Always remove share permission if user is excluded from sharing
+- Add OCS api call to set expire date for link shares
+- Improved db schema migration for sqlite
+- Don't try to execute background jobs that no longer exist
+- Improve look of search on mobile, save space in top bar
+- Set core version after a successful update to make upgrade more robust of app upgrades fail
+- Verify whether download URLs are valid
+- Fix preview animation on uploading
+- Prevent cron.php to trigger apps updating
+- Fix remote share when remote server is installed at the root
+- Fix files sorting
+- Fix calendar import
+- Fix gallery pause icon
+- Several contacts fixes specifically for PHP 5.3
+- Make updater more robust
+
+
+-----------------------------
+Release  "7.0.0"
+July 23. 2014
+
+- New files view including sorting and endless scrolling
+- Server to Server sharing
+- Sharing overview
+- Improved sharing admin control
+- No more mandatory Shared folder
+- Improved ownCloud Documents features
+- Hugely improved Activity app including email notifications
+- Mobile optimized webinterface
+- Password strength indicator
+- Significant speed improvements
+- New user-management
+- Support for Swift object stores
+- Email configuration wizard
+- Email template editor
+- Improved upgrade process
+
+-----------------------------
+Release  "6.0.4"
+June 23. 2014
+
+- Fixed a security issue (Will be disclosed two weeks after this release)
+- Several LDAP fixes and improvements
+- Add deprecated warning to load function
+- File scanner fixes
+- Heart beat fixes
+- Encryption fixes for some corner cases
+- Fix conflict dialog translations
+- Fix button text overflow
+- Fix search with Oracle
+- php upload errors are written to log
+- ocs status code fixes
+- Add PostgreSQL version warning
+
+-----------------------------
+Release  "5.0.17"
+June 23. 2014
+
+- Fixed a security issue (Will be disclosed two weeks after this release)
+- Add deprecated warning to load function
+- Fix button text overflow
+- Fix search with Oracle
+
+-----------------------------
+Release  "6.0.3"
+April 29. 2014
+
+- Several security fixes. (Will be disclosed 2 weeks after the release)
+- Appframework extensions to improve the compatibility with 3rdparty apps
+- LDAP performance improvements
+- Fix updating of email adresses from LDAP
+- Fix WebDAV timestamp format handling
+- Disable internet connection check if a proxy is configured
+- Fix a potential file chunking problem on a server that is running out of storage
+- Do not expire file chunks while checking their existence
+- Fix loading of authentication apps in any case
+- Performance improvements by reducing the number of chmod operations.
+- Make the trusted domain upgrade feature more robust.
+- Do not allow creating a "Shared" folder.
+- Fixed "select all" + download on public page
+- Fix share as link with email multiple users
+- Reset time of last update feed polling to fix the updater
+- Share API fixes
+- Admin option for public upload with encryption enabled  
+- Fix CIFS with home shares
+- Detect a missing "data" directory mount
+- Fix the filesize calculation of encrypted files
+- Fixes in the OpenStack support
+- Fixes in the SWIFT support
+- Do not block PHP sessions during download
+- Fix sharing oc addressbooks
+- Several ownCloud Documents improvements and fixes
+- Several smaller bugfixes
+
+Download: http://download.owncloud.org/community/owncloud-6.0.3.tar.bz2
+MD5: http://download.owncloud.org/community/owncloud-6.0.3.tar.bz2.md5
+
+-----------------------------
+Release  "5.0.16"
+April 29. 2014
+
+- Several security fixes
+- Make the trusted domain upgrade feature more robust.
+- Fix group restore
+- Do not block PHP sessions during download
+- Several smaller bugfixes
+
+Download: http://download.owncloud.org/community/owncloud-5.0.16.tar.bz2
+MD5: http://download.owncloud.org/community/owncloud-5.0.16.tar.bz2.md5
+
+-----------------------------
+Release  "6.0.2"
+March 3. 2014
+
+- Several security fixes
+- Improved trash bin performance for deleting lots of files
+- Mobile interface improvements
+- Fix key problems in encryption mode in rare situations
+- Smaller LDAP improvements
+- Fix the keep-alive ping for non standard php session lifetimes
+- Cleanup storage table when deleting an entry
+- Fix compatibility with xsendfile mode
+- Fix file size calculation in encryption mode
+- Fix image previews in trash bin 
+- Fix public upload with enabled enryption
+- Added APC enabled check
+- Correctly localise date in notification emails
+- Improve compatibility with some CIFS servers
+- Fix shared files and Gallery
+- Several Contacts compatibility improvements
+- Several Documents improvements
+- A lot of smaller bug fixes
+
+Download: http://download.owncloud.org/community/owncloud-6.0.2.tar.bz2
+MD5: http://download.owncloud.org/community/owncloud-6.0.2.tar.bz2.md5
+
+-----------------------------
+Release  "5.0.15"
+March 3. 2014
+
+- Several security fixes
+- Improved trash bin performance for deleting lots of files
+- Mobile interface improvements
+
+Download: http://download.owncloud.org/community/owncloud-5.0.15.tar.bz2
+MD5: http://download.owncloud.org/community/owncloud-5.0.15.tar.bz2.md5
+
+-----------------------------
+Release  "6.0.1"
+Jan 22. 2014
+
+- Fix handling of encryption keys
+- Disable xcache in case admin auth is disabled
+- Speed DB improvements in user home directory location fetching
+- Fix some APC configuration problems 
+- Fix duplicate .exe mime-type detection
+- Support DECIMAL DB schema statement
+- Fix some API response code problems
+- Added download workaround for some Android versions. 
+- Turn off not working mod_pagespeed extension
+- Command line tool option to show user number
+- Some LDAP fixes for certain configurations
+- Fix previews for reshared files
+- Fix unshare on delete behaviour
+- Fix a CIFS mounting timezone problem
+- File Trash handling fixes
+- Fix potential data corruption problem during massive parallel uploads of the same file
+- Fix versions expiration logic
+- Fix public upload progress bar
+- Fix issues with intermittent "Insufficient Storage" message when quota is enabled
+
+Download: http://download.owncloud.org/community/owncloud-6.0.1.tar.bz2
+MD5: http://download.owncloud.org/community/owncloud-6.0.1.tar.bz2.md5
+
+
+-----------------------------
+Release  "6.0.0a"
+Dec 14. 2013
+
+- Remove wrong warnings from logfile
+- Fix LDAP authentication
+- Fix LDAP configuration
+- Fix Share dialog
+- Fix migration under certain conditions
+- Fix database encoding in for old PHP versions
+- Fix select all checkbox
+- Fix migration with lucene search enabled
+- Fix migration for postgresql
+
+Download: http://download.owncloud.org/community/owncloud-6.0.0a.tar.bz2
+MD5: http://download.owncloud.org/community/owncloud-6.0.0a.tar.bz2.md5
+
+
+-----------------------------
+Release  "5.0.14"
+Dec 17. 2013
+
+- Fix bug that triggers a regeneration of the etags and redownload of files
+- Don't check migration status if a file is accessed by a public link
+- Fix unsharing of files
+- Several external filesystem improvements and fixes
+- A lot of quota calculation fixes
+- Login cookie handling fixes
+- Fix WebDAV url
+- Fix updating of cached permissions
+- Reverse proxy fixes
+- Fix handling of touch for external filesystems
+- Fix setting of display names
+- IIS fixes 
+- Fix some Oracle cornercases
+
+Download: http://download.owncloud.org/community/owncloud-5.0.14.tar.bz2
+MD5: http://download.owncloud.org/community/owncloud-5.0.14.tar.bz2.md5
+
+-----------------------------
+Release  "6.0.0"
+Dev 11. 2013
+
+- ownCloud Documents
+- User Avatars
+- Previews in files app and other places
+- Updated design, less clutter and more whitespace
+- Public gallery sharing
+- Activities
+- Better file conflict handling dialog
+- Improved public App API
+- Sharing API
+- Example Files
+- Share Email Notifications
+- New Doctrine based database layer
+- Plural translations
+- Refactored OC.dialogs (both code and design wise)
+- Priorize often used languages in personal-settings language selection
+- Update jquery to 1.10.0 and add jquery-migrate 1.2.1
+- Show a summary as the last filelist entry
+- Improve app-management (more verbose error-messages)
+- Show 'More apps' link to app administration directly in app navigation
+- templates for newly created files
+- Add MB indicator to size column
+- Google Drive external storage uses a new library - requires new authentication setup: https://github.com/owncloud/documentation/blob/stable5/admin_manual/configuration/custom_mount_config_gui.rst#google-drive
+- New icons for shared and external folders
+- File uploads conflicts dialog
+- Possibility to prepopulate a new users home with a skeleton
+- Public upload with encryption enabled
+- Users now can decrypt the files again if the encryption app was enabled
+- Many quota related fixes
+- Total used space (with quota) now only counts user's own files
+- Many external storage fixes, improved performance
+- Improved file navigation performance by using Ajax calls (no full page reload for each folder)
+- The file owner can now also restore deleted shared files
+- New version drop-down with previews and the ability to download versions directly
+
+
+Release  "5.0.13"
+Nov 5. 2013
+
+- SECURITY: Fix a possible security bypass on admin page under certain circumstances and MariaDB
+- Correctly update database schema during app update
+- Fix automatic login rejecion error message
+- Several Oracle fixes
+- Fixing serverroot/webroot calculation
+- Adding detection for aborted uploads for chunked uploads
+- Fixing directory handling that end with a space
+- Fixing home storage handling
+- allow to share a file/folder as public link also if one of it parents was already shared as link
+- Fix search in shared folders
+- Fix check for uploads into Shared folder
+- Several Shared folder handling fixes
+- Prefere them PNGs over core SVGs
+- Fall back to default log file of specified logfile doesn't exist
+- Several IE fixes
+- Fix LDAP login for certain circumstances 
+- Fixed chunk size calculation for encrypted files
+- Fix recursive delete for smb
+- Fix using touch for creating files for smb
+- Support OCS Share API
+- Fix updating ETAGs
+- Don't write user passwords into logfile
+- Enable configuration of timezones for logfile timestamps
+- Cleanup share database table for files that no longer exist
+- Adding privilege check on move and rename operations
+
+Download: http://download.owncloud.org/community/owncloud-5.0.13.tar.bz2
+MD5: http://download.owncloud.org/community/owncloud-5.0.13.tar.bz2.md5
+
+-----------------------------
+Release  "5.0.12"
+Oct 3. 2013
+
+- Usermanagement interface fixes
+- Allow numeric group names
+- Improved IE compatibiliy
+- Fix database upgrade error
+- Sharing permission interface fixes
+- Small visual fixes
+- File scanner fixes to handle deleted files correctly
+
+Download: http://download.owncloud.org/community/owncloud-5.0.12.tar.bz2
+MD5: http://download.owncloud.org/community/owncloud-5.0.12.tar.bz2.md5
+
+
+------------------------------
+Release  "5.0.11"
+Sep 10. 2013
+
+- Fixing upload in shared folders with create privileges 
+- Making ldap more robust in certain situations
+- Handing quota violation earlier to make the desktop clients more robust
+- Several quota fixes
+- Fix issues with certain file names like 0 or false
+- Disable smb in files_External on windows servers
+- Enable user to decrypt files again after encryption app was disabled
+- Improved Encryption messages
+- Add a searchByMime call to API
+- Fix multiselects for Firefox on Mac in groups management
+- Reduce the number of ldap connections
+- Show a "password incorrect" notice when used shared password is wrong
+- Switch to the completely new Google Drive SDK.
+- Scanner: additional tests for reusing etags during scanning
+- Fix accessing files that are newly created by setting the right mime type
+- Several Calendar bugfixes
+- Fixed "Show on Map" in Contacts
+- A lof of Contacts fixes
+- Several "Tasks" fixes
+
+Download: http://download.owncloud.org/community/owncloud-5.0.11.tar.bz2
+MD5: http://download.owncloud.org/community/owncloud-5.0.11.tar.bz2.md5
+
+------------------------------
+Release  "5.0.10"
+Aug 12. 2013
+
+- Configurable logfile date format
+- Several Oracle fixes
+- Several MSSQL fixes
+- Make default language configurable
+- New CLI upgrade script
+- Correctly calculate folder size
+- Fix display of search results
+- Database upgrade fixes
+- Smaller filesystem cache fixes
+- Remember password fixes
+- Encryption fixes
+- Fix problems with german "Umlauts" in folder name
+- IE fixes
+- Improved upgrade logging
+- Improved external storage status display
+- Flicker free versions dropdown
+- Don't create empty versions
+- Less noisy debug logfile
+- Don't show firstrunwizard during upgrade
+- Several Calendar fixes
+- Contacts fixes
+- Fixes for Gallery
+- Several smaller fixes
+
+Download: http://download.owncloud.org/community/owncloud-5.0.10.tar.bz2
+MD5: http://download.owncloud.org/community/owncloud-5.0.10.tar.bz2.md5
+
+-------------------------------
+Release  "5.0.9"
+July 15. 2013
+
+- Fixes for mounting an WebDAV into an ownCloud
+- Improved expiration of older versions in the case of a full storage
+- IE8 fixes
+- Increased speed when syncing shared files
+- Oracle compatibility fixes
+- Make upgrade routine more robust
+- Fix gallery for certain php configurations
+- Fix pdf viewer close button
+- user_external fixes 
+- Several smaller fixes
+
+Download: http://download.owncloud.org/community/owncloud-5.0.9.tar.bz2
+MD5: http://download.owncloud.org/community/owncloud-5.0.9.tar.bz2.md5
+
+-------------------------------
+Release  "5.0.8"
+July 9. 2013
+
+- SECURITY: XSS vulnerability in "Share Interface" (oC-SA-2013-029)
+- SECURITY: Authentication bypass in "user_webdavauth" (oC-SA-2013-030)
+- New anonymous upload feature
+- Fix syncing of external filesystems
+- External filesystems performance improvements
+- Improve compatibility with Oracle
+- Improved and simplified theming
+- Internet explorer 8 fixes
+- Fixes for partial file uploads
+- LDAP: fix handling of User and Group Bases
+- Improved and more robust upgrade system
+- A lot of encryption system fixes
+- Do not add groups if user has no groups
+- Several Contacts fixes
+- A lot of smaller bugfixes all over the place
+
+Download: http://download.owncloud.org/community/owncloud-5.0.8.tar.bz2
+MD5: http://download.owncloud.org/community/owncloud-5.0.8.tar.bz2.md5
+
+-------------------------------
+Release  "4.5.13"
+July 9. 2013
+
+- SECURITY: Authentication bypass in "user_webdavauth" (oC-SA-2013-030)
+- Fixed deleting old files versions
+
+Download: http://download.owncloud.org/community/owncloud-4.5.13.tar.bz2
+MD5: http://download.owncloud.org/community/owncloud-4.5.13.tar.bz2.md5
+
+
+-------------------------------
+Release  "5.0.7"
+June 6. 2013
+
+- SECURITY: Multiple XSS vulnerabilities (oC-SA-2013-028)
+- New encryption app as preview included. WARNING: This is not yet ready for production use but testing and feedback is welcome.
+- Several LDAP compatibility fixes
+- Several performance improvements of file handling
+- Trashbin fixes for Safari
+- Internet Explorer fixes
+- Several Contacts fixes
+- New check for magic_quotes
+- External Filesystem fixes
+- Add support for copying/moving folders between storages
+- Several smaller fixes
+
+Download: http://download.owncloud.org/community/owncloud-5.0.7.tar.bz2
+MD5: http://download.owncloud.org/community/owncloud-5.0.7.tar.bz2.md5
+
+-------------------------------
+Release  "4.5.12"
+June 6. 2013
+
+- SECURITY: Multiple XSS vulnerabilities (oC-SA-2013-028)
+- Several Contacts fixes
+- Several Calendar fixes
+- Several smaller fixes
+
+Download: http://download.owncloud.org/community/owncloud-4.5.12.tar.bz2
+MD5: http://download.owncloud.org/community/owncloud-4.5.12.tar.bz2.md5
+
+-------------------------------
+Release  "4.0.16"
+June 6. 2013
+
+- SECURITY: Multiple XSS vulnerabilities (oC-SA-2013-028)
+
+Download: http://download.owncloud.org/community/owncloud-4.0.16.tar.bz2
+MD5: http://download.owncloud.org/community/owncloud-4.0.16.tar.bz2.md5
+
+
+-------------------------------
+Release  "5.0.6"
+May 14. 2013
+
+- SECURITY: SQL Injection (oC-SA-2013-019)
+- SECURITY: Multiple directory traversals (oC-SA-2013-020)
+- SECURITY: Multiple XSS vulnerabilities (oC-SA-2013-021)
+- SECURITY: Open redirector (oC-SA-2013-022)
+- SECURITY: Password autocompletion (oC-SA-2013-023)
+- SECURITY: Privilege escalation in the calendar application (oC-SA-2013-024)
+- SECURITY: Privilege escalation and CSRF in the API (oC-SA-2013-025)
+- SECURITY: Incomplete blacklist vulnerability (oC-SA-2013-026)
+- SECURITY: Information disclosure: CSRF token + username (oC-SA-2013-027)
+- Fix renaming of shared files
+- Fix UUID handling with LDAP
+- Fix several undelete files issues
+- Fix LDAP cachekey handling
+- Several OCS API fixes
+- Dropbox mounting fixes
+- Remove ldap group name restrictions
+- Fix fetching of the userlist with multiple user backends
+- Turn off password autocompletion
+- Translation fixes of the Shared folder
+- Fix the fileactions order for filetypes
+- Allow to ship a default theme
+- Disallow URLs containing "@"
+- Smaller layout improvemens
+- Log an upgrade warning
+- Log a trash bin cleanup message 
+- Improved quota calculation
+- Allow to set Quota to zero
+- Fix performance regression for uploading of big files
+- Several Calendar fixes
+- Use displaynames in contacts
+- Check for existing address books during migrate->import
+- Texteditor fixes
+- Increase the SQLite database timeout
+- Order images in Gallery
+
+Download: http://download.owncloud.org/community/owncloud-5.0.6.tar.bz2
+MD5: http://download.owncloud.org/community/owncloud-5.0.6.tar.bz2.md5
+
+-------------------------------
+Release  "4.5.11"
+May 14. 2013
+
+- SECURITY: SQL Injection (oC-SA-2013-019)
+- SECURITY: Multiple directory traversals (oC-SA-2013-020)
+- SECURITY: Multiple XSS vulnerabilities (oC-SA-2013-021)
+- SECURITY: Privilege escalation in the calendar application (oC-SA-2013-024)
+
+Download: http://download.owncloud.org/community/owncloud-4.5.11.tar.bz2
+MD5: http://download.owncloud.org/community/owncloud-4.5.11.tar.bz2.md5
+
+-------------------------------
+Release  "4.0.15"
+May 14. 2013
+
+- SECURITY: Multiple directory traversals (oC-SA-2013-020)
+- SECURITY: Multiple XSS vulnerabilities (oC-SA-2013-021)
+
+Download: http://download.owncloud.org/community/owncloud-4.0.15.tar.bz2
+MD5: http://download.owncloud.org/community/owncloud-4.0.15.tar.bz2.md5
+
+-------------------------------
+Release  "5.0.5"
+April 19. 2013
+
+- Fix navigation hover effect
+- Fix database migration
+- Add a warning in the logfile when doing a migration
+- Fix renaming of shared files
+- Improved quota calculation
+- Fix free space calculation
+- Several layout fixes
+- Better save mode check
+- Cleanup database after user deletion
+- Fix touch for creating new files
+- Several trash bin fixes
+- Update MediaElement.js
+- Fix double address book problem
+- Fix layout problem triggered by impress
+- Several smaller fixes
+- Security: XSS in flashmediaelement.swf (oC-SA-2013-017)
+- Security: Authentication bypass in Contacts (oC-SA-2013-018)
+
+Download: http://download.owncloud.org/community/owncloud-5.0.5.tar.bz2
+MD5: http://download.owncloud.org/community/owncloud-5.0.5.tar.bz2.md5
+
+-------------------------------
+Release  "4.5.10"
+April 19. 2013
+
+- Security: XSS in flashmediaelement.swf (oC-SA-2013-017)
+- Security: Authentication bypass in calendar (oC-SA-2013-018)
+
+Download: http://download.owncloud.org/community/owncloud-4.5.10.tar.bz2
+MD5: http://download.owncloud.org/community/owncloud-4.5.10.tar.bz2.md5
+
+-------------------------------
+Release  "5.0.4"
+April 11. 2013
+
+- Fix file renames
+- Improved compatibility with PostgreSQL
+- Fixed upgrade for PostgreSQL users
+- Improved LDAP compatibility
+- Fix the upgrade hint
+- Make upgrade more robust fix maintainance mode 
+- Smaller CSS fixes
+- Fix internet check for proxy users 
+- Manually disable files_archive app to fix upgrade
+- fix touch() for local storage
+- Fix versioning check to allow installation of 3rd party apps
+- Fix default quota
+- Several contacts fixes
+- Several calendar fixes
+- Fixed ampache support in media player
+- Improve mail function in antivirus app
+- Fix setting of user quotas
+- Fix deleted files size calculation
+- Fix "You do not have write permissions here" warning
+- Fix asynchronous loading of users
+- Fix notice from the nullbyte check
+- XSS vulnerability in jPlayer (oC-SA-2013-014)
+- PostgreSQL: Insecure database password generator (oC-SA-2013-015)
+- Windows: Local file disclosure (oC-SA-2013-016)
+
+Download: http://download.owncloud.org/community/owncloud-5.0.4.tar.bz2
+MD5: http://download.owncloud.org/community/owncloud-5.0.4.tar.bz2.md5
+
+-------------------------------
+Release  "4.5.9"
+April 11. 2013
+
+- Fix public sharing
+- Improved LDAP error reporting
+- Don't show share action for Shared folder
+- XSS vulnerability in jPlayer (oC-SA-2013-014)
+- PostgreSQL: Insecure database password generator (oC-SA-2013-015)
+- Windows: Local file disclosure (oC-SA-2013-016)
+
+Download: http://download.owncloud.org/community/owncloud-4.5.9.tar.bz2
+MD5: http://download.owncloud.org/community/owncloud-4.5.9.tar.bz2.md5
+
+
+-------------------------------
+Release  "4.0.14"
+April 11. 2013
+
+- XSS vulnerability in jPlayer (oC-SA-2013-014)
+- PostgreSQL: Insecure database password generator (oC-SA-2013-015)
+- Windows: Local file disclosure (oC-SA-2013-016)
+
+Download: http://download.owncloud.org/community/owncloud-4.0.14.tar.bz2
+MD5: http://download.owncloud.org/community/owncloud-4.0.14.tar.bz2.md5
+
+
+-------------------------------
+Release  "5.0.3"
+April 3. 2013
+
+- Correctly handle .part files
+- Improve PostgreSQL support
+- Fix database upgrading from old versions
+- Improved app styles
+
+Download: http://download.owncloud.org/community/owncloud-5.0.3.tar.bz2
+MD5: http://download.owncloud.org/community/owncloud-5.0.3.tar.bz2.md5
+
+
+-------------------------------
+Release  "5.0.2"
+April 2. 2013
+
+- Fix versioning string
+- Fix compatibility with older MySQL versions
+
+Download: http://download.owncloud.org/community/owncloud-5.0.2.tar.bz2
+MD5: http://download.owncloud.org/community/owncloud-5.0.2.tar.bz2.md5
+
+
+-------------------------------
+Release  "5.0.1"
+April 2. 2013
+
+- Fixed classnames and improved autoloaded to improve copatibility with older PHP versions
+- Show a warning if an insecure PHP version is used
+- Filesizes are displayed correctly
+- Fixed groups in usermanagement
+- Several Internet Explorer fixes
+- Use display-names in more places
+- Fix upgrading of cache
+- Fix navigation scrollbar for lots of apps
+- Fixed ETag handling to prevent wrong conflict files
+- Fix public link handling
+- Better indexes to improve performance
+- Several Windows server fixes
+- Fix renames of shared files
+- Fix PostgreSQL compatibility
+- Improve error reporting for app installation
+- Improved compatibility with Novell eDirectory
+- Several LDAP fixes
+- Improved sorting in usermanagement
+- Improved background jobs
+- Several CardDAV contacts fixes
+- Several mediaplayer fixes 
+- Fixes for text editor
+- Several lucene search fixes
+- Several smaller fixes
+- contacts: SQL Injection (oC-SA-2013-012)
+- Multiple XSS vulnerabilities (oC-SA-2013-011)
+
+Download: http://download.owncloud.org/community/owncloud-5.0.1.tar.bz2
+MD5: http://download.owncloud.org/community/owncloud-5.0.1.tar.bz2.md5
+
+
+-------------------------------
+Release  "5.0.0"
+March 14. 2013
+
+- New design
+- Restore deleted files 
+- New fulltext search
+- Display names
+- New photo gallery
+- Improved calendar and contacts
+- Improved bookmarks
+- New documentation system
+- Improved file cache
+- Improved security checks
+- Security hardening in templates" 
+- Security hardening: Implemented Content Security Policy
+- Better versioning of better autoexpire
+- Extended external storage
+- New OCS REST API support
+- Improved apps management
+
+Download: http://download.owncloud.org/community/owncloud-5.0.0.tar.bz2
+MD5: http://download.owncloud.org/community/owncloud-5.0.0.tar.bz2.md5
+
+
+-------------------------------
+Release  "4.5.8"
+March 14. 2013
+
+- Fix foldersize checks to validate zip input size
+- Offer download of shared dir as zip only if zip size limit is not exceeded
+- Escape more characters for LDAP search
+- fix versioning together with real home directories
+- Multiple XSS vulnerabilities (oC-SA-2013-008)
+- Contacts: Bypass of file blacklist (oC-SA-2013-009)
+- user_migrate: Local file  disclosure (oC-SA-2013-010)
+
+Download: http://download.owncloud.org/community/owncloud-4.5.8.tar.bz2
+MD5: http://download.owncloud.org/community/owncloud-4.5.8.tar.bz2.md5
+
+
+-------------------------------
+Release  "4.0.13"
+March 14. 2013
+
+- Contacts: Bypass of file blacklist (oC-SA-2013-009)
+- user_migrate: Local file  disclosure (oC-SA-2013-010)
+
+Download: http://download.owncloud.org/community/owncloud-4.0.13.tar.bz2
+MD5: http://download.owncloud.org/community/owncloud-4.0.13.tar.bz2.md5
+
+
+-------------------------------
+Release  "4.5.7"
+Feb 19. 2013
+
+- Fix for 3rd party apps dropping the database
+- Fix SubAdmins management
+- Fix PHP warnings
+- Fix compatibility with some CIFS shares
+- More robust apps management
+- Remove not needed AWS tests
+- Improved mime type parsing
+- Several sharing fixes
+- Offer the option to change the password only supported by the backend
+- More robust auto language detection
+- Revoke DB rights on install only if the db is newly created
+- Fix rendering of database connection error page
+- LDAP: update quota more often
+- Multiple XSS vulnerabilities (oC-SA-2013-003)
+- Multiple CSRF vulnerabilities (oC-SA-2013-004)
+- PHP settings disclosure (oC-SA-2013-005)
+- Multiple code executions (oC-SA-2013-006)
+- Privilege escalation in the calendar application (oC-SA-2013-007)
+
+-------------------------------
+Release  "4.0.12
+Feb 19. 2013
+
+- Multiple XSS vulnerabilities (oC-SA-2013-003)
+- Multiple CSRF vulnerabilities (oC-SA-2013-004)
+- Multiple code executions (oC-SA-2013-006)
+
+-------------------------------
+Release  "4.5.6"
+Jan 22. 2013
+
+- Improved language detection
+- Improved translations
+- Fix link to bugtracker
+- Several IE 6/7/8 fixes
+- SabreDAV updated to 1.6.6
+- Improved error reporting
+- Support special characters in mountpoint 
+- Interpret http 403 and 401 as not authorized in user_webdavauth
+- Several fixes for special characters in files and folders
+- Improved PostgreSQL support
+- Check database names for valid characters
+- Fix default email address calculation
+- Remove debug output on send password page
+- Add SMTP port configuration option
+- Only show the max possible upload of 2GB on a 32 bit system
+- Show progress during file downloads
+- Security: Fix multiple XSS problems: CVE-2013-0201,  CVE-2013-0202, CVE-2013-0203
+- Security: Fix Code execution in external storage: CVE-2013-0204
+- Security: Removed remoteStorage app because of unfixed security problems.
+
+-------------------------------
+Release  "4.0.11"
+Jan 22. 2013
+- Security: Fix multiple XSS problems: CVE-2013-0201,  CVE-2013-0202, CVE-2013-0203
+- Security: Removed remoteStorage app because of unfixed security problems.
+
+-------------------------------
+Release  "4.5.5"
+Dec 20. 2012
+
+- Show drag and drop shadow for Firefox
+- Fix Knowledgebase under certain conditions
+- Fix setting of sharing password
+- Fix setting of sharing password
+- Several sharing fixes
+- Fixversioning during sharing
+- Fix mounting of external filesystems especially CIFS
+- Fix several PHP warnings
+- Show /Shared as standard directory
+- Fix session management for running several ownClouds on the same host
+- Fix WebDAV quota enforement
+- Fix CalDAV with LDAP users
+- Better warning about missing dependencies
+- Add warning about conflicting WebDAV auth and LDAP backend
+- Restore send sharing link my email
+- Fix encoding problem with mounting of CIFS filesystems
+- Fix mimetype icons for new files
+- Fix the folder size calculation
+- Fix for deleting multiple files
+- Fix for controling the data dir with LDAP
+- Security: Auth bypass in user_webdavauth and user_ldap (oC-SA-2012-006)
+- Security: XSS vulnerability in bookmarks (oC-SA-2012-007)
+
+-------------------------------
+Release  "4.0.10"
+Dec 20. 2012
+
+- Security: Auth bypass in user_webdavauth and user_ldap (oC-SA-2012-006)
+- Security: XSS vulnerability in bookmarks (oC-SA-2012-007)
+
+-------------------------------
+Release  "4.5.4"
+Dec 3. 2012
+
+- Fix a regression for system where output buffering is disabled
+- Fix a problem with old file versions stored in the filesystem cache 
+- Fix group and subadmin ajax bug
+- Important LDAP fix
+- Improved Updater
+
+-------------------------------
+Release  "4.5.3"
+Nov 26. 2012
+
+- Fix the new from url button
+- Fix a memory overflow with downloading of big files via WebDAV
+- Better error output in case of DB problems
+- Fix problems with uploading files who have special characters in the name
+- Improved reverse proxy and load balancer support
+- Fix wrong folder size calculation
+- Improved share link generation
+- Fix the syncing of the Shared folder
+- Fix Sharing by link from within Shared folder
+- Several LDAP integration fixes
+- Fix support for PostgreSQL 
+- Several WebDAV fixes
+- Fix drag and drop uploading
+- Improved translations
+- Several Gallery fixes
+- Several Contacts fixes
+- Smaller fixes
+
+-------------------------------
+Release  "4.5.2"
+Nov 14. 2012
+
+- Fix syncing of shared folder
+- Various sharing bugs fixed
+- Fix bug with deleting users
+- Fix check if resharing is allowed
+- Fix webdavauth app
+- Several ldap fixes
+- Fix data migration
+- Fix folder uploads
+- Fix generatino of etags
+- fix user specific mount configuration
+- Several PostgreSQL fixes
+- Improved performance of file updates
+- Fix some php warnings
+- Fix filesize calculation
+- add visual feedback if password is set
+- Various smaller fixes
+- Several critical security fixes
+- XSS vulnerability in user_webdavauth (oC-SA-2012-003)
+- Code Execution in /lib/migrate.php (oC-SA-2012-004)
+- Code Execution in /lib/filesystem.php (oC-SA-2012-005) 
+
+-------------------------------
+Release  "4.0.9"
+Nov 14. 2012
+
+- Several critical security fixes
+- Multiple XSS vulnerabilities (oC-SA-2012-001)
+- Timing attack in the "Lost Password" implementation (oC-SA-2012-002)
+- Code Execution in /lib/migrate.php (oC-SA-2012-004)
+- Code Execution in /lib/filesystem.php (oC-SA-2012-005)
+
+
+-------------------------------
+Release  "4.5.1"
+Oct 23. 2012
+
+- Fix path encoding in breadcrumb
+- Fix sharing of files with special characters
+- Fix upercase/lowercase probelm in usernames with WebDAV
+- Fix LDAP plugin with Postgres
+- Fix userID migration
+- Fix sharing of mounted Files
+- Delete userfiles after deleting a user
+- Make Webinterface work with nonstandard path
+- Fix retieval of Quota, Email via LDAP 
+- Show a warning in installer if .htaccess is not working
+- Fix Shared folder caching
+- Increase security by using openssl random number generator
+- Fix syncing of rollback files
+- Fix the swift files backend
+- Disallow user to delete own account
+- Security: Fix multiple XSS vulnerabilities (oC-SA-2012-001) 
+- Security: Fix a timing attack in the "Lost Password" implementation (oC-SA-2012-002)
+- Various smaller fixes
+
+-------------------------------
+Release  "4.5.0"
+Oct 9. 2012
+
+- Faster Syncing
+- Sub Administrators
+- GUI for mounting of external storage
+- Improved File Versioning
+- Enhanced Sharing
+- Reworked LDAP
+- Big File Chunking
+
+-------------------------------
+Release  "4.0.8"
+Oct 9. 2012
+
+- Show Login Button when user and password are autocompleted
+- Sanitize LDAP base, user and groups
+- Security: Fix for insufficiently Random Values (CVE-2008-4107)
+- Security: Fixed multiple XSS vulnerabilities (CVE-2012-5056)
+- Security: Fixed a HTTP header injection (CVE-2012-5057)
+- Security: Fixed an Auth bypass in /lib/base.php (CVE-2012-5336)
+
+-------------------------------
+Release  "4.0.7"
+Aug 15. 2012
+
+- Show Login Button when user and password are autocompleted
+- Sanitize LDAP base, user and groups
+- Fix non active Adressbooks
+- Calendar: Remove double html encoding
+- Fix label for versioning in admin settings
+- Add parent directory into filecache if it doesn´t exist
+- Handle non writable files correctly
+- Disable webfinger completely if not activated
+- Security: Disable user listings in DAV
+- Check file blacklist for file renames
+- Security: Fix XSS bug in Gallery
+- Security: Several CSRF security fixes
+- Security: Validate cookie to prevent auth bypasses
+Special thanks to Julien Cayssol for reporting several security problems
+
+-------------------------------
+Release  "4.0.6"
+Aug 1. 2012
+
+- More robust LDAP integration during unexpected collisions
+- Fix sharing for users with @ in username
+- Additional error handling for emailing of private links
+- Cleanup old session files
+- Fix user space calculation
+- Fix Ampache authentication
+- Remove delete tipsy if file is deleted
+- Don´t delete lot´s of session files during DAV requests
+- Fix error when no adressbook is created
+- Check if php-ldap is installed
+- Security: Check for Admin user in appcinfig.php
+- Security: Several CSRF security fixes
+
+
+-------------------------------
+Release  "4.0.5"
+July 20. 2012
+
+- Fix remember the username and autologin
+- Offer an option to allow sharing outside the group.
+- Fix for birthday format
+- Fixes for several encoding fixes for unicode characters
+- Fix invalid filesystem cache in the sharing folder
+- Several calendar and contacs fixes
+- Fix sending of emails
+- Several fixes in the system log
+- Several fixes for the external filesystem feature
+- Several CSRF security fixes
+
+
+-------------------------------
+Release  "4.0.4"
+June 28. 2012
+
+- Fix assigning several groups to a user.
+- Fix LDAP connector with AD servers
+- Conserve some memory in Contacts App
+- Fix a warning in Gallery when deleting files
+- Fix a bug in the music scanner
+
+-------------------------------
+Release  "4.0.3"
+June 23. 2012
+
+- Added a check if the .htaccess file is working and the data directory is protected or not.
+- Added a check if a user is alowed to edit a bookmark or not.
+- Fix the bookmarklet
+- Fix the timezone in the datepicker
+- Fix mimetype detection for cdr files
+- Fix the filecache for the /Shared folder
+- Fix a potential data corruption bug in the encryption app
+- Don´t show other users filenames during filesystem cache rebuild
+- Fix several XSS bugs
+- Performance improvements for WebDAV and Desktop Syncing
+- Fix quota calculation
+- Improve the LDAP integration and group management
+- Fix problems with the pdf viewer
+- Fix user account migration
+- Implement several CSRF security checks
+- Fix a gallery bug where first picture is repeated in the last picture.
+- Lots of calendar fixes
+- Fix problem with "/" in filenames
+- Updated translations
+- Several fixes in Contacts
+- Lots of fixes in the Tasks App
+- Fix a bug in the filesystem cache with ghost entries
+
+-------------------------------
+Release  "4.0.2"
+June 11. 2012
+
+- Lots of gallery fixes
+- More 3rd party apps visible
+- Fixed update notifications
+- Several calendar fixes
+- Several XSS fixes in calendar
+- Several improvements in contacts
+- Fix intinite redirect during setup for windows hosts
+- Several XSS fixes in contacts
+- New user password salting
+- Several LDAP fixes
+- Fix doublicate emails in sharing
+- Improved compatibility with Android browser
+- Fixed calendar links
+- Fixed logging
+- Allow "/" in filenames
+- Updated translations
+- Fixed reverse proxy and custom hosts configuration
+- Fix contact photo editing
+- Don´t allow renaming, deleting and resharing of shared folder
+
+-------------------------------
+Release  "4.0.1"
+June 4. 2012
+
+- Verify if user exists when loggin (oc-863)
+- More efficient log file handling
+- PDO requirement check
+- Check if apps folder is writable
+- prevent division by zero problem during output of free space
+- better mysql error message
+- correctly configure ldap group backend  (oc-887)
+- sort users and groups (oc-779)
+- LDAP. correctly handle group filter (oc-867)
+- try to switch magic quotes of globally 
+- fix ategory error reporting (oc-874)
+- correctly handle reverse proxy / load balancer https handling
+- prevent session already started warning
+- fix the files breadcrumb
+- don´t try to use smtp auth if config files says no
+- fix versioning path
+- security: fix a XSS problem in calendar
+- make LDAP pqsql compatible
+- fix pqsql database migration
+- fix ldap config interface
+- support for LDAP "member"
+- don´t hardcode /tmp
+- fix potential security problem for requested apps parameter
+- fix notes in contacts properly
+- fix timezone detection
+- fix interti_id in calendar
+- set DB prefix for pqsql
+- security: fix a XSS problem in contacts
+- correctly encode caldav link
+- allow longer path in gallery
+- disable not compatible apps during upgrade
+- fix HEAD request for downloads
+- fix private link sharing via email
+- use UTC as default timezone
+- style fixes for tasks app
+
+
+
+-------------------------------
+Release  "4.0.0"
+May 22. 2012
+
+- versioning of files
+- server side encryption
+- drag and drop upload
+- theming
+- ODF file viewer
+- ownCloud Application APIs
+- migration and backup
+- tasks management
+- application store
+- lots of improvements
+
+
+
+-------------------------------
+Release  "2012.0.3"
+April 27. 2012
+
+- Security: Several CSRF fixes
+- Security: .htaccess uploading blacklist
+- Backport link in the Help center to the online documentatio
+- Backport link in the Help center to the "Big Files" howto
+- Check if JSon module is installed
+- Check if GD module is installed
+
+
+
+-------------------------------
+Release  3.0.2
+April 11. 2012
+
+Changes:
+- Drag and Drop fixed
+- Fixed Sharing for LDAP Users
+- Fix loading of LDAP Plugin
+- Security: Make password hashes more random
+- Security: Fix a XSS problem
+- Several small bugfixes
+
+
+
+-------------------------------
+Release  "3.0.1"
+April 3. 2012
+
+Changes:
+- Fixes for big file uploads
+- Performance improvements for WebDAV
+- IE8 fixes
+- Several small bugfixes
+
+
+
+
+

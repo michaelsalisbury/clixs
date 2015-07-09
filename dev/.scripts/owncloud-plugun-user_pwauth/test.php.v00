@@ -1,0 +1,120 @@
+<?php
+	$name = [ "hello" => NULL, ];
+	//echo array_keys($name);
+	print_r(array_keys($name));
+	print_r($name);
+	echo "###################################\n";
+	if ( in_array("1234 ", array( "1234", 'holly molly', 'wow' ))) echo "tada\n";
+	$arr = array_fill_keys(array( "1234", 'holly molly', 'wow' ), NULL);
+	if (isset($arr["1235"])) echo "wow\n";
+	foreach ($arr as $k => $v) echo $k . "\n";
+	$arr = array_flip([ 'a1', 'b2', 'c1', '0' ]);
+	foreach ($arr as $k => $v) echo $k . "\n";
+	foreach ($arr as $k => $v)
+		if (strpos($k,'1') !== false) echo $k . " hi\n";
+
+	$allowed = '1';	
+	$arr = array_filter(
+		$arr,
+		function ($key) { return (strpos($key, 'a') !== false);},
+		ARRAY_FILTER_USE_KEY
+	);
+	foreach ($arr as $k => $v) echo $k . "\n";
+	echo "###################################\n";
+	$int_a = 128;
+	$int_b = 64;
+	$int_c = 32;
+	echo ($int_a | $int_b) . "\nXXX\sXXX\n";
+	echo "###################################\n";
+	$int = 'abcd1234';
+	$int = '1234';
+	if ((string)(int)$int === (string)$int) echo 'is int :: ' . $int . "\n";
+	echo 'left :: ' . (string)(int)$int . ' == right :: ' . strval($int) . "\n";
+	var_dump(ctype_digit((string)$int));
+	echo "###################################\n";
+	var_dump(posix_getpwnam('localcosadmin'));
+	var_dump(posix_getgrnam('localcosadmin'));
+	var_dump(posix_getgrgid(100));
+	var_dump(posix_getgrnam('cos computer local admins'));
+	var_dump(posix_getpwnam('cos computer local admins'));
+	var_dump(posix_getgrnam('mi164210'));
+	var_dump(posix_getpwnam('mi164210'));
+	echo "###################################\n";
+	function posix_isobj(&$object, &$posix_usr = array(), &$posix_grp = array()){
+		if (is_array($object)) {
+			if (isset($object['members'])) {
+				$posix_group = $object;
+				$object = $posix_grp['name'];
+				$posix_usr = posix_getpwnam($object);
+			} elseif (isset($object['dir'])) {
+				$posix_usr = $object;
+				$object = $posix_usr['name'];
+				unset($posix_grp);
+			} else {
+				$object = (string)$object;
+				$posix_usr = posix_getpwnam($object);
+			}
+		} elseif (is_string($object)) {
+			$posix_usr = posix_getpwnam($object);
+		}
+	}
+	function posix_isusr($object){
+		posix_isobj($object, $posix_usr, $posix_grp);
+		if ($posix_usr === false) return false;
+		if (!isset($posix_grp)) $posix_grp = posix_getgrnam($object);
+		if ($posix_grp === false) return true;
+		if (!isset($posix_grp['members'][0])) return true;
+		if ((string)$posix_grp['members'][0] !== (string)$posix_usr['name']) return false;
+		return true; 
+	}
+
+	function posix_isgrp($object){
+		posix_isobj($object, $posix_usr, $posix_grp);
+		if (!isset($posix_grp)) $posix_grp = posix_getgrnam($object);
+		if ($posix_grp === false) return false;
+		if (!isset($posix_grp['members'][0])) return false;
+		if ((string)$posix_grp['members'][0] !== (string)$posix_grp['name']) return true;
+		if ($posix_usr === false) return true;
+		return false;
+	}
+	function posix_getgrusr($object){
+		posix_isobj($object, $posix_usr, $posix_grp);
+		if (!isset($posix_grp)) $posix_grp = posix_getgrnam($object);
+		if ($posix_grp === false) return [ $object ];
+		if (!isset($posix_grp['members'][0])) return [ $object ];
+		if ((string)$posix_grp['members'][0] === (string)$posix_grp['name']) return [ $object ];
+		$members = array();
+		foreach ($posix_grp['members'] as $posix => $group)
+			foreach(posix_getgrusr($group) as $posix => $user)
+				$members[] = $user;
+				//echo ($members[] = $user) . "\n";
+		return $members;
+	}
+	
+
+	
+	var_dump(posix_isusr(posix_getpwnam('localcosadmin')));
+	var_dump(posix_isusr(posix_getpwnam('mi164210')));
+	var_dump(posix_isusr(posix_getpwnam('cos computer local admins')));
+	var_dump(posix_isgrp(posix_getpwnam('localcosadmin')));
+	var_dump(posix_isgrp(posix_getpwnam('mi164210')));
+	var_dump(posix_isgrp(posix_getpwnam('cos computer local admins')));
+
+	echo "###################################\n";
+	var_dump(posix_getgrusr('owncloud_local_users'));
+	echo "###################################\n";
+	var_dump(posix_getgrusr('cos computer local admins'));
+	var_dump(posix_getgrusr('cos it all users'));
+	//var_dump(posix_getgrnam('cos fs phy research rahman nano'));
+	//var_dump(posix_getpwnam('cos fs phy research rahman nano'));
+	//var_dump(posix_getgrnam('mi164210'));
+	//var_dump(posix_getpwnam('mi164210'));
+	//svc_cos_appsense
+
+
+
+
+
+	
+
+?>

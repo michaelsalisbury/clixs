@@ -1,0 +1,108 @@
+<?php
+namespace OCA\user_pwauth\lib;
+
+class Configuration {
+	const appNameIndex = 1; 
+	const DEFAULTS = [
+		'list_delim'   => ';',
+		'group_prefix' => '@',
+		'min_id'       => '100',
+	];
+	const PARAMS = [
+		'uid_uids' => NULL,
+		'usr_uids' => NULL,
+		'adm_uids' => NULL,
+	];
+	const GUI = [
+		'uid_list'     => '1000-1100',
+		'usr_list'     => '@users',
+		'adm_list'     => '@wheel',
+		'pwauth_path'  => '/usr/sbin/pwauth',
+	];
+	private $config = array();
+	private $params = array();
+	private $defaults = array();
+	private $AppName = "";
+	public $data = "";
+	//private $AppName = NULL;
+
+	public function __construct($config = array()) {
+		$this->config = $config;
+		$this->params = array_merge(self::GUI, self::DEFAULTS, self::PARAMS);
+		$this->defaults = array_merge(self::GUI, self::DEFAULTS);
+		$this->AppName = (string)(explode("\\",__NAMESPACE__)[self::appNameIndex]);
+		// 
+		foreach (['defaults','params','config','AppName'] as $private_var)
+			$this->config[$private_var] = &$this->{$private_var};
+
+		foreach (get_class_vars(__CLASS__) as $private_var => $private_var_data){
+			$prop = new \ReflectionProperty(get_class($this), $private_var);
+			//$this->assertTrue($prop->isProtected());
+			//$reflect = new ReflectionObject($this->{$private_var});
+			\OC_Log::write(
+				'OC_USER_PWAUTH',
+				'PRIVATE_VAR::' . $private_var . '=' . $private_var_data . '|' . ($prop->isPrivate() ? 'private' : 'other' ) ,
+				3);
+			
+
+		}
+			//\OC_Log::write('OC_USER_PWAUTH', 'PRIVATE_VAR::' . $private_var . '=' . gettype($private_var_data), 3);
+			//$this->config[$key] = &$this->{$private_vars};
+
+	}
+
+	private function dbPushParam($params = NULL) {
+		if     (is_string($params)) $params = [ $params ];
+		elseif ($params === NULL)   $params = array_keys($this->defaults);
+		
+		foreach($params as $param)
+			if (isset($this->config[$param])) \OC_Appconfig::setValue(
+				$this->AppName,
+				$param,
+				$this->config[$param]
+			);
+	}
+
+	private function dbPullParam($params = NULL) {
+		if     (is_string($params)) $params = [ $params ];
+		elseif ($params === NULL)   $params = array_keys($this->defaults);
+
+		foreach($params as $param)
+			$this->config[$param] = \OC_Appconfig::getValue(
+				$this->AppName,
+				$param,
+				$this->defaults[$param]
+			);
+	}
+
+	public function __set($param, $data){
+		if (isset($this->defaults[$param])) {
+			$this->config[$param] = $data;
+			$this->dbPushParam($param);
+			return true;
+		} else {
+			return false;
+		}
+	}
+	public function __isset($param){
+		return isset($this->config[$param]);
+	}
+	public function __get($param){
+		if (!isset($this->config[$param]) && isset($this->params[$param]))
+			$this->dbPullParam($param);
+		return $this->config[$param];
+	}
+
+	public function test(){
+		//return (string)'hello';
+		//return (string)($defaults['group_prefix']);
+		//return (string)($this->params['uid_list']);
+		//return self::DEFAULTS['uid_list'];
+		return (string)(__NAMESPACE__);
+	}
+
+	//public function __get(
+
+
+	//public function updateList( $list = 'uid_list', 
+}

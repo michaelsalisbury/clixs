@@ -1,0 +1,7 @@
+winbindd clear
+winbindd clear
+winbindd add mi164210
+winbindd clear
+winbindd add mi164210
+winbindd add cos computer local admins
+winbindd add cos fs phy research rahman nano
