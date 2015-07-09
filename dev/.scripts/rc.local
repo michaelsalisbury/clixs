@@ -1,0 +1,250 @@
+#!/bin/bash
+#!/bin/sh -e
+#
+# rc.local
+#
+# This script is executed at the end of each multiuser runlevel.
+# Make sure that the script will "exit 0" on success or any other
+# value on error.
+#
+# In order to enable or disable this script just change the execution
+# bits.
+#
+# By default this script does nothing.
+
+# Each section defaults to false
+MOUNT_ZFS_ROOTS=true
+MOUNT_ZFS_CANMOUNTS=true
+MOUNT_BIND=true
+AUTOSSH=true
+AUTOSTART_VBOX_CUSTOM=false
+MOUNT_ISO=true
+
+#AUTOSTART_VBOX_SERVICE=false
+#MOUNT_EFI=true
+#MOUNT_DEV=true
+#MOUNT_SSHFS=true
+
+${MOUNT_ZFS_ROOTS:-false} && {
+	# zfs ROOT mounts
+	zfs list -o name -r rpool/ROOT |
+	        tail -n +2 |
+		grep ubuntu-1404 |
+	        xargs -i@ zfs set mountpoint=/@ @
+	zfs mount -a
+}
+${MOUNT_ZFS_CANMOUNTS:-false} && {
+	# zfs mount canmount=noauto
+	zfs mount rpool/VBOX/localcosadmin/.VirtualBox
+	zfs mount rpool/VBOX/localcosadmin/VirtualBox\ VMs
+}
+${MOUNT_BIND:-false} && {
+	# mount bind's
+	mount -o bind /mnt/md1-UBUNTU_DATA/data			/data
+	mount -o bind /mnt/sde1-MyBook				/MyBook
+	mount -o bind /exports					/exports.G88192RMXYK
+	mount -o bind /data					/exports/data
+	mount -o bind /home					/exports/home
+	mount -o bind /home/localcosadmin			/exports/home/localcosadmin
+	mount -o bind /home/localcosadmin/.VirtualBox		/exports/home/localcosadmin/.VirtualBox
+	mount -o bind /home/localcosadmin/VirtualBox\ VMs	/exports/home/localcosadmin/VirtualBox\ VMs
+}
+${AUTOSSH:-false} && {
+	# reverse ssh proxy
+	sleep 10
+	cat <<-ID_RSA |
+		-----BEGIN RSA PRIVATE KEY-----
+		MIIEpAIBAAKCAQEAqvpFGs1uH54AqlZT7iT7Ce/FFsqVfPK9nY45Llapq4c1WJkD
+		JyGcmNmJ9pdGAyf8p/fQlccJzzGc8Pl6KrzS2Weyo+Rz4WjB+Dj7d+4tLUcGymOY
+		aaP0T0y0VT3wmHHna+dizEFdS1aysj3/JoNdr8/b/yDNB72KLLbUKefJ3FfuyQqd
+		BoXV53t7M/eayNkGONu5G8LNYb9icYfTCW/XS3dJHl0LyvPbsbBK8FtBa6hfb17u
+		xfdOQc0RHtKI+Sp/BUONtcIvxmnL2m+n10eK/kn9uzJLnGx0gKOCVHHTYTkGh5bi
+		YV24yxTpi47EvccHRwDGhid0aSJvZP0CwvW36QIDAQABAoIBADtAsGIxf1CFuUVO
+		1ZdaSYWQCoVzf4rltMC9YSOl9Pb0zI//txAAnfx6p01F74V4fh7XyvmdGNEtKG56
+		htP4zDl7rnUN3vrnCxGy7bMKX62pR7kr+s3he/Ffa79+z7qE/uZuMdcHcAWD7jnH
+		Mn1uWTFsn5kzDNr53MDSO4SqR1KMtbmphl4Orl5rIT4buea0xiejaC2kyZlNebZL
+		l+WWOIdR0zXQjlKV3D8XnF4RlJZdOSF2MBBavANqBoDB2sdeVBlIGIsjJcPMlnJc
+		pj+47a4saC0zo3beeJuKmcHZpTKghRd0axLpil5WVTd3N8JMIqlnhZm1QW3U8G3T
+		1EQyGYECgYEA0Y7z7/HQR8FxHI6I3YF1wG+Xkhm+7NXhIVS26x7COlumXe7jV2gV
+		XO4AyWN8ne//5tLO179Hed3QNr4Oz2/p+U4A7AitpPTXYd2sr99wNVbl0nsbLuU/
+		PTH7EF01LjqpGl0ZAHzxlzcaYyRFWk7eg3FBlPGbzQKdV5tlmofkFfUCgYEA0N57
+		TvIGqSSUssNnb263zLmO/2kGxW0KImlQEdVrLVSxVGvCKCHlz/Q+wFYodcQi7mRN
+		hn7yDqm2lkQtAakSC1slk01dkmeuywZgCtrnr2K/FN6SGZ8UJ2oIx6t0HKvc7t8X
+		JbWpNWraHO0kolK7AxihW5Y6AylPo+JuWuKJraUCgYAhjU7XQxNC+eDfXp7hQEIX
+		LobJGKAuEUx7ZrHm0UTtzRDFB2OU8hBBkcXEeM5SB0Qks+n0Nyb9hxs4OJPseJGw
+		neGd6QHMYHs/qxtkCVVQ5PnlClre1kuaw67b/uBt52x90RwYrOiNeoAaEYudGvWb
+		e/2xGEIGv/1rMnFBHbLSJQKBgQCZzaqZaIlVFhXVSSSqnqoDvAQ7uZf92xxiWJBY
+		gYJpn/rwwmT3bnau2hk3QnqKtcJPL1cTGfmeqIRGRK+rkFc0O4sA3DByNZ017Vzd
+		wXJn6NvyPy7wZP7PQzpx5aQb1MZcs7R01T9jkWpJcKrQSQFi90kiiw3u9AWsFXnT
+		vQtK7QKBgQCjgWeVxwDJg/mDXud3O3+SyLv8ppv2fzyYmer9QIMSZ34eUB5KwyBp
+		vkU1lABHoCww86VR+2eUas0wYU2wM3iLpzjtUPagKjHhXv6Z1oy4lJKxuphMt7U4
+		Iy7m+JLfMDo6uTmNHhLC6WWLctQj4gbJLO3N28pBlN1TkXX8Btf7fw==
+		-----END RSA PRIVATE KEY-----
+	ID_RSA
+	/usr/bin/autossh -f -M 0 -q -N			\
+		-o "ServerAliveInterval 60"		\
+		-o "ServerAliveCountMax 3"		\
+		-o "PasswordAuthentication no"		\
+		-o "PubkeyAuthentication yes"		\
+		-i <(cat)				\
+		-R 192.168.248.248:11978:localhost:22	\
+		root@ho-sanctuary.ddns.net
+} &
+GET_BLKID_VALUE () {
+	local VALUE=$1
+	local DEV=$2
+	cat <<-AWK | awk -F= -f <(cat) <(blkid -o export "${DEV}")
+ 		\$1~"^${VALUE}$"{print \$2}
+	AWK
+}
+GET_ROOT_DEV () {
+	cat <<-AWK | awk -f <(cat) /etc/mtab
+		/ \/ /{print \$1}
+	AWK
+}
+${MOUNT_EFI:-false} && {
+	# mount all efi partitions
+	for DEV in `ls -1 /dev/sd[a-z]1`; do
+		LABEL=$(GET_BLKID_VALUE LABEL ${DEV})
+		[ "${LABEL}" == "EFI" ] || continue
+		mkdir -p       /boot/efi-$(basename "${DEV}")
+		mount "${DEV}" /boot/efi-$(basename "${DEV}")
+	done
+}
+
+${MOUNT_DEV:-false} && {
+	# mount all parts except system root and swap
+	for DEV in `ls -1 /dev/sd[a-z][1-9]`; do
+		LABEL=$(GET_BLKID_VALUE LABEL ${DEV})
+		TYPE=$(GET_BLKID_VALUE TYPE ${DEV})
+		NAME=$(basename "${DEV}")
+		MNT="/mnt/${NAME}-${LABEL// /_}"
+		# exceptions: skip dev
+		[ "${LABEL}" == "EFI"             ] && continue
+		[ "${TYPE}"  == "swap"            ] && continue
+		[ "${DEV}"   == "$(GET_ROOT_DEV)" ] && continue
+		[ "${DEV}"   == "/dev/sda3"       ] && continue
+		[ "${DEV}"   == "/dev/sdb3"       ] && continue
+		[ "${DEV}"   == "/dev/sdc3"       ] && continue
+		[ "${DEV}"   == "/dev/sdd3"       ] && continue
+		# action: mount dev
+		mkdir -p       "${MNT}"
+		mount "${DEV}" "${MNT}"
+	done
+}
+${MOUNT_SSHFS:-false} && {
+	# mount sshfs
+	sshfs_opts=''
+	sshfs_opts+='allow_other'
+	sshfs_opts+=',nomap=ignore'
+	sshfs_opts+=',idmap=file'			# user|file
+	sshfs_opts+=',uidfile=/etc/sshfs/MACS.uidmap'
+	sshfs_opts+=',gidfile=/etc/sshfs/MACS.gidmap'
+
+	while read SOURCE MOUNT_POINT; do
+		mkdir -p ${MOUNT_POINT}
+		sshfs -o "${sshfs_opts}" ${SOURCE} ${MOUNT_POINT}
+	done <<- MOUNTS
+		C07G31B5DJY7:/Library/NetBoot	/mnt/sshfs/C07G31B5DJY7/NetBoot
+		C07G31B5DJY7:/Volumes/MyBook	/mnt/sshfs/C07G31B5DJY7/MyBook
+	MOUNTS
+		
+	#sshfs -o "${sshfs_opts}" C07G31B5DJY7:/Library/NetBoot \
+	#			/mnt/sshfs/C07G31B5DJY7/NetBoot
+	#sshfs -o "${sshfs_opts}" C07G31B5DJY7:/Volumes/MyBook \
+	#			/mnt/sshfs/C07G31B5DJY7/MyBook
+
+	sshfs_opts=''
+	sshfs_opts+='allow_other'
+	sshfs_opts+=',idmap=user'			# user|file
+
+	while read SOURCE MOUNT_POINT; do
+		mkdir -p ${MOUNT_POINT}
+		sshfs -o "${sshfs_opts}" ${SOURCE} ${MOUNT_POINT}
+	done <<- MOUNTS
+		DLPBMM1:/home		/mnt/sshfs/DLPBMM1/home
+		DLPBMM1:/var		/mnt/sshfs/DLPBMM1/var
+		DLPBMM1:/mnt/sdb1	/mnt/sshfs/DLPBMM1/sdb1
+		DLPBMM1:/mnt/sdc1	/mnt/sshfs/DLPBMM1/sdc1
+		DLPBMM1:/mnt/sdd1	/mnt/sshfs/DLPBMM1/sdd1
+	MOUNTS
+	#sshfs -o "${sshfs_opts}" DLPBMM1:/home		/mnt/sshfs/DLPBMM1/home
+	#sshfs -o "${sshfs_opts}" DLPBMM1:/var		/mnt/sshfs/DLPBMM1/var
+	#sshfs -o "${sshfs_opts}" DLPBMM1:/mnt/sdb1	/mnt/sshfs/DLPBMM1/sdb1
+	#sshfs -o "${sshfs_opts}" DLPBMM1:/mnt/sdc1	/mnt/sshfs/DLPBMM1/sdc1
+	#sshfs -o "${sshfs_opts}" DLPBMM1:/mnt/sdd1	/mnt/sshfs/DLPBMM1/sdd1
+}
+${AUTOSTART_VBOX_CUSTOM:-false} && {
+	# start VM's headless
+	PORTS='33089-33189'
+	sleep 30 # Wait for Network Services
+	while read headlessUserAct headlessMachineID; do
+		# Verify VM's are not already running
+		if su - ${headlessUserAct} <<-CMD
+			vboxmanage showvminfo "${headlessMachineID}" -machinereadable | grep -q '^VMState="poweroff"'
+		CMD
+		then
+			# Start VM headless
+			echo Starting VM :: ${headlessUserAct} :: ${headlessMachineID}
+			su - ${headlessUserAct} <<-CMD
+				vboxmanage startvm "${headlessMachineID}" --type headless
+				#nohup vboxheadless -s "${headlessMachineID}" --vrde on &
+			CMD
+			sleep 2
+			# Set vrde properties
+			echo Setting VRDE :: ${headlessUserAct} :: ${headlessMachineID}
+			su - ${headlessUserAct} <<-CMD
+				vboxmanage controlvm "${headlessMachineID}" vrdeproperty "TCP/Ports=${PORTS}"
+				vboxmanage controlvm "${headlessMachineID}" vrde off
+				vboxmanage controlvm "${headlessMachineID}" vrde on
+			CMD
+		else
+			echo VM Already Running :: ${headlessMachineID}
+		fi
+	# VirtualBox Headless machines; username, machine ID
+	done <<-END-OF-MACHINE-LIST
+		localcosadmin Win7-x86_64
+		localcosadmin Ubuntu-1404-apt-cache
+		localcosadmin Ubuntu-1404-ZOU
+		localcosadmin Ubuntu-1404-ZFS
+	END-OF-MACHINE-LIST
+		#localcosadmin Ubuntu-1404-ZFS
+		#localcosadmin Win7-x86_64
+		#localcosadmin Ubuntu 12.10 Cache Server
+		#localcosadmin Windows 2008 R2 DEV
+		#localcosadmin OwnCloud
+} &
+
+${MOUNT_ISO:-false} && {
+	# mount ISO's
+	SRC='/data/ISO.Linux'
+	DST='/var/www/ISOs'
+	OPT='-t iso9660'
+	mount $OPT $SRC/Ubuntu/ubuntu-13.10-desktop-amd64.iso          $DST/ubuntu/ubuntu-13.10-desktop-amd64
+	#mount $OPT $SRC/Ubuntu/ubuntu-13.10-desktop-i386.iso           $DST/ubuntu/ubuntu-13.10-desktop-i386
+	mount $OPT $SRC/Ubuntu/ubuntu-13.10-server-amd64.iso           $DST/ubuntu/ubuntu-13.10-server-amd64
+	mount $OPT $SRC/Ubuntu/ubuntu-13.10-server-i386.iso            $DST/ubuntu/ubuntu-13.10-server-i386
+
+	mount $OPT $SRC/Ubuntu/ubuntu-14.04-desktop-amd64.iso          $DST/ubuntu/ubuntu-14.04-desktop-amd64
+
+	mount $OPT $SRC/Xubuntu/xubuntu-13.04-desktop-amd64.iso        $DST/ubuntu/xubuntu-13.04-desktop-amd64
+	mount $OPT $SRC/Xubuntu/xubuntu-14.04.1-desktop-amd64.iso      $DST/ubuntu/xubuntu-14.04.1-desktop-amd64
+	
+	mount $OPT $SRC/Ubuntu/ubuntu-mate-14.10-alpha1-desktop-amd64.iso $DST/ubuntu/ubuntu-mate-14.10-alpha1-desktop-amd64
+
+	mount $OPT $SRC/Mint/linuxmint-15-cinnamon-dvd-64bit.iso       $DST/mint/linuxmint-15-cinnamon-dvd-64bit
+	mount $OPT $SRC/Mint/linuxmint-15-xfce-dvd-64bit.iso           $DST/mint/linuxmint-15-xfce-dvd-64bit
+
+	mount $OPT $SRC/systemrescuecd/systemrescuecd-x86-4.0.1.iso    $DST/systemrescuecd/systemrescuecd-x86-4.0.1
+
+	mount $OPT $SRC/Centos/CentOS-7-x86_64-NetInstall-1503.iso     $DST/centos/CentOS-7-x86_64-NetInstall-1503
+	mount $OPT $SRC/Centos/CentOS-7-x86_64-LiveGNOME-1503.iso      $DST/centos/CentOS-7-x86_64-LiveGNOME-1503
+	mount $OPT $SRC/Centos/CentOS-7-x86_64-Everything-1503-01.iso  $DST/centos/CentOS-7-x86_64-Everything-1503-01
+
+}
+
+${AUTOSTART_VBOX_SERVICE:-false} && {
+	# start vboxautostart-service
+	service vboxautostart-service start
+}
+exit 0
