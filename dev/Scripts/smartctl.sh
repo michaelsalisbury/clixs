@@ -40,26 +40,31 @@ TRASH
 
 
 function main(){
+	local DISK_LIST
+	read -d $'' DISK_LIST <<-DISK_LIST
+		/dev/disk/by-id/ata-WDC_WD30EFRX-68EUZN0_WD-WMC4N1318393
+		/dev/disk/by-id/ata-ST3640623AS_9VK0FNH1
+	DISK_LIST
+	local DISK_LIST=$(ls -1 /dev/disk/by-id/* | sed -n '/part/d;/ata/p')
+
 	local _DEV
 	while read _DEV; do
 		DRIVE_ID=$(basename $_DEV)
 		DRIVE_LETTER=$(basename $(readlink -f "${_DEV}"))
 		SMART_REPORT="/dev/shm/$$_${FUNCNAME}_${DRIVE_LETTER}_${DRIVE_ID}"
-		#[ "${DRIVE_LETTER}" == "sdi" ] || continue
+		[ "${DRIVE_LETTER:0:2}" == "sd" ] || continue # device must be hd
 		smartctl -a ${_DEV} > "${SMART_REPORT}" &
-	done < <(ls -1 /dev/disk/by-id/* | sed -n '/part/d;/ata/p')
+	done <<< "${DISK_LIST}"
 	wait
 	
 	while read _DEV; do
 		DRIVE_ID=$(basename $_DEV)
 		DRIVE_LETTER=$(basename $(readlink -f "${_DEV}"))
 		SMART_REPORT="/dev/shm/$$_${FUNCNAME}_${DRIVE_LETTER}_${DRIVE_ID}"
-		#[ "${DRIVE_LETTER}" == "sdi" ] || continue
-		#continue
-		#echo ${DRIVE_LETTER} 1>&2
+		[ "${DRIVE_LETTER:0:2}" == "sd" ] || continue # device must be hd
 		echo -n "${DRIVE_LETTER}"\ 
-		get_smartctl_info Model Family               < "${SMART_REPORT}" | tr \  _
-		echo -n \  
+		#get_smartctl_info Model Family               < "${SMART_REPORT}" | tr \  _
+		#echo -n \  
 		get_smartctl_info_capacity                   < "${SMART_REPORT}"
 		echo -n \  
 		get_disk_by_id_path                          < "${SMART_REPORT}"
@@ -72,16 +77,17 @@ function main(){
 		echo -n \ 
 		get_power_on_hours                           < "${SMART_REPORT}"
 		echo -n \ 
-		get_alignment ${_DEV}
+		echo -n `get_alignment ${_DEV}`
+		echo -n /
+		get_smartctl_info_sector_size                < "${SMART_REPORT}"
 		echo -n \ 
 		get_partition_type ${_DEV}
-		
-
 		echo
-	done < <(ls -1 /dev/disk/by-id/* | sed -n '/part/d;/ata/p') |
+	done <<< "${DISK_LIST}" |
 	sort |
-	sed '1i DEV FAMILY SIZE __ ://dev/disk/by-id/ata-[MODEL]_[SERIAL] C SEC PCC HOURS ALGN TABLE' |
+	sed '1i DEV SIZE __ ://dev/disk/by-id/ata-[MODEL]_[SERIAL] C RSC PCC HOURS ALGN/SECS TABLE . ' |
 	column -t -s ' '
+	#sed '1i DEV FAMILY SIZE __ ://dev/disk/by-id/ata-[MODEL]_[SERIAL] C RSC PCC HOURS ALGN/SS TABLE' |
 	#sed '1i DEV FAMILY SIZE __ PATH:/dev/disk/by-id/ata-[MODEL]_[SERIAL] C SEC HOURS ALIGN TABLE' |
 
 	#cat   /dev/shm/$$_${FUNCNAME}_dev_sdj
@@ -163,6 +169,16 @@ function get_disk_by_id_path(){
 			echo -n NA
 		fi
 	fi
+}
+function get_smartctl_info_sector_size(){
+	exec 7< <(get_smartctl_info Sector Size[s]?)
+	cat <<-AWK | awk -f <(cat) <&7 7<&-
+		/logical/&&/physical/{
+			match(\$0,/[0-9]*[^0-9]+$/)
+			\$0=substr(\$0,RSTART,RLENGTH)
+			printf \$1
+		}
+	AWK
 }
 function get_smartctl_info_capacity(){
 	#exec 6<&0

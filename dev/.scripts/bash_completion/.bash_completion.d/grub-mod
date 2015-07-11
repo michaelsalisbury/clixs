@@ -64,7 +64,7 @@ _my_zfs_utils () {
 	fi
 }
 __my_zfs_utils_program="my-zfs-utils"
-complete -F _my_zfs_utils -o filenames ${__my_zfs_utils_program}
+complete -F _my_zfs_utils ${__my_zfs_utils_program}
 unset __my_zfs_utils_program
 
 
