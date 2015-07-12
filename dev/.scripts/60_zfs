@@ -1,5 +1,29 @@
 #!/bin/bash
 
+BOOT="/boot"
+zfsINITRD_PREFIX="initrd.img-"
+zfsKERNEL_PREFIX="vmlinuz-"
+zfsINITRD_STOR="${BOOT}/zfs"
+
+# functions
+cat <<-GRUB
+	function zfs_prep {
+	 	gfxmode \$linux_gfx_mode
+	 	insmod gzio
+	 	insmod part_msdos
+	 	insmod part_msdos
+	 	insmod part_msdos
+	 	insmod part_msdos
+	 	insmod diskfilter
+	 	insmod mdraid09
+	 	insmod ext2
+	 	boot_opts="${GRUB_CMDLINE_LINUX_DEFAULT}"
+	}
+	function zfs_boot {
+	 	linux   \${kernel} rpool=\${rpool} bootfs=\${bootfs} root=ZFS= boot=zfs ro \${boot_opts}
+	 	initrd  \${initrd}
+	}
+GRUB
 
 zfsSYSTEM_LAST=
 zfsROOT_LAST=
@@ -8,73 +32,85 @@ while read INITRD; do
 	# variables
 	zfsROOT=$(  awk -F'/' '{print $(NF-1)}' <<< "${INITRD}")
 	zfsSYSTEM=$(awk -F'/' '{print $(NF-2)}' <<< "${INITRD}")
-	grubBASE=${INITRD%%/${zfsSYSTEM}*}
-	zfsBASE=${grubBASE#/boot/zfs/}
-	zfsPOOL=$(awk -F'/' '{print $3}' <<< "${INITRD}")
+
+	zfsBASE=${INITRD%%/${zfsSYSTEM}*}
+	zfsBASE=${zfsBASE#${zfsINITRD_STOR}/}
+
+	zfsPOOL=${zfsBASE%%/*}
+	zfsFILESYSTEM="${zfsBASE}/${zfsSYSTEM}/${zfsROOT}"
+
+	FOLDER=$(dirname  "${INITRD#${BOOT}}")
 	INITRD=$(basename "${INITRD}")
-	#echo ${zfsSYSTEM}
-	#echo ${grubBASE}
-	#echo ${zfsBASE}
-	#echo ${zfsPOOL}
-	#echo ${zfsBASE}/${zfsSYSTEM}/${zfsROOT}
+	KERNEL=${INITRD/${zfsINITRD_PREFIX}/${zfsKERNEL_PREFIX}}
+	
 
 	# skip filesystems that don't exist in the pool
-	zfs get type -Hp "${zfsBASE}/${zfsSYSTEM}/${zfsROOT}" &> /dev/null || continue
+	zfs get type -Hp "${zfsFILESYSTEM}" &> /dev/null || continue
 
+	#submenu="ZFS, ${zfsBASE}/${zfsSYSTEM}"			# BROKE # bash compleation can't handle back slash
+	#submenu="ZFS, ${zfsBASE//\//\\\\}\\\\${zfsSYSTEM}"	# BROKE # grub can't handle double forward slash
+	#submenu="ZFS, ${zfsBASE//\//..}..${zfsSYSTEM}"
+	submenu="ZFS, ${zfsBASE}/${zfsSYSTEM}"
 	# if   zfsSYSTEM_LAST is unset start group menu
 	if ! (( ${zfsSYSTEM_LAST:+1} )); then
 		cat <<-GRUB
-			submenu 'ZFS, ${zfsBASE}/${zfsSYSTEM}' {
+			submenu '${submenu}' {
 		GRUB
 	# else zfsSYSTEM changed close zfsROOT group menu, unset zfsROOT, close zfsSYSTEM group menu, start new zfsSYSTEM group menu
 	elif [ "${zfsSYSTEM_LAST}" != "${zfsSYSTEM}" ]; then
+			#submenu 'ZFS, ${zfsBASE}/${zfsSYSTEM}' {
 		cat <<-GRUB
 			 	}
 			}
-			submenu 'ZFS, ${zfsBASE}/${zfsSYSTEM}' {
+			submenu '${submenu}' {
 		GRUB
 		zfsROOT_LAST=
 	fi
 
+	#submenu="${zfsBASE}/${zfsSYSTEM} :: ${zfsROOT}"
+	submenu="${zfsROOT}"
 	# if   zfsROOT is unset start group menu
 	if ! (( ${zfsROOT_LAST:+1} )); then
 		cat <<-GRUB
-			 	submenu '${zfsBASE}/${zfsSYSTEM} :: ${zfsROOT}' {
+			 	submenu '${submenu}' {
 		GRUB
 	# else zfsROOT changed close group menu and start a new one
 	elif [ "${zfsROOT_LAST}" != "${zfsROOT}" ]; then
 		cat <<-GRUB
 			 	}
-			 	submenu '${zfsBASE}/${zfsSYSTEM} :: ${zfsROOT}' {
+			 	submenu '${submenu}' {
 		GRUB
 	fi
 
-	#
+	# menuentry
+	#linux   /vmlinuz-${kernel} rpool=${rpool} bootfs=${bootfs} root=ZFS= boot=zfs ro ${boot_opts}
+	#initrd  /initrd.img-${kernel}
 	cat <<-GRUB
-		 		menuentry '${zfsSYSTEM}_${zfsROOT}_${INITRD#initrd.img-}' {
-		 			### "${zfsBASE}/${zfsSYSTEM}/${zfsROOT}" :: ${INITRD}
-		 			linux   /vmlinuz-3.13.0-32-generic root=UUID=edca95d1-d294-4bd0-bea4-f53bc13084b0 ro  text max_loop=64
-		 			initrd  /initrd.img-3.13.0-32-generic
+		 		menuentry '${zfsSYSTEM}_${zfsROOT}_${INITRD#${zfsINITRD_PREFIX}}' {
+		 			zfs_prep
+		 			rpool="${zfsPOOL}"
+		 			bootfs="${zfsFILESYSTEM}"
+		 			kernel="${FOLDER}/${KERNEL}"
+		 			initrd="${FOLDER}/${INITRD}"
+		 			zfs_boot
 		 		}
 	GRUB
 
+	# remember
 	zfsSYSTEM_LAST=${zfsSYSTEM}
 	zfsROOT_LAST=${zfsROOT}
-done < <(find /boot/zfs -type f -name initrd.img-* | sort)
+	####################################################################
+done < <(find "${zfsINITRD_STOR}" -type f -name ${zfsINITRD_PREFIX}* | sort)
+
+	# close zfsROOT group menu
 	if (( ${zfsROOT_LAST:+1} )); then
 		cat <<-GRUB
 			 	}
 		GRUB
 	fi
+	# close zfsSYSTEM group menu
 	if (( ${zfsSYSTEM_LAST:+1} )); then
 		cat <<-GRUB
 			}
 		GRUB
 	fi
-
-
-	# close zfsROOT group menu
-	# close zfsSYSTEM group menu
-
-
-

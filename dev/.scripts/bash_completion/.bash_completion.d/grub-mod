@@ -1,8 +1,13 @@
 #!/bin/bash
 
+__sed_escape_string () {
+	local sed_special_chars=$' >'
+	sed 's/\(['"${sed_special_chars}"']\)/\\\\\1/g'
+}
+# function readfd: file descriptor is flushed to variable REPLY[${fd}] and printed to stdout; (${fd} is the supplied file descriptor)
 __grub_list_menuentries_raw () {
     local config_file=$1
-	cat <<-AWK | awk -F "[\"']" -f <(cat) "${config_file}"
+	cat <<-AWK | awk -F "[\"']" -f <(cat) "${config_file}" | __sed_escape_string
 		/^[ \t]*menuentry[ \t]/{
 			menuentry=\$2
 			if (submenu_l)

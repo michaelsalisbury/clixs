@@ -14,8 +14,12 @@ function main(){
 function do_help(){
 	declare -F | sed -n 's/^declare -f do_//p'
 }
+__sed_escape_string () {
+	local sed_special_chars=$' >'
+	sed 's/\(['"${sed_special_chars}"']\)/\\\1/g'
+}
 function do_boot_list(){
-	cat <<-AWK | awk -F "['\"]" -f <(cat) /boot/grub/grub.cfg
+	cat <<-AWK | awk -F "['\"]" -f <(cat) /boot/grub/grub.cfg | __sed_escape_string
 		/^[ \t]*menuentry[ \t]/{
 			menuentry=\$2
 
@@ -44,5 +48,12 @@ function do_grub_set_default(){
 function do_grub_reboot(){
 	grub-reboot "${1}"
 }
+function get_booted_root_filesystem(){
+	mount |
+	awk '$3=="/"{print "zfs list -H -o name "$1}' |
+	bash 2>/dev/null
+}
+
+
 
 main "$@"
