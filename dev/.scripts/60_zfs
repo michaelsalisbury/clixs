@@ -45,7 +45,8 @@ while read INITRD; do
 	
 
 	# skip filesystems that don't exist in the pool
-	zfs get type -Hp "${zfsFILESYSTEM}" &> /dev/null || continue
+	#zfs get type -Hp "${zfsFILESYSTEM}" &> /dev/null || continue
+	zfs list -Ho type "${zfsFILESYSTEM}" 2>/dev/null | grep -q -x filesystem || continue
 
 	#submenu="ZFS, ${zfsBASE}/${zfsSYSTEM}"			# BROKE # bash compleation can't handle back slash
 	#submenu="ZFS, ${zfsBASE//\//\\\\}\\\\${zfsSYSTEM}"	# BROKE # grub can't handle double forward slash
