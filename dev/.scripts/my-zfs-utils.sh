@@ -15,7 +15,7 @@ function do_help(){
 	declare -F | sed -n 's/^declare -f do_//p'
 }
 __sed_escape_string () {
-	local sed_special_chars=$' >'
+	local sed_special_chars=$' >\/'
 	sed 's/\(['"${sed_special_chars}"']\)/\\\1/g'
 }
 function do_boot_list(){

@@ -1,13 +1,15 @@
 #!/bin/bash
 
 __sed_escape_string () {
+	local count=${1:-1}
 	local sed_special_chars=$' >'
-	sed 's/\(['"${sed_special_chars}"']\)/\\\\\1/g'
+	local sed_escape_chars=$'\\\\'
+	local sed_escape_chars=$(count=${count//[^[:digit:]]/} < <(printf %$(( count * 2 ))s) sed "s/./${sed_escape_chars}/g")
+	sed "s/\([${sed_special_chars}]\)/${sed_escape_chars}\1/g"
 }
-# function readfd: file descriptor is flushed to variable REPLY[${fd}] and printed to stdout; (${fd} is the supplied file descriptor)
 __grub_list_menuentries_raw () {
     local config_file=$1
-	cat <<-AWK | awk -F "[\"']" -f <(cat) "${config_file}" | __sed_escape_string
+	cat <<-AWK | awk -F "[\"']" -f <(cat) "${config_file}"
 		/^[ \t]*menuentry[ \t]/{
 			menuentry=\$2
 			if (submenu_l)
@@ -30,14 +32,15 @@ __grub_list_menuentries_raw () {
 	AWK
 }
 __grub_list_menuentries_new () {
-    local cur="${COMP_WORDS[COMP_CWORD]}"
     local config_file=$(__grub_dir)/grub.cfg
-
+	# the list of posibles completions must have escaped characters escaped twice
     if [ -f "$config_file" ];then
+		local  cur=${COMP_WORDS[COMP_CWORD]}
+		local list=$(__grub_list_menuentries_raw $config_file)
+			   cur=$(<<< "${cur}"  __sed_escape_string 1) 
+			  list=$(<<< "${list}" __sed_escape_string 2)
         local IFS=$'\n'
-        COMPREPLY=( $(compgen \
-            -W "$(__grub_list_menuentries_raw $config_file)" \
-            -- "$cur" )) #'# Help emacs syntax highlighting
+        COMPREPLY=( $(compgen -W "$list" -- "$cur" ))
     fi
 }
 
