@@ -64,10 +64,13 @@ _my_zfs_utils () {
 				__grub_list_menuentries_new
 				return
 				;;
+			update_zfs_initrd)
+				local list=$(zfs list -H -o name -t filesystem)
+				;;
 			*)	local list=$("${script}" help);;
 		esac
 
-	        local IFS=$'\n'
+		local IFS=$'\n'
 		COMPREPLY=( $(compgen -W "${list}" -- "$cur" ))
 	fi
 }

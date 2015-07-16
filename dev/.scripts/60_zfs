@@ -86,8 +86,10 @@ while read INITRD; do
 	# menuentry
 	#linux   /vmlinuz-${kernel} rpool=${rpool} bootfs=${bootfs} root=ZFS= boot=zfs ro ${boot_opts}
 	#initrd  /initrd.img-${kernel}
+	#menuentry="${zfsSYSTEM}_${zfsROOT}_${INITRD#${zfsINITRD_PREFIX}}"
+	menuentry="${zfsSYSTEM} ${zfsROOT} ${INITRD#${zfsINITRD_PREFIX}}"
 	cat <<-GRUB
-		 		menuentry '${zfsSYSTEM}_${zfsROOT}_${INITRD#${zfsINITRD_PREFIX}}' {
+		 		menuentry '${menuentry}' {
 		 			zfs_prep
 		 			rpool="${zfsPOOL}"
 		 			bootfs="${zfsFILESYSTEM}"
@@ -96,6 +98,12 @@ while read INITRD; do
 		 			zfs_boot
 		 		}
 	GRUB
+	#Found linux image: /boot/vmlinuz-3.13.0-29-generic
+	#Found initrd image: /boot/initrd.img-3.13.0-29-generic
+	cat <<-STATUS 1>&2
+		Found linux image: /boot${FOLDER}/${KERNEL}
+		Found initrd image: /boot/${FOLDER}/${INITRD}
+	STATUS
 
 	# remember
 	zfsSYSTEM_LAST=${zfsSYSTEM}
