@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- <ccxml version="1.0"> -->
+<!-- We must declare the xmlns:Voxeo attribute to use Voxeo-specific extensions -->
+<ccxml version="1.0" xmlns:voxeo="http://community.voxeo.com/xmlns/ccxml">
+	<eventprocessor>
+		<transition event="connection.alerting">
+			<log expr="'*** The called ID is ' + event$.connection.local + ' ***'" />
+			<log expr="'*** The caller ID is ' + event$.connection.remote + ' ***'" />
+			<if cond="event$.connection.local == '8315551234'">
+				<reject/>
+			<elseif cond="event$.connection.remote == '8315557890'" />
+				<reject/>
+			<else/>
+				<accept/>
+			</if>
+
+		</transition>
+		<transition event="connection.connected">
+			<log expr="'*** Call was answered *** '" />
+			<disconnect/>
+		</transition>
+		<transition event="connection.disconnected">
+			<log expr="'*** Call was disconnected *** '" />
+			<exit/>
+		</transition>
+		 
+		<transition event="connection.failed">
+			<voxeo:sendemail to="'michael.salisbury@aspect.com'" from="'MyAppp@here.com'" type="'debug'" body="'We had an error!'" />
+			<exit/>
+		</transition>
+	</eventprocessor>
+
+	<log expr="'*** Application is starting ***'" />
+
+
+	<!--
+	<var name="MyVariable" expr="'This is a CCXML Variable'" />
+
+	<log expr="'***Hello World. I just created a variable: ' + MyVariable + ' ***'" />
+	<exit/>
+	-->
+
+</ccxml>

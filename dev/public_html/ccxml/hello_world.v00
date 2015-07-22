@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ccxml version="1.0">
+
+	<var name="MyVariable" expr="'This is a CCXML Variable'" />
+
+	<log expr="'***Hello World. I just created a variable: ' + MyVariable + ' ***'" />
+
+	<exit/>
+
+</ccxml>
