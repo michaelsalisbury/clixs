@@ -27,7 +27,7 @@
 
 		<transition state="accepting" event="connection.connected">
 			<assign name="app_state" expr="'incall_0'" />
-			<send name="'continue'" target="session.id" delay="'3000s'" />
+			<send name="'continue'" target="session.id" delay="'3000ms'" />
 		</transition>
 
 		<transition state="incall_0" event="continue">
