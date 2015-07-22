@@ -3,6 +3,11 @@
 <!-- We must declare the xmlns:Voxeo attribute to use Voxeo-specific extensions -->
 <ccxml version="1.0" xmlns:voxeo="http://community.voxeo.com/xmlns/ccxml">
 	<!--<eventprocessor>-->
+	<var name="app_name"    expr="'Basic Error Handling'" />
+	<var name="app_des"     expr="'test'" />
+	<var name="app_version" expr="'v6'" />
+
+
 	<var name="app_state" expr="'initial'" />
 	<var name="in_connID" />		
 	<eventprocessor statevariable="app_state">
@@ -20,7 +25,7 @@
 				to="'michael.salisbury@aspect.com'"
 				from="'MyAppp@here.com'"
 				type="'debug'"
-				body="'Advanced Event Handling v05 :: premature disconnection detected'" />
+				body="app_name + '     ' :: premature disconnection detected'" />
 			<exit/>
 		</transition>
 		<transition event="connection.failed">
