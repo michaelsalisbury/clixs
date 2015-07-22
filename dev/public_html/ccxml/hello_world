@@ -5,7 +5,7 @@
 	<!--<eventprocessor>-->
 	<var name="app_state" expr="'initial'" />
 	<var name="in_connID" />		
-	<eventprocessor staevariable="app_state">
+	<eventprocessor statevariable="app_state">
 		<transition state="initial" event="connection.alerting">
 			<assign name="app_state" expr="'accepting'" />
 			<accept/>
