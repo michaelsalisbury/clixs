@@ -5,18 +5,28 @@
 	<!--<eventprocessor>-->
 	<var name="app_state" expr="'initial'" />
 	<var name="in_connID" />		
-	<eventprocessor staevariable="app_state">
+	<eventprocessor statevariable="app_state">
 		<transition state="initial" event="connection.alerting">
 			<assign name="app_state" expr="'accepting'" />
 			<accept/>
 			<assign name="in_connID" expr="event$.connection.connectionid" />
 			<log expr="'*** connection.alerting app_state = ' + app_state + ' ***'" />
-			<log eprr="'*** in_connID = + in_connID + ' ***'" />
+			<log expr="'*** in_connID = ' + in_connID + ' ***'" />
+		</transition>
+
+		<transition state="disconnecting" event="connection.disconnected">
+			<assign name="app_state" expr="'disconnected'" />
+			<log expr="'*** Application is ending  :: ' + app_state + ' :: ***'" />
+			<voxeo:sendemail
+				to="'michael.salisbury@aspect.com'"
+				from="'MyAppp@here.com'"
+				type="'debug'"
+				body="'Advanced Event Handling v04 :: disconnecting'" />
 		</transition>
 
 		<transition state="accepting" event="connection.connected">
 			<assign name="app_state" expr="'incall_0'" />
-			<send name"'continue'" target="sessionid" delay "'3000s'" />
+			<send name="'continue'" target="session.id" delay="'3000ms'" />
 		</transition>
 
 		<transition state="incall_0" event="continue">
@@ -27,8 +37,8 @@
 	
 		<transition state="incall_1" event="continue">
 			<disconnect connectionid="in_connID" />
-			<assign name="app_state" expr="'discconecting'" />
-			<log expr="'*** incall_1 app_state = ' + app_sate + ' ***'" />
+			<assign name="app_state" expr="'disconnecting'" />
+			<log expr="'*** incall_1 app_state = ' + app_state + ' ***'" />
 		</transition>
 
 
@@ -75,10 +85,11 @@
 	</eventprocessor>
 
 	<log expr="'*** Application is starting ***'" />
-	<voxeo:sendemail to="'michael.salisbury@aspect.com'"
-					from="'MyAppp@here.com'"
-					type="'debug'"
-					body="'Advanced Event Handling v04'" />
+	<voxeo:sendemail
+		to="'michael.salisbury@aspect.com'"
+		from="'MyAppp@here.com'"
+		type="'debug'"
+		body="'Advanced Event Handling v04'" />
 
 
 	<!--
