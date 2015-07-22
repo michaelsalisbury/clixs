@@ -11,7 +11,7 @@
 			<accept/>
 			<assign name="in_connID" expr="event$.connection.connectionid" />
 			<log expr="'*** connection.alerting app_state = ' + app_state + ' ***'" />
-			<log expr="'*** in_connID = + in_connID + ' ***'" />
+			<log expr="'*** in_connID = ' + in_connID + ' ***'" />
 		</transition>
 
 		<transition state="accepting" event="connection.connected">
