@@ -21,7 +21,7 @@
 				to="'michael.salisbury@aspect.com'"
 				from="'MyAppp@here.com'"
 				type="'debug'"
-				body="'Advanced Event Handling v04'" />
+				body="'Advanced Event Handling v04 :: disconnecting'" />
 
 		</transition>
 
@@ -39,7 +39,7 @@
 		<transition state="incall_1" event="continue">
 			<disconnect connectionid="in_connID" />
 			<assign name="app_state" expr="'disconnecting'" />
-			<log expr="'*** incall_1 app_state = ' + app_sate + ' ***'" />
+			<log expr="'*** incall_1 app_state = ' + app_state + ' ***'" />
 		</transition>
 
 
