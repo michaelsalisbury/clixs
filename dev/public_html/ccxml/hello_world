@@ -14,8 +14,9 @@
 			<log expr="'*** in_connID = ' + in_connID + ' ***'" />
 		</transition>
 
-		<!--<transition state="disconnecting" event="connection.disconected">-->
-		<transition event="connection.disconnected">
+		<!--<transition event="connection.disconnected">-->
+		<!--<transition state="disconnecting" event="connection.disconnected">-->
+		<transition state="disconnecting" event="connection.disconnected">
 			<assign name="app_state" expr="'disconnected'" />
 			<log expr="'*** Application is ending  :: ' + app_state + ' :: ***'" />
 			<voxeo:sendemail
