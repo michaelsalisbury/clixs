@@ -16,7 +16,7 @@
 
 		<transition state="accepting" event="connection.connected">
 			<assign name="app_state" expr="'incall_0'" />
-			<send name"'continue'" target="sessionid" delay="'3000s'" />
+			<send name"'continue'" target="session.id" delay="'3000s'" />
 		</transition>
 
 		<transition state="incall_0" event="continue">
@@ -27,7 +27,7 @@
 	
 		<transition state="incall_1" event="continue">
 			<disconnect connectionid="in_connID" />
-			<assign name="app_state" expr="'discconecting'" />
+			<assign name="app_state" expr="'disconnecting'" />
 			<log expr="'*** incall_1 app_state = ' + app_sate + ' ***'" />
 		</transition>
 
