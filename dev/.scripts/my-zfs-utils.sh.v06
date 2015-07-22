@@ -44,7 +44,7 @@ function do_update_zfs_initrd(){
 	__update_zfs_initrd "$@"
 }
 function do_clone_zfs_filesystem(){
-	__clone_bootable_zfs_filesystem "$@"
+	__clone_zfs_filesystem "$@"
 }
 function do_remove_zfs_filesystem(){
 	__remove_bootable_zfs_filesystem "$@"
@@ -268,67 +268,7 @@ __vet_zfs_base () {
 		fi
 	fi
 }
-
-function do_dependent_zfs_filesystems_list(){
-	local filesystem=${1:-$(get_booted_root_filesystem)}
-	is_zfs_filesystem "${filesystem}" || return 1
-	local zfs_pool=${filesystem%%/*}
-	zfs list -t filesystem -H -o name,origin -r "${zfs_pool}" |
-		sed -n "\|[[:space:]]${filesystem}@.*|s|[[:space:]]${filesystem}@.*||p"
-
-}
-__remove_bootable_zfs_filesystem () {
-	local filesystem=$1
-	is_zfs_filesystem "${filesystem}" || return 1
-	local zfs_stor="${zfs_grub_base}/${filesystem}"
-	# filesystem should not be current booted root
-	if get_booted_root_filesystem | grep -q -x "${filesystem}"; then
-		echo the bootable filesystem \"${filesystem}\" is the mounted root, cancelling request for removal.
-		echo
-		exit 1
-	fi
-
-	# filesystem should not have dependent clones
-	if < <(do_dependent_zfs_filesystems_list "${filesystem}") read; then
-		echo the bootable filesystem \"${filesystem}\" has dependent clone filesystems, cancelling request for removal.
-		echo
-		echo Dependent Clone Filesystems
-		echo "${REPLY}"
-		echo
-		exit 1
-	fi
-
-	# filesystem should not have any nested filesystems or volumes
-	if < <(zfs list -t volume,filesystem -H -o name  -r -d 1 "${filesystem}" | grep -v -x "${filesystem}" && echo -n $'\x255') read -d $'\x255'; then
-		echo the bootable filesystem \"${filesystem}\" has nested filesystems or volumes, cancelling request for removal.
-		echo
-		echo Nested Filesystems or Volumes
-		echo "${REPLY}"
-		exit 1
-	fi
-
-	# the grub stor should exist and not have any sub-folders
-	if [ -e "${zfs_stor}" ] && ! [ -d "${zfs_stor}" ]; then
-			echo the filesystem \"${filesystem%/}\" grub stor \"${zfs_grub_base}/${filesystem%/}\" exists but is not a directory, cancelling request for removal.
-			exit 1
-	elif [ -d "${zfs_stor}" ] && < <(find "${zfs_stor}" -maxdepth 1 -mindepth 1 -type d && echo -n $'\x255') read -d $'\x255'; then
-			echo the filesystem \"${filesystem%/}\" grub stor \"${zfs_grub_base}/${filesystem%/}\" exists but has sub-directories, cancelling request for removal.
-			exit 1
-	elif ! [ -e "${zfs_stor}" ]; then
-			echo the filesystem \"${filesystem%/}\" grub stor \"${zfs_grub_base}/${filesystem%/}\" does not exists, cancelling request for removal.
-			exit 1
-	fi
-
-	# destroy filesystem and related snapshots automatically
-	if ! zfs destroy -r "${filesystem}"; then
-		echo the filesystem \"${filesystem%/}\" could not be recursivelly destroyed, cancelling request for removal.
-		exit 1
-	fi
-
-	# remove grub stor
-	rm -rvf -- "${zfs_stor}"
-}
-__clone_bootable_zfs_filesystem () {
+__clone_zfs_filesystem () {
 	local filesystem alt_zfs_name alt_version alt_zfs_base
 	while [[ "${1//[^[:alpha:]-]/_}" != +(--|) ]]; do
 			case "${1}" in
@@ -518,6 +458,14 @@ function get_next_version_for_filesystem_name(){
 		sort -r) read version
 	version=000$(( ${version:- -1} + 1 ))
 	echo ${version: -4}
+}
+__remove_bootable_zfs_filesystem () {
+	:
+
+
+
+
+
 }
 
 

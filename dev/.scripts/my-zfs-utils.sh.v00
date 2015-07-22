@@ -1,0 +1,240 @@
+#!/bin/bash
+
+function main(){
+	if declare -F "do_${1}" &>/dev/null; then
+		local cmd=$1
+		shift
+		do_$cmd "$@"
+	else
+		shift
+		do_help "$@"
+	fi
+}
+function do_help(){
+	declare -F | sed -n 's/^declare -f do_//p'
+}
+function do_dev(){
+	get_booted_root_filesystem
+}
+function do_boot_list(){
+	__grub_list_menuentries_raw | __sed_escape_string 1
+}
+function do_grub_set_default(){
+	grub-set-default "${1}"
+}
+function do_grub_reboot(){
+	grub-reboot "${1}"
+}
+function do_update_grub(){
+	update-grub
+}
+function do_chroot_zfs_filesystem(){
+	:
+}
+function do_update_zfs_initrd_undo(){
+	__update_zfs_initrd "$@"
+}
+function do_update_zfs_initrd(){
+	__update_zfs_initrd "$@"
+}
+function do_clone_zfs_filesystem(){
+	:
+}
+function do_add_zfs_filesystem_to_grub(){
+	:
+}
+function is_zfs_filesystem(){
+	local filesystem=${1:-$(get_booted_root_filesystem)}
+	zfs list -H -o name "${filesystem}" &>/dev/null
+}
+function get_booted_root_filesystem(){
+	mount | awk '$3=="/"{print $1}'
+}
+function get_system_kernels(){
+	case "$(get_OS)" in
+		Ubuntu)	ls -1 /boot/vmlinuz* 2>/dev/null;;
+	esac
+}
+function get_OS(){
+	if which lsb_release &>/dev/null; then
+		lsb_release -s -i
+	fi
+}
+function get_(){
+	:
+
+}
+
+__sed_escape_string () {
+	local count=${1:-1}
+	local sed_special_chars=$' >'
+	local sed_escape_chars=$'\\\\'
+	local sed_escape_chars=$(count=${count//[^[:digit:]]/} < <(printf %$(( count * 2 ))s) sed "s/./${sed_escape_chars}/g")
+	sed "s/\([${sed_special_chars}]\)/${sed_escape_chars}\1/g"
+
+}
+__grub_list_menuentries_raw () {
+	cat <<-AWK | awk -F "['\"]" -f <(cat) /boot/grub/grub.cfg | __sed_escape_string
+		/^[ \t]*menuentry[ \t]/{
+			menuentry=\$2
+
+			if (submenu_l)
+				for (submenu_i = 1; submenu_i <= submenu_l; submenu_i++)
+					printf submenus[submenu_i]">"
+			print menuentry
+		}
+		/^[ \t]*submenu[ \t]/{
+			submenu_l++
+			submenus[submenu_l]=\$2
+		}
+		/}[ \t]*$/{
+			if (menuentry) {
+				menuentry=""
+			} else if (submenu_l) {
+				delete submenus[submenu_l]
+				submenu_l--
+			}
+		}
+	AWK
+}
+__update_zfs_initrd () {
+	:
+	local filesystem=${1:-$(get_booted_root_filesystem)}
+	if ! is_zfs_filesystem "${filesystem}"; then
+		cat <<-ERROR 1>&2
+			${filesystem}\" is not a zfs filesystem.
+		ERROR
+	elif ! [ -d "${zfs_grub_root}/${filesystem}" ]; then
+		cat <<-ERROR 1>&2
+			The zfs grub kernel/initrd dir does not exists; "${zfs_grub_root}/${filesystem}".
+			If the filesystem "${filesystem}" is bootable please use the following commands to update grub.
+			# $0 add_zfs_filesystem_to_grub ${filesystem}
+			# $0 update_grub
+		ERROR
+	fi
+	local zfsSTOR="${zfs_grub_root}/${filesystem}"
+	local OS=$(get_OS)
+	local KERNEL KERNEL_bn KERNEL_zfs INITRD INITRD_bn INITRD_zfs INITRD_vers
+	while read KERNEL; do
+		case "${OS}" in
+			Ubuntu)
+				INITRD=$(basename "${KERNEL}")
+				INITRD=$(dirname "${KERNEL}")/${INITRD/vmlinuz-/initrd.img-}
+			;;
+		esac
+		# set vars
+		KERNEL_bn=$(basename "${KERNEL}")
+		INITRD_bn=$(basename "${INITRD}")
+		KERNEL_zfs="${zfsSTOR}/${KERNEL_bn}"
+		INITRD_zfs="${zfsSTOR}/${INITRD_bn}"
+		
+		if [ -d "${zfsSTOR}" ] && [ -f "${KERNEL}" ] && [ -f "${INITRD}" ]; then
+			# progress/status
+			echo -e Processing... \\t KERNEL :: ${KERNEL} \\t INITRD :: ${INITRD}
+			case "${FUNCNAME[1]}" in
+				do_update_zfs_initrd_undo)
+					# test if initrd.img is not new and remove accordingly
+					if ! [ -f "${INITRD_zfs}" ]; then
+						echo INITRD \"${INITRD_zfs}\" not found so not testing for removal.
+					elif diff "${INITRD}" "${INITRD_zfs}" &> /dev/null; then
+						rm -vf "${INITRD_zfs}"
+						ls -1 "${INITRD_zfs}".v* 2>/dev/null |
+							tail -1 |
+							xargs -i@ mv -v "@" "${INITRD_zfs}"
+					else
+						echo INITRD \"${INITRD_zfs}\" differs from \"${INITRD}\" so not removing.
+					fi
+					;;
+				do_update_zfs_initrd)
+					# hard link kernel
+					if ! [ -f "${KERNEL_zfs}" ]; then
+						echo linking ${KERNEL} to ${zfsSTOR}
+						ln -f "${KERNEL}" "${zfsSTOR}/".
+					else
+						echo KERNEL not updated.
+					fi
+					# hard link initrd, preserve existing/workig versions
+					if ! [ -f "${INITRD_zfs}" ]; then
+						echo linking ${INITRD} to ${zfsSTOR}
+						ln -f "${INITRD}"  "${zfsSTOR}/".
+					# test if initrd.img is new and increment accordingly
+					elif ! diff "${INITRD}" "${INITRD_zfs}" &> /dev/null; then
+						INITRD_vers=$(ls -1 "${INITRD_zfs}".v* 2>/dev/null | tail -1)
+						INITRD_vers=${INITRD_vers: -2}
+						INITRD_vers=0$(( ${INITRD_vers:- -1} + 1 ))
+						INITRD_vers=${INITRD_vers: -2}
+						mv -v "${INITRD_zfs}"{,.v${INITRD_vers}}
+						echo linking ${INITRD} to ${zfsSTOR}
+						ln -f "${INITRD}"  "${zfsSTOR}/".
+					else
+						echo INITRD not updated.
+					fi
+					;;
+			esac
+		fi
+	done < <(get_system_kernels)
+}
+__update_zfs_initrd_clone () {
+	:
+	(( $# )) || return 1
+	local filesystem=$1
+	local newName=$2
+	local zfsSTOR="${zfs_grub_root}/${filesystem}"
+	# breakdown
+	local zfsBASE=$(dirname  "${filesystem}")
+	local zfsNAME=$(basename "${filesystem}")
+	local zfsDATE=${zfsNAME: -10}
+	local zfsVERS=${zfsNAME%-${zfsDATE}}
+	local zfsVERS=${zfsVERS: -4}
+	local zfsNAME=${zfsNAME%${zfsNAME: -16}}
+
+
+echo zfsBASE :: ${zfsBASE}
+echo zfsNAME :: ${zfsNAME}
+echo zfsVERS :: ${zfsVERS}
+echo zfsDATE :: ${zfsDATE}
+echo zfsSTOR :: ${zfsSTOR}
+
+local zfsVERS=000$(bc <<< "${zfsVERS} + 1")
+local zfsVERS=${zfsVERS: -4}
+
+	exit
+
+mkdir -p "${zfsSTOR}"
+while read VMLINUZ; do
+	VMLINUZ=$(basename "${VMLINUZ}")
+	INITRD=${VMLINUZ/vmlinuz-/initrd.img-}
+	if [ -d "${zfsSTOR}" ] &&
+	   [ -f "/boot/${VMLINUZ}" ] &&
+	   [ -f "/boot/${INITRD}" ]; then
+		if ! [ -f "${zfsSTOR}/${VMLINUZ}" ]; then
+			ln -vf "/boot/${VMLINUZ}" "${zfsSTOR}/".
+		fi
+		if [ -f "${zfsSTOR}/${INITRD}" ]; then
+			# test if initrd.img is new and increment accordingly
+			#if ! diff "/boot/${INITRD}" "${zfsSTOR}/${INITRD}" &> /dev/null; then
+				INITRD_LAST=$(ls -1 "${zfsSTOR}/${INITRD}".v* | tail -1)
+				INITRD_VERS=${INITRD_LAST: -2}
+				INITRD_VERS=0$(bc <<< "${INITRD_VERS} + 1")
+				INITRD_VERS=${INITRD_VERS: -2}
+				INITRD_NEW="${zfsSTOR}/${INITRD}".v${INITRD_VERS:-00}
+				mv -v "${zfsSTOR}/${INITRD}"{,.v${INITRD_VERS:-00}}
+				ln -vf "/boot/${INITRD}"  "${zfsSTOR}/".
+			#fi
+		else
+			ln -vf "/boot/${INITRD}"  "${zfsSTOR}/".
+		fi
+	fi
+done < <(ls -1 /boot/vmlinuz*)
+
+
+
+
+
+
+
+}
+# GLOBAL VARS
+zfs_grub_root='/boot/zfs'
+grub_vmlinuz=
+main "$@"

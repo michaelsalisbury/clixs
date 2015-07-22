@@ -308,13 +308,13 @@ __remove_bootable_zfs_filesystem () {
 	fi
 
 	# the grub stor should exist and not have any sub-folders
-	if [ -e "${zfs_stor}" ] && ! [ -d "${zfs_stor}" ]; then
+	if [ -e "${grub_stor}" ] && ! [ -d "${grub_stor}" ]; then
 			echo the filesystem \"${filesystem%/}\" grub stor \"${zfs_grub_base}/${filesystem%/}\" exists but is not a directory, cancelling request for removal.
 			exit 1
-	elif [ -d "${zfs_stor}" ] && < <(find "${zfs_stor}" -maxdepth 1 -mindepth 1 -type d && echo -n $'\x255') read -d $'\x255'; then
+	elif [ -d "${grub_stor}" ] && < <(find "{grub_stor}" -maxdepth 1 -mindepth 1 -type d && echo -n $'\x255') read -d $'\x255'; then
 			echo the filesystem \"${filesystem%/}\" grub stor \"${zfs_grub_base}/${filesystem%/}\" exists but has sub-directories, cancelling request for removal.
 			exit 1
-	elif ! [ -e "${zfs_stor}" ]; then
+	elif ! [ -d "${grub_stor}" ]; then
 			echo the filesystem \"${filesystem%/}\" grub stor \"${zfs_grub_base}/${filesystem%/}\" does not exists, cancelling request for removal.
 			exit 1
 	fi
@@ -326,7 +326,7 @@ __remove_bootable_zfs_filesystem () {
 	fi
 
 	# remove grub stor
-	rm -rvf -- "${zfs_stor}"
+	rm -rvf "${grub_stor}"
 }
 __clone_bootable_zfs_filesystem () {
 	local filesystem alt_zfs_name alt_version alt_zfs_base

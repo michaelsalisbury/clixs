@@ -101,8 +101,8 @@ while read INITRD; do
 	#Found linux image: /boot/vmlinuz-3.13.0-29-generic
 	#Found initrd image: /boot/initrd.img-3.13.0-29-generic
 	cat <<-STATUS 1>&2
-		Found linux image: /boot${FOLDER}/${KERNEL}
-		Found initrd image: /boot/${FOLDER}/${INITRD}
+		Found linux  image: /boot${FOLDER}/${KERNEL}
+		Found initrd image: /boot${FOLDER}/${INITRD}
 	STATUS
 
 	# remember
