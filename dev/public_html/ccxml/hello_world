@@ -75,10 +75,7 @@
 	</eventprocessor>
 
 	<log expr="'*** Application is starting ***'" />
-	<voxeo:sendemail to="'michael.salisbury@aspect.com'"
-					from="'MyAppp@here.com'"
-					type="'debug'"
-					body="'Advanced Event Handling v04'" />
+	<voxeo:sendemail to="'michael.salisbury@aspect.com'" from="'MyAppp@here.com'" type="'debug'" body="'Advanced Event Handling v04'" />
 
 
 	<!--
