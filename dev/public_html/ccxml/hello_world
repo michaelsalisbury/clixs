@@ -3,9 +3,10 @@
 <!-- We must declare the xmlns:Voxeo attribute to use Voxeo-specific extensions -->
 <ccxml version="1.0" xmlns:voxeo="http://community.voxeo.com/xmlns/ccxml">
 	<!--<eventprocessor>-->
-	<var name="app_name"    expr="'Basic Error Handling'" />
-	<var name="app_des"     expr="'test'" />
-	<var name="app_version" expr="'v6'" />
+	<var name="app_name" expr="'Basic Error Handling'" />
+	<var name="app_des"  expr="'test'" />
+	<var name="app_vrs"  expr="'v6'" />
+	<var name="app_log"  expr="'v6'" />
 
 
 	<var name="app_state" expr="'initial'" />
@@ -21,11 +22,12 @@
 
 		<transition event="connection.failed" cond="('incall_0' == app_state) || ('incall_1' == app_state)">
 			<log expr="'*** premature disconnection detect in state [' + app_state + '] ***'" />
+			<assign name="app_log" expr="'premature disconnection detected'" />
 			<voxeo:sendemail
 				to="'michael.salisbury@aspect.com'"
 				from="'MyAppp@here.com'"
 				type="'debug'"
-				body="app_name + '     ' :: premature disconnection detected'" />
+				body="app_name + ' - ' + app_des + ' - ' + app_vrs + ' :: ' + app_log" />
 			<exit/>
 		</transition>
 		<transition event="connection.failed">
@@ -45,6 +47,15 @@
 		</transition>
 		-->
 
+		<transition event="email_message">
+			<voxeo:sendemail
+				to="'michael.salisbury@aspect.com'"
+				from="'MyAppp@here.com'"
+				type="'debug'"
+				body="app_name + ' - ' + app_des + ' - ' + app_vrs + ' :: ' + app_log" />
+			<log expr="'*** e-mail sent [' + app_log + '] ***'" />
+		</transition>
+
 		<transition state="accepting" event="connection.connected">
 			<assign name="app_state" expr="'incall_0'" />
 			<send name="'continue'" target="session.id" delay="'6000ms'" />
@@ -54,6 +65,7 @@
 			<assign name="app_state" expr="'incall_1'" />
 			<log expr="'*** incall_0 app_state = ' + app_state + ' ***'" />
 			<send name="'continue'" target="session.id" delay="'3000ms'" />
+			<send name="'email_log'" target="session.id" />
 		</transition>
 	
 		<transition state="incall_1" event="continue">
