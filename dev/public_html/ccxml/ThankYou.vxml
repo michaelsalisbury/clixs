@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<vxml version="2.1">
+	<meta name="maintainer" content="youremail@here.com" />
+	<form id="dialogContianer">
+		<field name="F_1">
+			<grammar xml:lang="en-US" root="myrule">
+				<rule id="myrule">
+					<one-of>
+						<item> alpha </item>
+						<item> when its a jar </item>
+						<item> what kind of a question is that </item>
+					</one-of>
+				</rule>
+			</grammar>
+			
+			<prompt>
+				<audio src="question.wav">
+				Greetings, and welcome to our humble Voice X M L dialog.
+				The burning question of the day is as follows:
+				When is a door not a door?
+				</audio>
+			</prompt>
+
+			<filled>
+				<log expr="' **** Caller SAID ' + F_1 + ' ****'" />
+				<exit namelist="F_1" />
+			</filled>
+		</field>
+	</form>
+</vxml>
