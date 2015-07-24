@@ -32,14 +32,18 @@
 			<var name="ec"  expr="event$.connection" />
 			<log expr="'*** connection.connected :: Call was answered ***'" />
 			<log expr="'*** connection.connected :: ec.connectionid = '     + ec.connectionid     + ' ***'" />
-			<log expr="'*** connection.connected :: event$.connectionid = '     + event$.connectionid     + ' ***'" />
+			<!--
+			<log expr="'*** connection.connected :: event$.connectionid = ' + event$.connectionid + ' ***'" />
+			-->
 			<log expr="'*** connection.connected :: ec.protocol.name = '    + ec.protocol.name    + ' ***'" />
 			<log expr="'*** connection.connected :: ec.protocol.version = ' + ec.protocol.version + ' ***'" />
 			<log expr="'*** connection.connected :: ec.state = '            + ec.state            + ' ***'" />
 			<log expr="'*** connection.connected :: ec.local = '            + ec.local            + ' ***'" />
 			<log expr="'*** connection.connected :: ec.remote = '           + ec.remote           + ' ***'" />
 			<log expr="'*** connection.connected :: ec.originator = '       + ec.originator       + ' ***'" />
-			<assign name="connid" expr="event$.connectionid" />
+			<assign name="connid"    expr="ec.connectionid" />
+			<assign name="app_state" expr="'state2'" />
+			<dialogprepare src="'bogus.vxml'" dialog="mydialog" connectionid="ec.connectiontid" />
 			<!--
 			<dialogstart src="'dialog.vxml'" type="'application/voicexml+xml'" dialogid="myDialogID" />
 			<assign name="app_state" expr="'dialogActive'" />
@@ -47,9 +51,26 @@
 			-->
 		</transition>
 
+		<transition state="state2" event="dialog.prepared">
+			<!-- This isn't going to happen -->
+			<log expr="'*** dialog.prepared state2 :: The dialog was prepared ***'" />
+			<dialogstart prepareddialogid="mydialog" connectionid="connid" />
+			<assign name="statevar" expr="'state3'" />
+		</transition>
 
+		<transition event="error.dialog.notprepared">
+			<log expr="'*** error.dialog.notprepared :: ***'" />
+		</transition>
 
+		<transition state="state3" event="dialog.exit">
+			<log expr="'*** dialog.exit state3 :: The dialog terminated ***'" />
+			<exit/>
+		</transition>
 
+		<transition state="state5" event="dialog.exit">
+			<log expr="'*** dialog.exit state5 :: The new dialog terminated, nice work ***'" />
+			<exit/>
+		</transition>
 
 		<transition event="timeout" state="dialogActive">
 			<log expr="'*** timeout dialogActive :: Timeout received, now terminating the dialog ***'" />
