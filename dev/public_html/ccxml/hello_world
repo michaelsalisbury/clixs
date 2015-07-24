@@ -47,7 +47,7 @@
 			<log expr="'*** connection.connected :: ec.originator = '       + ec.originator       + ' ***'" />
 			<assign name="callid_in" expr="ec.connectionid" />
 			<assign name="app_state" expr="'enterpin'" />
-			<dialogstart connectionid="callid_in" src="'null://?termdigits=%23&amp;text=Please enter your access code.'" type="'application/x-fetchdigits'" />
+			<dialogstart connectionid="callid_in" src="'null://?termdigits=%23&amp;text=Please enter your access code buddy.'" type="'application/x-fetchdigits'" />
 			<!--
 			<assign name="connid"    expr="ec.connectionid" />
 			<assign name="app_state" expr="'state2'" />
