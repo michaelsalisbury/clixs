@@ -32,7 +32,75 @@
 			<log expr="'*** connection.connected :: ec.remote = '           + ec.remote           + ' ***'" />
 			<log expr="'*** connection.connected :: ec.originator = '       + ec.originator       + ' ***'" />
 			<dialogstart src="'dialog.vxml'" type="'application/voicexml+xml'" dialogid="myDialogID" />
+			<assign name="app_state" expr="'dialogActive'" />
+			<send name="'timeout'" target="session.id" delay="'15s'" />
 		</transition>
+
+		<transition event="timeout" state="dialogActive">
+			<log expr="'*** timeout dialogActive :: Timeout received, now terminating the dialog ***'" />
+			<dialogterminate dialogid="myDialogID" immediate="false" />
+		</transition>
+
+		<transition event="send.successful" state="dialogActive">
+			<log expr="'*** send.successful dialogActive :: Send is successful ***'" />
+		</transition>
+
+		<transition event="error.dialog.notstarted">
+			<log expr="'*** event$.name = '            + event$.name            + ' ***'" />
+			<log expr="'*** event$.dialogid = '        + event$.dialogid        + ' ***'" />
+			<log expr="'*** event$.dialog = '          + event$.dialog          + ' ***'" />
+			<log expr="'*** event$.conferenceid = '    + event$.conferenceid    + ' ***'" />
+			<log expr="'*** event$.connectionid = '    + event$.connectionid    + ' ***'" />
+			<log expr="'*** event$.reason = '          + event$.reason          + ' ***'" />
+			<log expr="'*** event$.eventid = '         + event$.eventid         + ' ***'" />
+			<log expr="'*** event$.eventsource = '     + event$.eventsource     + ' ***'" />
+			<log expr="'*** event$.eventsourcetype = ' + event$.eventsourcetype + ' ***'" />
+			<exit/>
+		</transition>
+
+		<transition event="error.send.targetunavailable">
+			<log expr="'*** error.send.targetunavailable :: Send target unavailable ***'" />
+			<exit/>
+		</transition>
+
+		<transition event="dialog.exit" state="'dialogActive'">
+			<log expr="'*** dialog.exit dialogActive :: Dialog exit in dialog active state. ***'" />
+			<exit/>
+		</transition>
+
+		<transition event="dialog.exit">
+			<log expr="'*** Call exiting ***'" />
+			<log expr="'*** event$.values.F_1 ='           + event$.values.F_1          + ' ***'" />
+			<log expr="'*** event$.name = '                + event$.name                + ' ***'" />
+			<log expr="'*** event$.dialogid = '            + event$.dialogid            + ' ***'" />
+			<log expr="'*** event$.conferenceid = '        + event$.conferenceid        + ' ***'" />
+			<log expr="'*** event$.connectionid = '        + event$.connectionid        + ' ***'" />
+			<log expr="'*** event$.eventid = '             + event$.eventid             + ' ***'" />
+			<log expr="'*** event$.eventsource = '         + event$.eventsource         + ' ***'" />
+			<log expr="'*** event$.eventsourcetype = '     + event$.eventsourcetype     + ' ***'" />
+			<!-- Dialog object properties -->
+			<log expr="'*** event$.dialog.dialogid = '     + event$.dialog.dialogid     + ' ***'" />
+			<log expr="'*** event$.dialog.connectionid = ' + event$.dialog.connectionid + ' ***'" />
+			<log expr="'*** event$.dialog.conferenceid = ' + event$.dialog.conferenceid + ' ***'" />
+			<log expr="'*** event$.dialog.type = '         + event$.dialog.type         + ' ***'" />
+			<log expr="'*** event$.dialog.src = '          + event$.dialog.src          + ' ***'" />
+			<log expr="'*** event$.dialog.input = '        + event$.dialog.input        + ' ***'" />
+			<log expr="'*** event$.dialog.outputs = '     + event$.dialog.outputs       + ' ***'" />
+			<exit/>
+		</transition>
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 		<transition event="connection.failed"
 					cond="('incall_0' == app_state) || ('incall_1' == app_state)">
