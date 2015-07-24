@@ -85,7 +85,7 @@
 			<log expr="'*** event$.tagname = ' + event$.tagname + ' ***'" />
 			<!-- The following line will break our application -->
 			<log expr="'*** bogus object = ' + this.is.a.bogus.object + ' ***'" />
-			<exit/>
+			<!--<exit/>-->
 		</transition>
 
 		<transition event="error.*">
