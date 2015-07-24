@@ -6,7 +6,7 @@
 			<grammar xml:lang="en-US" root="myrule">
 				<rule id="myrule">
 					<one-of>
-						<item> hello </item>
+						<item> alpha </item>
 						<item> when its a jar </item>
 						<item> what kind of a question is that </item>
 					</one-of>
