@@ -7,14 +7,14 @@
 	<meta name="maintainer" content="youremail@here.com" />
 	<form id="dialogContianer">
 		<field name="F_1">
-			<grammer xml:lang="en-US" root="myrule">
+			<grammar xml:lang="en-US" root="myrule">
 				<rule id="myrule">
 					<one-of>
 						<item> when its a jar </item>
 						<item> what kind of a question is that </item>
 					</one-of>
 				</rule>
-			</grammer>
+			</grammar>
 			
 			<prompt>
 				<audio src="question.wav">
