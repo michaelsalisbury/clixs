@@ -15,6 +15,7 @@
 	<eventprocessor statevariable="app_state">
 		<transition state="init" event="connection.alerting">
 			<var name="ec" expr="event$.connection" />
+			<log expr="'*** connection.alerting :: Call is ringing ***'" />
 			<log expr="'*** connection.alerting :: app_state = '       + app_state       + ' ***'" />
 			<log expr="'*** connection.alerting :: ec.connectionid = ' + ec.connectionid + ' ***'" />
 			<accept/>
@@ -22,7 +23,7 @@
 
 		<transition state="init" event="connection.connected">
 			<var name="ec"  expr="event$.connection" />
-			<log expr="'*** Call was answered ***'" />
+			<log expr="'*** connection.connected :: Call was answered ***'" />
 			<log expr="'*** connection.connected :: ec.connectionid = '     + ec.connectionid     + ' ***'" />
 			<log expr="'*** connection.connected :: ec.protocol.name = '    + ec.protocol.name    + ' ***'" />
 			<log expr="'*** connection.connected :: ec.protocol.version = ' + ec.protocol.version + ' ***'" />
