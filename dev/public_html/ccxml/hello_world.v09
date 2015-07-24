@@ -3,9 +3,9 @@
 <!-- We must declare the xmlns:Voxeo attribute to use Voxeo-specific extensions -->
 <ccxml version="1.0" xmlns:voxeo="http://community.voxeo.com/xmlns/ccxml">
 	<!--<eventprocessor>-->
-	<var name="app_name"  expr="'Advanced VoiceXML Dialogs'" />
+	<var name="app_name"  expr="'Connecting Call Legs'" />
 	<var name="app_des"   expr="'test'" />
-	<var name="app_vrs"   expr="'v8'" />
+	<var name="app_vrs"   expr="'v9'" />
 	<var name="elog_type" expr="'debug'" />
 	<var name="elog_to"   expr="'michael.salisbury@aspect.com'" />
 	<var name="elog_from" expr="'MyAppp@here.com'" />
