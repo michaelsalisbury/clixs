@@ -47,6 +47,7 @@
 		</transition>
 
 		<transition event="error.dialog.notstarted">
+			<log expr="'*** error.dialog.notstarted :: ***'" />
 			<log expr="'*** event$.name = '            + event$.name            + ' ***'" />
 			<log expr="'*** event$.dialogid = '        + event$.dialogid        + ' ***'" />
 			<log expr="'*** event$.dialog = '          + event$.dialog          + ' ***'" />
