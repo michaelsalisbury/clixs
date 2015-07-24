@@ -11,26 +11,25 @@
 	<var name="elog_from" expr="'MyAppp@here.com'" />
 	<var name="elog_body" />
 	<var name="app_state" expr="'init'" />
-	<var name="in_connID" />
 
 	<eventprocessor statevariable="app_state">
 		<transition state="init" event="connection.alerting">
-			<assign name="in_connID" expr="event$.connection.connectionid" />
-			<log expr="'*** connection.alerting app_state = ' + app_state + ' ***'" />
-			<log expr="'*** in_connID = ' + in_connID + ' ***'" />
+			<var name="ec" expr="event$.connection" />
+			<log expr="'*** connection.alerting :: app_state = '       + app_state       + ' ***'" />
+			<log expr="'*** connection.alerting :: ec.connectionid = ' + ec.connectionid + ' ***'" />
 			<accept/>
 		</transition>
 
 		<transition state="init" event="connection.connected">
-			<var name="ec" expr="event$.connection" />
+			<var name="ec"  expr="event$.connection" />
 			<log expr="'*** Call was answered ***'" />
-			<log expr="'*** event$.connection.connectionid = '     + ec.connectionid     + ' ***'" />
-			<log expr="'*** event$.connection.protocol.name = '    + ec.protocol.name    + ' ***'" />
-			<log expr="'*** event$.connection.protocol.version = ' + ec.protocol.version + ' ***'" />
-			<log expr="'*** event$.connection.state = '            + ec.state            + ' ***'" />
-			<log expr="'*** event$.connection.local = '            + ec.local            + ' ***'" />
-			<log expr="'*** event$.connection.remote = '           + ec.remote           + ' ***'" />
-			<log expr="'*** event$.connection.originator = '       + ec.originator       + ' ***'" />
+			<log expr="'*** connection.connected :: ec.connectionid = '     + ec.connectionid     + ' ***'" />
+			<log expr="'*** connection.connected :: ec.protocol.name = '    + ec.protocol.name    + ' ***'" />
+			<log expr="'*** connection.connected :: ec.protocol.version = ' + ec.protocol.version + ' ***'" />
+			<log expr="'*** connection.connected :: ec.state = '            + ec.state            + ' ***'" />
+			<log expr="'*** connection.connected :: ec.local = '            + ec.local            + ' ***'" />
+			<log expr="'*** connection.connected :: ec.remote = '           + ec.remote           + ' ***'" />
+			<log expr="'*** connection.connected :: ec.originator = '       + ec.originator       + ' ***'" />
 			<exit/>
 		</transition>
 
