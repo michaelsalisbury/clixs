@@ -67,7 +67,7 @@
 					connectionid="callid_in" dialogid="holdMusicDlg" />
 			</if>
 			<assign name="app_state" expr="'calling'" />
-			<createcall dest="'14073192381'" callerid="'4075551212'" connectionid="callid_out"/>
+			<createcall dest="'4073192381'" callerid="'4075551212'" connectionid="callid_out"/>
 		</transition>
 
 
