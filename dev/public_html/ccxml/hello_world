@@ -32,7 +32,7 @@
 			<var name="ec"  expr="event$.connection" />
 			<log expr="'*** connection.connected :: Call was answered ***'" />
 			<log expr="'*** connection.connected :: ec.connectionid = '     + ec.connectionid     + ' ***'" />
-			<log expr="'*** connection.connected :: ec.connectionid = '     + event$.connectionid     + ' ***'" />
+			<log expr="'*** connection.connected :: event$.connectionid = '     + event$.connectionid     + ' ***'" />
 			<log expr="'*** connection.connected :: ec.protocol.name = '    + ec.protocol.name    + ' ***'" />
 			<log expr="'*** connection.connected :: ec.protocol.version = ' + ec.protocol.version + ' ***'" />
 			<log expr="'*** connection.connected :: ec.state = '            + ec.state            + ' ***'" />
