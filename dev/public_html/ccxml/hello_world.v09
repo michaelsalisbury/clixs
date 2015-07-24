@@ -70,6 +70,7 @@
 			</if>
 			-->
 				<dialogstart src="'dialog.vxml'" type="'application/voicexml+xml'"
+					connectionid="callid_in" dialogid="holdMusicDlg" />
 			<assign name="app_state" expr="'calling'" />
 			<createcall dest="'4073192381'" callerid="'4075551212'" connectionid="callid_out"/>
 		</transition>
