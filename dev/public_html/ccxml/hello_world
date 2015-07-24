@@ -58,8 +58,11 @@
 			<assign name="statevar" expr="'state3'" />
 		</transition>
 
-		<transition event="error.dialog.notprepared">
-			<log expr="'*** error.dialog.notprepared :: ***'" />
+		<transition state="state2" event="error.dialog.notprepared">
+			<log expr="'*** error.dialog.notprepared :: ' + event$.reason + ' ***'" />
+			<log expr="'*** error.dialog.notprepared :: Attempting to launch a new dialog... ***'" />
+			<assign name="app_state" expr="'state4'" />
+			<dialogprepare src="'RealDialog.vxml'" dialogid="mydialog2" />
 		</transition>
 
 		<transition state="state3" event="dialog.exit">
