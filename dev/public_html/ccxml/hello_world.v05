@@ -3,16 +3,8 @@
 <!-- We must declare the xmlns:Voxeo attribute to use Voxeo-specific extensions -->
 <ccxml version="1.0" xmlns:voxeo="http://community.voxeo.com/xmlns/ccxml">
 	<!--<eventprocessor>-->
-	<var name="app_name"  expr="'Basic Error Handling'" />
-	<var name="app_des"   expr="'test'" />
-	<var name="app_vrs"   expr="'v6'" />
-	<var name="elog_type" expr="'debug'" />
-	<var name="elog_to"   expr="'michael.salisbury@aspect.com'" />
-	<var name="elog_from" expr="'MyAppp@here.com'" />
-	<var name="elog_body" />
 	<var name="app_state" expr="'initial'" />
-	<var name="in_connID" />
-
+	<var name="in_connID" />		
 	<eventprocessor statevariable="app_state">
 		<transition state="initial" event="connection.alerting">
 			<assign name="app_state" expr="'accepting'" />
@@ -22,21 +14,15 @@
 			<log expr="'*** in_connID = ' + in_connID + ' ***'" />
 		</transition>
 
-		<transition event="connection.failed" cond="('incall_0' == app_state) || ('incall_1' == app_state)">
+		<transistion event="connection.failed" cond="('incall_0' == app_state) || ('incall_1' == app_state)">
 			<log expr="'*** premature disconnection detect in state [' + app_state + '] ***'" />
-			<assign name="app_log" expr="'premature disconnection detected'" />
 			<voxeo:sendemail
 				to="'michael.salisbury@aspect.com'"
 				from="'MyAppp@here.com'"
 				type="'debug'"
-				body="app_name + ' - ' + app_des + ' - ' + app_vrs + ' :: ' + app_log" />
+				body="'Advanced Event Handling v05 :: premature disconnection detected'" />
 			<exit/>
 		</transition>
-		<transition event="connection.failed">
-			<log expr="'*** not premature [' + app_state + '] ***'" />
-			<exit/>
-		</transition>
-
 		<!--
 		<transition state="disconnecting" event="connection.disconnected">
 			<assign name="app_state" expr="'disconnected'" />
@@ -49,22 +35,15 @@
 		</transition>
 		-->
 
-		<transition event="elog">
-			<voxeo:sendemail to="elog_to" from="'elog_from"	type="elog_type"
-				body="app_name + ' - ' + app_des + ' - ' + app_vrs + ' :: ' + elog_body" />
-			<log expr="'*** elog sent [' + elog_body + '] ***'" />
-		</transition>
-
 		<transition state="accepting" event="connection.connected">
 			<assign name="app_state" expr="'incall_0'" />
-			<send name="'continue'" target="session.id" delay="'6000ms'" />
+			<send name="'continue'" target="session.id" delay="'3000ms'" />
 		</transition>
 
 		<transition state="incall_0" event="continue">
 			<assign name="app_state" expr="'incall_1'" />
 			<log expr="'*** incall_0 app_state = ' + app_state + ' ***'" />
-			<send name="'continue'" target="session.id" delay="'3000ms'" />
-			<send name="'elog'" target="session.id" />
+			<send name="'continue'" target="session.id" delay="'1000ms'" />
 		</transition>
 	
 		<transition state="incall_1" event="continue">
