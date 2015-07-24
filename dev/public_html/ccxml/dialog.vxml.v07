@@ -21,7 +21,8 @@
 				Greetings, and welcome to our humble Voice X M L dialog.
 				The burning question ofthe day is as follows:
 				When is a door not a door?
-			</audio>
+				</audio>
+			</prompt>
 
 			<filled>
 				<log expr="' **** Caller SAID ' + F_1 + ' ****'" />
