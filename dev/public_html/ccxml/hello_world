@@ -69,23 +69,23 @@
 		</transition>
 
 		<transition event="dialog.exit">
-			<log expr="'*** Call exiting ***'" />
-			<log expr="'*** event$.values.F_1 ='           + event$.values.F_1          + ' ***'" />
-			<log expr="'*** event$.name = '                + event$.name                + ' ***'" />
-			<log expr="'*** event$.dialogid = '            + event$.dialogid            + ' ***'" />
-			<log expr="'*** event$.conferenceid = '        + event$.conferenceid        + ' ***'" />
-			<log expr="'*** event$.connectionid = '        + event$.connectionid        + ' ***'" />
-			<log expr="'*** event$.eventid = '             + event$.eventid             + ' ***'" />
-			<log expr="'*** event$.eventsource = '         + event$.eventsource         + ' ***'" />
-			<log expr="'*** event$.eventsourcetype = '     + event$.eventsourcetype     + ' ***'" />
+			<log expr="'*** dialog.exit :: Call exiting ***'" />
+			<log expr="'*** dialog.exit :: event$.values.F_1 ='           + event$.values.F_1          + ' ***'" />
+			<log expr="'*** dialog.exit :: event$.name = '                + event$.name                + ' ***'" />
+			<log expr="'*** dialog.exit :: event$.dialogid = '            + event$.dialogid            + ' ***'" />
+			<log expr="'*** dialog.exit :: event$.conferenceid = '        + event$.conferenceid        + ' ***'" />
+			<log expr="'*** dialog.exit :: event$.connectionid = '        + event$.connectionid        + ' ***'" />
+			<log expr="'*** dialog.exit :: event$.eventid = '             + event$.eventid             + ' ***'" />
+			<log expr="'*** dialog.exit :: event$.eventsource = '         + event$.eventsource         + ' ***'" />
+			<log expr="'*** dialog.exit :: event$.eventsourcetype = '     + event$.eventsourcetype     + ' ***'" />
 			<!-- Dialog object properties -->
-			<log expr="'*** event$.dialog.dialogid = '     + event$.dialog.dialogid     + ' ***'" />
-			<log expr="'*** event$.dialog.connectionid = ' + event$.dialog.connectionid + ' ***'" />
-			<log expr="'*** event$.dialog.conferenceid = ' + event$.dialog.conferenceid + ' ***'" />
-			<log expr="'*** event$.dialog.type = '         + event$.dialog.type         + ' ***'" />
-			<log expr="'*** event$.dialog.src = '          + event$.dialog.src          + ' ***'" />
-			<log expr="'*** event$.dialog.input = '        + event$.dialog.input        + ' ***'" />
-			<log expr="'*** event$.dialog.outputs = '     + event$.dialog.outputs       + ' ***'" />
+			<log expr="'*** dialog.exit :: event$.dialog.dialogid = '     + event$.dialog.dialogid     + ' ***'" />
+			<log expr="'*** dialog.exit :: event$.dialog.connectionid = ' + event$.dialog.connectionid + ' ***'" />
+			<log expr="'*** dialog.exit :: event$.dialog.conferenceid = ' + event$.dialog.conferenceid + ' ***'" />
+			<log expr="'*** dialog.exit :: event$.dialog.type = '         + event$.dialog.type         + ' ***'" />
+			<log expr="'*** dialog.exit :: event$.dialog.src = '          + event$.dialog.src          + ' ***'" />
+			<log expr="'*** dialog.exit :: event$.dialog.input = '        + event$.dialog.input        + ' ***'" />
+			<log expr="'*** dialog.exit :: event$.dialog.outputs = '      + event$.dialog.outputs      + ' ***'" />
 			<exit/>
 		</transition>
 
