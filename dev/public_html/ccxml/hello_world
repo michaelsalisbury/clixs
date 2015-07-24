@@ -43,7 +43,7 @@
 			<log expr="'*** connection.connected :: ec.originator = '       + ec.originator       + ' ***'" />
 			<assign name="connid"    expr="ec.connectionid" />
 			<assign name="app_state" expr="'state2'" />
-			<dialogprepare src="'bogus.vxml'" dialog="mydialog" connectionid="ec.connectiontid" />
+			<dialogprepare src="'bogus.vxml'" dialogid="mydialog" connectionid="ec.connectiontid" />
 			<!--
 			<dialogstart src="'dialog.vxml'" type="'application/voicexml+xml'" dialogid="myDialogID" />
 			<assign name="app_state" expr="'dialogActive'" />
