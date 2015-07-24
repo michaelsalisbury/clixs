@@ -58,21 +58,16 @@
 		<transition state="enterpin" event="dialog.exit">
 			<log expr="'*** dialog.exit enterpin :: PIN = [' + event$.values.digits + ']'" />
 			<assign name="pinCode" expr="event$.values.digits" />
-			<!--
 			<if cond="'1234' != event$.values.digits">
 				<log expr="'*** dialog.exit enterpin :: Exiting, wrong pin!'" />
 				<exit/>
-			<else/>
-				<log expr="'*** dialog.exit enterpin :: Starting to play hold music.'" />
-				<assign name="pinCode" expr="event$.values.digits" />
-				<dialogstart src="'dialog.vxml'" type="'application/voicexml+xml'"
-					connectionid="callid_in" dialogid="holdMusicDlg" />
 			</if>
-			-->
-				<dialogstart src="'dialog.vxml'" type="'application/voicexml+xml'"
-					connectionid="callid_in" dialogid="holdMusicDlg" />
+			<log expr="'*** dialog.exit enterpin :: Starting to play hold music.'" />
+			<dialogstart src="'dialog.vxml'" type="'application/voicexml+xml'"
+				connectionid="callid_in" dialogid="holdMusicDlg" />
 			<assign name="app_state" expr="'calling'" />
-			<createcall dest="'4073192381'" callerid="'4075551212'" connectionid="callid_out"/>
+			<!--<createcall dest="'4073192381'" callerid="'4075551212'" connectionid="callid_out"/>-->
+			<createcall dest="'4079014287'" callerid="'4075551212'" connectionid="callid_out"/>
 		</transition>
 
 
