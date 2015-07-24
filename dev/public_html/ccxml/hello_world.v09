@@ -11,6 +11,7 @@
 	<var name="elog_from" expr="'MyAppp@here.com'" />
 	<var name="elog_body" />
 	<var name="app_state" expr="'init'" />
+	<var name="lst_state" expr="''" />
 	<var name="myDialogID" />
 
 	<var name="mydialog"  expr="''" />
@@ -25,10 +26,10 @@
 	<eventprocessor statevariable="app_state">
 		<transition state="init" event="connection.alerting">
 			<var name="ec" expr="event$.connection" />
-			<log expr="'*** connection.alerting :: Call is ringing ***'" />
-			<log expr="'*** connection.alerting :: app_state = '       + app_state       + ' ***'" />
-			<log expr="'*** connection.alerting :: ec.connectionid = ' + ec.connectionid + ' ***'" />
+			<log expr="'*** connection.alerting :: Call is ringing [' + ec.connectionid + '] ***'" />
+			<assign name="lst_state" expr="app_state" />
 			<assign name="app_state" expr="'accept'" />
+			<log expr="'*** ' + event$.name + '[' + lst_state + '] >> proceeding to >> [' + app_state + '] ***'" />
 			<accept/>
 		</transition>
 
@@ -46,24 +47,33 @@
 			<log expr="'*** connection.connected :: ec.remote = '           + ec.remote           + ' ***'" />
 			<log expr="'*** connection.connected :: ec.originator = '       + ec.originator       + ' ***'" />
 			<assign name="callid_in" expr="ec.connectionid" />
-			<assign name="app_state" expr="'enterpin'" />
-			<!--<dialogstart src="'null://?text=This is a test of the Text to Speech dialog extension&amp;termdigits=*'" type="'application/x-texttospeech'" />-->
-			<dialogstart connectionid="callid_in"
+
+			<assign name="lst_state" expr="app_state" />
+			<assign name="app_state" expr="'this-is-a-test'" />
+			<log expr="'*** ' + event$.name + '[' + lst_state + '] >> proceeding to >> [' + app_state + '] ***'" />
+			<dialogstart connectionid="ec.connectionid"
 				src="'null://?termdigits=#&amp;text=This is a test of the Text to Speech dialog extension.'"
 				type="'application/x-texttospeech'" />
 			<!--
 			<dialogstart connectionid="callid_in"
 				src="'null://?termdigits=%23&amp;text=Please enter your access code buddy.'"
 				type="'application/x-fetchdigits'" />
-			<assign name="connid"    expr="ec.connectionid" />
-			<assign name="app_state" expr="'state2'" />
-			<dialogprepare src="'bogus.vxml'" dialogid="mydialog" connectionid="ec.connectiontid" />
 			-->
+		</transition>
+		<!-- ############################ dialog.exit ############################ -->
+		<transition state="this-is-a-test" event="dialog.exit">
+			<assign name="lst_state" expr="app_state" />
+			<assign name="app_state" expr="'enterpin'" />
+			<log expr="'*** ' + event$.name + '[' + lst_state + '] >> proceeding to >> [' + app_state + '] ***'" />
+			<dialogstart connectionid="callid_in"
+				src="'null://?termdigits=%23&amp;text=Please enter your access code buddy.'"
+				type="'application/x-fetchdigits'" />
 		</transition>
 
 		<transition state="enterpin" event="dialog.exit">
-			<log expr="'*** dialog.exit enterpin :: PIN = [' + event$.values.digits + ']'" />
-			<assign name="pinCode" expr="event$.values.digits" />
+			<assign name="lst_state" expr="app_state" />
+			<assign name="app_state" expr="'calling'" />
+			<log expr="'*** ' + event$.name + '[' + lst_state + '] >> proceeding to >> [' + app_state + '] ***'" />
 			<if cond="'1234' != event$.values.digits">
 				<log expr="'*** dialog.exit enterpin :: Exiting, wrong pin!'" />
 				<exit/>
@@ -71,7 +81,6 @@
 			<log expr="'*** dialog.exit enterpin :: Starting to play hold music.'" />
 			<dialogstart src="'dialog.vxml'" type="'application/voicexml+xml'"
 				connectionid="callid_in" dialogid="holdMusicDlg" />
-			<assign name="app_state" expr="'calling'" />
 			<!--<createcall dest="'4073192381'" callerid="'4075551212'" connectionid="callid_out"/>-->
 			<createcall dest="'4073192381'" callerid="'4075551212'" connectionid="callid_out"/>
 			<!--<createcall dest="'4079014287'" callerid="'4075551212'" connectionid="callid_out"/>-->
