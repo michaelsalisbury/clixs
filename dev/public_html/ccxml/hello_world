@@ -187,7 +187,7 @@
 			<exit/>
 		</transition>
 		<transition event="connection.failed">
-			<log expr="'*** not premature [' + app_state + '] ***'" />
+			<log expr="'*** connection.failed :: not premature [' + app_state + '] ***'" />
 			<exit/>
 		</transition>
 
