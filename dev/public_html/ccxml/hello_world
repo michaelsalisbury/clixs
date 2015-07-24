@@ -64,7 +64,7 @@
 			<assign name="app_state" expr="'incall_1'" />
 			<log expr="'*** incall_0 app_state = ' + app_state + ' ***'" />
 			<send name="'continue'" target="session.id" delay="'3000ms'" />
-			<assign name="elog_body" expr"'triggered from event=continue state=incall_0'" /> 
+			<assign name="elog_body" expr="'triggered from event=continue state=incall_0'" /> 
 			<send name="'elog'" target="session.id" />
 		</transition>
 	
@@ -117,7 +117,7 @@
 		-->
 	</eventprocessor>
 
-	<assign name="elog_body" expr"'*** Application is starting ***'" />
+	<assign name="elog_body" expr="'*** Application is starting ***'" />
 	<send name="'elog'" target="session.id" />
 	<!--
 		 <log expr="'*** Application is starting ***'" />
