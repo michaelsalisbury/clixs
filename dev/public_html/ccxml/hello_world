@@ -15,8 +15,12 @@
 
 	<var name="mydialog"  expr="''" />
 	<var name="mydialog2" expr="''" />
-	<var name="statevar"  expr="'state0'" />
 	<var name="connid"    expr="''" />
+
+	<var name="callid_in" />
+	<var name="callid_out" />
+	<var name="pinCode" />
+	<var name="holdMusicDlg" />
 
 	<eventprocessor statevariable="app_state">
 		<transition state="init" event="connection.alerting">
@@ -41,10 +45,29 @@
 			<log expr="'*** connection.connected :: ec.local = '            + ec.local            + ' ***'" />
 			<log expr="'*** connection.connected :: ec.remote = '           + ec.remote           + ' ***'" />
 			<log expr="'*** connection.connected :: ec.originator = '       + ec.originator       + ' ***'" />
+			<assign name="callid_in" expr="ec.connectionid" />
+			<assign name="app_state" expr="'enterpin'" />
+			<dialogstart connectionid="callid_in" src="'null://?termdigits=%23&amp;text=Please enter your access code.'" type="'application/x-fetchdigits'" />
+			<!--
 			<assign name="connid"    expr="ec.connectionid" />
 			<assign name="app_state" expr="'state2'" />
 			<dialogprepare src="'bogus.vxml'" dialogid="mydialog" connectionid="ec.connectiontid" />
+			-->
 		</transition>
+
+		<transition state="enterpin" event="dialog.exit">
+			<log expr="'*** dialog.exit enterpin :: PIN = [' + event$.values.digits + ']'" />
+			<if cond="'1234' != event$.values.digits">
+				<exit/>
+			<else/>
+				<assign name="pinCode" expr="event$.values.digits" />
+				<dialogstart src="'dialog.vxml'" type="'application/voicexml+xml'"
+					connectionid="callid_in" dialogid="holdMusicDlg" />
+			</if>
+			<assign name="app_state" expr="'calling'" />
+			<createcall dest="'14073192381'" callerid="'4075551212'" connectionid="callid_out"/>
+		</transition>
+
 
 		<!-- ############################ error.dialog.notprepared ############################ -->
 		<transition state="state2" event="error.dialog.notprepared">
