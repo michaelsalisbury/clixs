@@ -61,6 +61,7 @@
 				<log expr="'*** dialog.exit enterpin :: Exiting, wrong pin!'" />
 				<exit/>
 			<else/>
+				<log expr="'*** dialog.exit enterpin :: Starting to play hold music.'" />
 				<assign name="pinCode" expr="event$.values.digits" />
 				<dialogstart src="'dialog.vxml'" type="'application/voicexml+xml'"
 					connectionid="callid_in" dialogid="holdMusicDlg" />
