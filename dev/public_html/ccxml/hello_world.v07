@@ -11,6 +11,7 @@
 	<var name="elog_from" expr="'MyAppp@here.com'" />
 	<var name="elog_body" />
 	<var name="app_state" expr="'init'" />
+	<var name="myDialogID" />
 
 	<eventprocessor statevariable="app_state">
 		<transition state="init" event="connection.alerting">
