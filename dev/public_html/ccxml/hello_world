@@ -47,8 +47,13 @@
 			<log expr="'*** connection.connected :: ec.originator = '       + ec.originator       + ' ***'" />
 			<assign name="callid_in" expr="ec.connectionid" />
 			<assign name="app_state" expr="'enterpin'" />
-			<dialogstart src="'null://?text=This is a test of the Text to Speech dialog extension&amp;termdigits=*'" type="'application/x-texttospeech'"/>
-			<dialogstart connectionid="callid_in" src="'null://?termdigits=%23&amp;text=Please enter your access code buddy.'" type="'application/x-fetchdigits'" />
+			<!--<dialogstart src="'null://?text=This is a test of the Text to Speech dialog extension&amp;termdigits=*'" type="'application/x-texttospeech'" />-->
+			<dialogstart
+				src="'null://?termdigits=%23&amp;text=This is a test of the Text to Speech dialog extension.'"
+				type="'application/x-texttospeech'" />
+			<dialogstart connectionid="callid_in"
+				src="'null://?termdigits=%23&amp;text=Please enter your access code buddy.'"
+				type="'application/x-fetchdigits'" />
 			<!--
 			<assign name="connid"    expr="ec.connectionid" />
 			<assign name="app_state" expr="'state2'" />
