@@ -44,27 +44,38 @@
 			<assign name="connid"    expr="ec.connectionid" />
 			<assign name="app_state" expr="'state2'" />
 			<dialogprepare src="'bogus.vxml'" dialogid="mydialog" connectionid="ec.connectiontid" />
-			<!--
-			<dialogstart src="'dialog.vxml'" type="'application/voicexml+xml'" dialogid="myDialogID" />
-			<assign name="app_state" expr="'dialogActive'" />
-			<send name="'timeout'" target="session.id" delay="'15s'" />
-			-->
 		</transition>
 
+		<!-- ############################ error.dialog.notprepared ############################ -->
+		<transition state="state2" event="error.dialog.notprepared">
+			<log expr="'*** error.dialog.notprepared state2 :: ' + event$.reason + ' ***'" />
+			<log expr="'*** error.dialog.notprepared state2 :: Attempting to launch a new dialog... ***'" />
+			<assign name="app_state" expr="'state4'" />
+			<dialogprepare src="'dialog.vxml'" dialogid="mydialog2" />
+		</transition>
+
+		<transition state="state4" event="error.dialog.notprepared">
+			<log expr="'*** error.dialog.notprepared state2 :: ' + event$.reason + ' ***'" />
+			<log expr="'*** error.dialog.notprepared state2 :: An error occurred, new dialog NOT prepared: '" />
+			<log expr="'*** error.dialog.notprepared state2 :: Application will now exit...'" />
+			<exit/>
+		</transition>
+
+		<!-- ############################ dialog.prepared ############################ -->
 		<transition state="state2" event="dialog.prepared">
 			<!-- This isn't going to happen -->
 			<log expr="'*** dialog.prepared state2 :: The dialog was prepared ***'" />
 			<dialogstart prepareddialogid="mydialog" connectionid="connid" />
-			<assign name="statevar" expr="'state3'" />
+			<assign name="app_state" expr="'state3'" />
 		</transition>
 
-		<transition state="state2" event="error.dialog.notprepared">
-			<log expr="'*** error.dialog.notprepared :: ' + event$.reason + ' ***'" />
-			<log expr="'*** error.dialog.notprepared :: Attempting to launch a new dialog... ***'" />
-			<assign name="app_state" expr="'state4'" />
-			<dialogprepare src="'RealDialog.vxml'" dialogid="mydialog2" />
+		<transition state="state4" event="dialog.prepared">
+			<log expr="'*** dialog.prepared state4 :: The dialog was prepared ***'" />
+			<dialogstart prepareddialogid="mydialog2" connectionid="connid" />
+			<assign name="app_state" expr="'state5'" />
 		</transition>
 
+		<!-- ############################ dialog.exit ############################ -->
 		<transition state="state3" event="dialog.exit">
 			<log expr="'*** dialog.exit state3 :: The dialog terminated ***'" />
 			<exit/>
@@ -75,6 +86,7 @@
 			<exit/>
 		</transition>
 
+		<!-- ############################ dialogActive ############################ -->
 		<transition event="timeout" state="dialogActive">
 			<log expr="'*** timeout dialogActive :: Timeout received, now terminating the dialog ***'" />
 			<dialogterminate dialogid="myDialogID" immediate="false" />
