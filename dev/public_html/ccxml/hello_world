@@ -10,17 +10,32 @@
 	<var name="elog_to"   expr="'michael.salisbury@aspect.com'" />
 	<var name="elog_from" expr="'MyAppp@here.com'" />
 	<var name="elog_body" />
-	<var name="app_state" expr="'initial'" />
+	<var name="app_state" expr="'init'" />
 	<var name="in_connID" />
 
 	<eventprocessor statevariable="app_state">
-		<transition state="initial" event="connection.alerting">
-			<assign name="app_state" expr="'accepting'" />
-			<accept/>
+		<transition state="init" event="connection.alerting">
 			<assign name="in_connID" expr="event$.connection.connectionid" />
 			<log expr="'*** connection.alerting app_state = ' + app_state + ' ***'" />
 			<log expr="'*** in_connID = ' + in_connID + ' ***'" />
+			<accept/>
 		</transition>
+
+		<transition state="init" event="connection.connected">
+			<var name="ec" expr="event$.connection" />
+			<log expr="'*** Call was answered ***'" />
+			<!--<log expr="'*** event$.connection.connectionid = ' + event$.connection.connectionid + ' ***'" />-->
+			<log expr="'*** event$.connection.connectionid = ' + ec.connectionid + ' ***'" />
+			<log expr="'*** event$.connection.protocol.name = ' + event$.connection.protocol.name + ' ***'" />
+			<log expr="'*** event$.connection.protocol.version = ' + event$.connection.protocol.version + ' ***'" />
+			<log expr="'*** event$.connection.state = ' + event$.connection.state + ' ***'" />
+			<log expr="'*** event$.connection.local = ' + event$.connection.local + ' ***'" />
+			<log expr="'*** event$.connection.remote = ' + event$.connection.remote + ' ***'" />
+			<log expr="'*** event$.connection.originator = ' + event$.connection.originator + ' ***'" />
+			<exit/>
+		</transition>
+
+
 
 		<transition event="connection.failed"
 					cond="('incall_0' == app_state) || ('incall_1' == app_state)">
@@ -52,11 +67,6 @@
 			<log expr="'*** elog sent [' + elog_body + '] ***'" />
 		</transition>
 
-		<transition state="accepting" event="connection.connected">
-			<accept/>
-			<assign name="app_state" expr="'incall_0'" />
-			<send name="'continue'" target="session.id" delay="'6000ms'" />
-		</transition>
 
 		<transition state="incall_0" event="continue">
 			<assign name="app_state" expr="'incall_1'" />
