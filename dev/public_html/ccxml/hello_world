@@ -83,9 +83,22 @@
 			<log expr="'*** event$.eventsource = ' + event$.eventsource + ' ***'" />
 			<log expr="'*** event$.eventsourcetype = ' + event$.eventsourcetype + ' ***'" />
 			<log expr="'*** event$.tagname = ' + event$.tagname + ' ***'" />
+			<!-- The following line will break our application -->
+			<log expr="'*** bogus object = ' + this.is.a.bogus.object + ' ***'" />
 			<exit/>
 		</transition>
-	
+
+		<transition event="error.*">
+			<log expr="'an error has occurred (' + event$.name + ')'" />
+			<log expr="'*** event$.reason = ' + event$.reason + ' ***'" />
+			<log expr="'*** event$.tagname = ' + event$.tagname + ' ***'" />
+			<log expr="'*** event$.eventid = ' + event$.eventid + ' ***'" />
+			<log expr="'*** event$.eventsource = ' + event$.eventsource + ' ***'" />
+			<log expr="'*** event$.eventsourcetype = ' + event$.eventsourcetype + ' ***'" />
+			<assign name="elog_body" expr="'*** An unexpected error has occurred ***'" />
+			<send name="'elog'" target="session.id"  />
+			<exit/>
+		</transition>	
 
 		<!--
 		<transition state="'niceGuy'" event="myEvent">
