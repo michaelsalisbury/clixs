@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- <ccxml version="1.0"> -->
+<!-- We must declare the xmlns:Voxeo attribute to use Voxeo-specific extensions -->
+<ccxml version="1.0" xmlns:voxeo="http://community.voxeo.com/xmlns/ccxml">
+	<!--<eventprocessor>-->
+	<var name="app_name"  expr="'Basic Error Handling'" />
+	<var name="app_des"   expr="'test'" />
+	<var name="app_vrs"   expr="'v6'" />
+	<var name="elog_type" expr="'debug'" />
+	<var name="elog_to"   expr="'michael.salisbury@aspect.com'" />
+	<var name="elog_from" expr="'MyAppp@here.com'" />
+	<var name="elog_body" />
+	<var name="app_state" expr="'initial'" />
+	<var name="in_connID" />
+
+	<eventprocessor statevariable="app_state">
+		<transition state="initial" event="connection.alerting">
+			<assign name="app_state" expr="'accepting'" />
+			<accept/>
+			<assign name="in_connID" expr="event$.connection.connectionid" />
+			<log expr="'*** connection.alerting app_state = ' + app_state + ' ***'" />
+			<log expr="'*** in_connID = ' + in_connID + ' ***'" />
+		</transition>
+
+		<transition event="connection.failed"
+					cond="('incall_0' == app_state) || ('incall_1' == app_state)">
+			<assign name="elog_body"
+			expr="'*** premature disconnection detected in state [' + app_state + '] ***'" /> 
+			<send name="'elog'" target="session.id" />
+			<exit/>
+		</transition>
+		<transition event="connection.failed">
+			<log expr="'*** not premature [' + app_state + '] ***'" />
+			<exit/>
+		</transition>
+
+		<!--
+		<transition state="disconnecting" event="connection.disconnected">
+			<assign name="app_state" expr="'disconnected'" />
+			<log expr="'*** Application is ending  :: ' + app_state + ' :: ***'" />
+			<voxeo:sendemail
+				to="'michael.salisbury@aspect.com'"
+				from="'MyAppp@here.com'"
+				type="'debug'"
+				body="'Advanced Event Handling v04 :: disconnecting'" />
+		</transition>
+		-->
+
+		<transition event="elog">
+			<voxeo:sendemail to="elog_to" from="elog_from"	type="elog_type" subject="app_name"
+				body="app_name + ' - ' + app_des + ' - ' + app_vrs + ' :: ' + elog_body" />
+			<log expr="'*** elog sent [' + elog_body + '] ***'" />
+		</transition>
+
+		<transition state="accepting" event="connection.connected">
+			<accept/>
+			<assign name="app_state" expr="'incall_0'" />
+			<send name="'continue'" target="session.id" delay="'6000ms'" />
+		</transition>
+
+		<transition state="incall_0" event="continue">
+			<assign name="app_state" expr="'incall_1'" />
+			<log expr="'*** incall_0 app_state = ' + app_state + ' ***'" />
+			<send name="'continue'" target="session.id" delay="'3000ms'" />
+			<assign name="elog_body" expr="'triggered from event=continue state=incall_0'" /> 
+			<send name="'elog'" target="session.id" />
+		</transition>
+	
+		<transition state="incall_1" event="continue">
+			<disconnect connectionid="in_connID" />
+			<assign name="app_state" expr="'disconnecting'" />
+			<log expr="'*** incall_1 app_state = ' + app_state + ' ***'" />
+		</transition>
+
+		<transition event="error.connection.wrongstate">
+			<log expr="'*** event$.name = ' + event$.name + ' ***'" />
+			<log expr="'*** event$.connectionid = ' + event$.connectionid + ' ***'" />
+			<log expr="'*** event$.protocol = ' + event$.protocol + ' ***'" />
+			<log expr="'*** event$.reason = ' + event$.reason + ' ***'" />
+			<log expr="'*** event$.info = ' + event$.info + ' ***'" />
+			<log expr="'*** event$.connection = ' + event$.connection + ' ***'" />
+			<log expr="'*** event$.eventid = ' + event$.eventid + ' ***'" />
+			<log expr="'*** event$.eventsource = ' + event$.eventsource + ' ***'" />
+			<log expr="'*** event$.eventsourcetype = ' + event$.eventsourcetype + ' ***'" />
+			<log expr="'*** event$.tagname = ' + event$.tagname + ' ***'" />
+			<!-- The following line will break our application -->
+			<log expr="'*** bogus object = ' + bogus.object + ' ***'" />
+			<!--<exit/>-->
+		</transition>
+
+		<transition event="error.*">
+			<log expr="'an error has occurred (' + event$.name + ')'" />
+			<log expr="'*** event$.reason = ' + event$.reason + ' ***'" />
+			<log expr="'*** event$.tagname = ' + event$.tagname + ' ***'" />
+			<log expr="'*** event$.eventid = ' + event$.eventid + ' ***'" />
+			<log expr="'*** event$.eventsource = ' + event$.eventsource + ' ***'" />
+			<log expr="'*** event$.eventsourcetype = ' + event$.eventsourcetype + ' ***'" />
+			<assign name="elog_body" expr="'*** An unexpected error has occurred ***'" />
+			<send name="'elog'" target="session.id"  />
+			<exit/>
+		</transition>	
+
+		<!--
+		<transition state="'niceGuy'" event="myEvent">
+			<dialogstart src="'niceCaller.vxml'" type="'application/voicexml+xml'" />
+		</transition>
+		<transition state="'meanGuy'" event="myEvent">
+			<dialogstart src="'meanCaller.vxml'" type="'application/voicexml+xml'" />
+		</transition>
+		-->
+
+
+
+		<!--
+		<transition event="connection.alerting">
+			<log expr="'*** The called ID is ' + event$.connection.local + ' ***'" />
+			<log expr="'*** The caller ID is ' + event$.connection.remote + ' ***'" />
+			<if cond="event$.connection.local == '8315551234'">
+				<reject/>
+			<elseif cond="event$.connection.remote == '8315557890'" />
+				<reject/>
+			<else/>
+				<accept/>
+			</if>
+
+		</transition>
+		<transition event="connection.connected">
+			<log expr="'*** Call was answered *** '" />
+			<disconnect/>
+		</transition>
+		<transition event="connection.disconnected">
+			<log expr="'*** Call was disconnected *** '" />
+			<exit/>
+		</transition>
+		 
+		<transition event="connection.failed">
+			<voxeo:sendemail to="'michael.salisbury@aspect.com'" from="'MyAppp@here.com'" type="'debug'" body="'We had an error!'" />
+			<exit/>
+		</transition>
+		-->
+	</eventprocessor>
+
+	<assign name="elog_body" expr="'*** Application is starting ***'" />
+	<send name="'elog'" target="session.id"  />
+
+	<!--
+	<var name="MyVariable" expr="'This is a CCXML Variable'" />
+
+	<log expr="'***Hello World. I just created a variable: ' + MyVariable + ' ***'" />
+	<exit/>
+	-->
+
+</ccxml>
