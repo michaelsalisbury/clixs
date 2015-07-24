@@ -31,7 +31,7 @@
 			<log expr="'*** connection.connected :: ec.local = '            + ec.local            + ' ***'" />
 			<log expr="'*** connection.connected :: ec.remote = '           + ec.remote           + ' ***'" />
 			<log expr="'*** connection.connected :: ec.originator = '       + ec.originator       + ' ***'" />
-			<dialogstart src="'myDialog.xml'" type="'application/voicexml+xml'" dialogid="myDialogID" />
+			<dialogstart src="'dialog.vxml'" type="'application/voicexml+xml'" dialogid="myDialogID" />
 		</transition>
 
 		<transition event="connection.failed"
