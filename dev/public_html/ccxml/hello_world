@@ -73,16 +73,16 @@
 		</transition>
 
 		<transition event="error.connection.wrongstate">
-			<log expr="'***            event$.name = ' + event$.name + ' ***'" />
-			<log expr="'***    event$.connectionid = ' + event$.connectionid + ' ***'" />
-			<log expr="'***        event$.protocol = ' + event$.protocol + ' ***'" />
-			<log expr="'***          event$.reason = ' + event$.reason + ' ***'" />
-			<log expr="'***            event$.info = ' + event$.info + ' ***'" />
-			<log expr="'***      event$.connection = ' + event$.connection + ' ***'" />
-			<log expr="'***         event$.eventid = ' + event$.eventid + ' ***'" />
-			<log expr="'***     event$.eventsource = ' + event$.eventsource + ' ***'" />
+			<log expr="'*** event$.name = ' + event$.name + ' ***'" />
+			<log expr="'*** event$.connectionid = ' + event$.connectionid + ' ***'" />
+			<log expr="'*** event$.protocol = ' + event$.protocol + ' ***'" />
+			<log expr="'*** event$.reason = ' + event$.reason + ' ***'" />
+			<log expr="'*** event$.info = ' + event$.info + ' ***'" />
+			<log expr="'*** event$.connection = ' + event$.connection + ' ***'" />
+			<log expr="'*** event$.eventid = ' + event$.eventid + ' ***'" />
+			<log expr="'*** event$.eventsource = ' + event$.eventsource + ' ***'" />
 			<log expr="'*** event$.eventsourcetype = ' + event$.eventsourcetype + ' ***'" />
-			<log expr="'***         event$.tagname = ' + event$.tagname + ' ***'" />
+			<log expr="'*** event$.tagname = ' + event$.tagname + ' ***'" />
 			<exit/>
 		</transition>
 	
