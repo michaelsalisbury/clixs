@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <vxml version="2.1">
-
- 
-
 	<meta name="maintainer" content="youremail@here.com" />
 	<form id="dialogContianer">
 		<field name="F_1">
