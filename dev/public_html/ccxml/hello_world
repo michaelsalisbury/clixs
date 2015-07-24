@@ -50,7 +50,7 @@
 		-->
 
 		<transition event="elog">
-			<voxeo:sendemail to="elog_to" from="'elog_from"	type="elog_type"
+			<voxeo:sendemail to="elog_to" from="elog_from"	type="elog_type"
 				body="app_name + ' - ' + app_des + ' - ' + app_vrs + ' :: ' + elog_body" />
 			<log expr="'*** elog sent [' + elog_body + '] ***'" />
 		</transition>
