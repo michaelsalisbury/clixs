@@ -115,7 +115,7 @@
 	</eventprocessor>
 
 	<assign name="elog_body" expr="'*** Application is starting ***'" />
-	<send name="'elog'" target="session.id" namelist="'elog_body'" />
+	<send name="'elog'" target="session.id"  />
 
 	<!--
 	<var name="MyVariable" expr="'This is a CCXML Variable'" />
