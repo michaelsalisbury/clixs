@@ -50,7 +50,7 @@
 		-->
 
 		<transition event="elog">
-			<voxeo:sendemail to="elog_to" from="elog_from"	type="elog_type"
+			<voxeo:sendemail to="elog_to" from="elog_from"	type="elog_type" subject="app_name"
 				body="app_name + ' - ' + app_des + ' - ' + app_vrs + ' :: ' + elog_body" />
 			<log expr="'*** elog sent [' + elog_body + '] ***'" />
 		</transition>
@@ -64,6 +64,7 @@
 			<assign name="app_state" expr="'incall_1'" />
 			<log expr="'*** incall_0 app_state = ' + app_state + ' ***'" />
 			<send name="'continue'" target="session.id" delay="'3000ms'" />
+			<assign name="elog_body" expr"'triggered from event=continue state=incall_0'" /> 
 			<send name="'elog'" target="session.id" />
 		</transition>
 	
@@ -116,12 +117,16 @@
 		-->
 	</eventprocessor>
 
-	<log expr="'*** Application is starting ***'" />
-	<voxeo:sendemail
-		to="'michael.salisbury@aspect.com'"
-		from="'MyAppp@here.com'"
-		type="'debug'"
-		body="'Advanced Event Handling v04'" />
+	<assign name="elog_body" expr"'*** Application is starting ***'" />
+	<send name="'elog'" target="session.id" />
+	<!--
+		 <log expr="'*** Application is starting ***'" />
+		<voxeo:sendemail
+			to="'michael.salisbury@aspect.com'"
+			from="'MyAppp@here.com'"
+			type="'debug'"
+			body="'Advanced Event Handling v04'" />
+	-->
 
 
 	<!--
