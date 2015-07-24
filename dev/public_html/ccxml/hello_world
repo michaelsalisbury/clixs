@@ -51,10 +51,10 @@
 			<dialogstart connectionid="callid_in"
 				src="'null://?termdigits=#&amp;text=This is a test of the Text to Speech dialog extension.'"
 				type="'application/x-texttospeech'" />
+			<!--
 			<dialogstart connectionid="callid_in"
 				src="'null://?termdigits=%23&amp;text=Please enter your access code buddy.'"
 				type="'application/x-fetchdigits'" />
-			<!--
 			<assign name="connid"    expr="ec.connectionid" />
 			<assign name="app_state" expr="'state2'" />
 			<dialogprepare src="'bogus.vxml'" dialogid="mydialog" connectionid="ec.connectiontid" />
