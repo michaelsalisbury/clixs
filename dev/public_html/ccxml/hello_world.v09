@@ -58,6 +58,7 @@
 		<transition state="enterpin" event="dialog.exit">
 			<log expr="'*** dialog.exit enterpin :: PIN = [' + event$.values.digits + ']'" />
 			<if cond="'1234' != event$.values.digits">
+				<log expr="'*** dialog.exit enterpin :: Exiting, wrong pin!'" />
 				<exit/>
 			<else/>
 				<assign name="pinCode" expr="event$.values.digits" />
