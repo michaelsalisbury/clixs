@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- <ccxml version="1.0"> -->
+<!-- We must declare the xmlns:Voxeo attribute to use Voxeo-specific extensions -->
+<ccxml version="1.0" xmlns:voxeo="http://community.voxeo.com/xmlns/ccxml">
+	<!--<eventprocessor>-->
+	<var name="app_name"  expr="'Advanced VoiceXML Dialogs'" />
+	<var name="app_des"   expr="'test'" />
+	<var name="app_vrs"   expr="'v8'" />
+	<var name="elog_type" expr="'debug'" />
+	<var name="elog_to"   expr="'michael.salisbury@aspect.com'" />
+	<var name="elog_from" expr="'MyAppp@here.com'" />
+	<var name="elog_body" />
+	<var name="app_state" expr="'init'" />
+	<var name="myDialogID" />
+
+	<var name="mydialog"  expr="''" />
+	<var name="mydialog2" expr="''" />
+	<var name="statevar"  expr="'state0'" />
+	<var name="connid"    expr="''" />
+
+	<eventprocessor statevariable="app_state">
+		<transition state="init" event="connection.alerting">
+			<var name="ec" expr="event$.connection" />
+			<log expr="'*** connection.alerting :: Call is ringing ***'" />
+			<log expr="'*** connection.alerting :: app_state = '       + app_state       + ' ***'" />
+			<log expr="'*** connection.alerting :: ec.connectionid = ' + ec.connectionid + ' ***'" />
+			<assign name="app_state" expr="'accept'" />
+			<accept/>
+		</transition>
+
+		<transition state="accept" event="connection.connected">
+			<var name="ec"  expr="event$.connection" />
+			<log expr="'*** connection.connected :: Call was answered ***'" />
+			<log expr="'*** connection.connected :: ec.connectionid = '     + ec.connectionid     + ' ***'" />
+			<!--
+			<log expr="'*** connection.connected :: event$.connectionid = ' + event$.connectionid + ' ***'" />
+			-->
+			<log expr="'*** connection.connected :: ec.protocol.name = '    + ec.protocol.name    + ' ***'" />
+			<log expr="'*** connection.connected :: ec.protocol.version = ' + ec.protocol.version + ' ***'" />
+			<log expr="'*** connection.connected :: ec.state = '            + ec.state            + ' ***'" />
+			<log expr="'*** connection.connected :: ec.local = '            + ec.local            + ' ***'" />
+			<log expr="'*** connection.connected :: ec.remote = '           + ec.remote           + ' ***'" />
+			<log expr="'*** connection.connected :: ec.originator = '       + ec.originator       + ' ***'" />
+			<assign name="connid"    expr="ec.connectionid" />
+			<assign name="app_state" expr="'state2'" />
+			<dialogprepare src="'bogus.vxml'" dialogid="mydialog" connectionid="ec.connectiontid" />
+		</transition>
+
+		<!-- ############################ error.dialog.notprepared ############################ -->
+		<transition state="state2" event="error.dialog.notprepared">
+			<log expr="'*** error.dialog.notprepared state2 :: ' + event$.reason + ' ***'" />
+			<log expr="'*** error.dialog.notprepared state2 :: Attempting to launch a new dialog... ***'" />
+			<assign name="app_state" expr="'state4'" />
+			<dialogprepare src="'dialog.vxml'" dialogid="mydialog2" />
+		</transition>
+
+		<transition state="state4" event="error.dialog.notprepared">
+			<log expr="'*** error.dialog.notprepared state2 :: ' + event$.reason + ' ***'" />
+			<log expr="'*** error.dialog.notprepared state2 :: An error occurred, new dialog NOT prepared: '" />
+			<log expr="'*** error.dialog.notprepared state2 :: Application will now exit...'" />
+			<exit/>
+		</transition>
+
+		<!-- ############################ dialog.prepared ############################ -->
+		<transition state="state2" event="dialog.prepared">
+			<!-- This isn't going to happen -->
+			<log expr="'*** dialog.prepared state2 :: The dialog was prepared ***'" />
+			<dialogstart prepareddialogid="mydialog" connectionid="connid" />
+			<assign name="app_state" expr="'state3'" />
+		</transition>
+
+		<transition state="state4" event="dialog.prepared">
+			<log expr="'*** dialog.prepared state4 :: The dialog was prepared ***'" />
+			<dialogstart prepareddialogid="mydialog2" connectionid="connid" />
+			<assign name="app_state" expr="'state5'" />
+		</transition>
+
+		<!-- ############################ dialog.exit ############################ -->
+		<transition state="state3" event="dialog.exit">
+			<log expr="'*** dialog.exit state3 :: The dialog terminated ***'" />
+			<exit/>
+		</transition>
+
+		<transition state="state5" event="dialog.exit">
+			<log expr="'*** dialog.exit state5 :: The new dialog terminated, nice work ***'" />
+			<exit/>
+		</transition>
+
+		<!-- ############################ dialogActive ############################ -->
+		<transition event="timeout" state="dialogActive">
+			<log expr="'*** timeout dialogActive :: Timeout received, now terminating the dialog ***'" />
+			<dialogterminate dialogid="myDialogID" immediate="false" />
+		</transition>
+
+		<transition event="send.successful" state="dialogActive">
+			<log expr="'*** send.successful dialogActive :: Send is successful ***'" />
+		</transition>
+
+		<transition event="error.dialog.notstarted">
+			<log expr="'*** error.dialog.notstarted :: ***'" />
+			<log expr="'*** event$.name = '            + event$.name            + ' ***'" />
+			<log expr="'*** event$.dialogid = '        + event$.dialogid        + ' ***'" />
+			<log expr="'*** event$.dialog = '          + event$.dialog          + ' ***'" />
+			<log expr="'*** event$.conferenceid = '    + event$.conferenceid    + ' ***'" />
+			<log expr="'*** event$.connectionid = '    + event$.connectionid    + ' ***'" />
+			<log expr="'*** event$.reason = '          + event$.reason          + ' ***'" />
+			<log expr="'*** event$.eventid = '         + event$.eventid         + ' ***'" />
+			<log expr="'*** event$.eventsource = '     + event$.eventsource     + ' ***'" />
+			<log expr="'*** event$.eventsourcetype = ' + event$.eventsourcetype + ' ***'" />
+			<exit/>
+		</transition>
+
+		<transition event="error.send.targetunavailable">
+			<log expr="'*** error.send.targetunavailable :: Send target unavailable ***'" />
+			<exit/>
+		</transition>
+
+		<transition event="dialog.exit" state="'dialogActive'">
+			<log expr="'*** dialog.exit dialogActive :: Dialog exit in dialog active state. ***'" />
+			<exit/>
+		</transition>
+
+		<transition event="dialog.exit">
+			<log expr="'*** dialog.exit :: Call exiting ***'" />
+			<log expr="'*** dialog.exit :: event$.values.F_1 ='           + event$.values.F_1          + ' ***'" />
+			<log expr="'*** dialog.exit :: event$.name = '                + event$.name                + ' ***'" />
+			<log expr="'*** dialog.exit :: event$.dialogid = '            + event$.dialogid            + ' ***'" />
+			<log expr="'*** dialog.exit :: event$.conferenceid = '        + event$.conferenceid        + ' ***'" />
+			<log expr="'*** dialog.exit :: event$.connectionid = '        + event$.connectionid        + ' ***'" />
+			<log expr="'*** dialog.exit :: event$.eventid = '             + event$.eventid             + ' ***'" />
+			<log expr="'*** dialog.exit :: event$.eventsource = '         + event$.eventsource         + ' ***'" />
+			<log expr="'*** dialog.exit :: event$.eventsourcetype = '     + event$.eventsourcetype     + ' ***'" />
+			<!-- Dialog object properties -->
+			<log expr="'*** dialog.exit :: event$.dialog.dialogid = '     + event$.dialog.dialogid     + ' ***'" />
+			<log expr="'*** dialog.exit :: event$.dialog.connectionid = ' + event$.dialog.connectionid + ' ***'" />
+			<log expr="'*** dialog.exit :: event$.dialog.conferenceid = ' + event$.dialog.conferenceid + ' ***'" />
+			<log expr="'*** dialog.exit :: event$.dialog.type = '         + event$.dialog.type         + ' ***'" />
+			<log expr="'*** dialog.exit :: event$.dialog.src = '          + event$.dialog.src          + ' ***'" />
+			<log expr="'*** dialog.exit :: event$.dialog.input = '        + event$.dialog.input        + ' ***'" />
+			<log expr="'*** dialog.exit :: event$.dialog.outputs = '      + event$.dialog.outputs      + ' ***'" />
+			<exit/>
+		</transition>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		<transition event="connection.failed"
+					cond="('incall_0' == app_state) || ('incall_1' == app_state)">
+			<assign name="elog_body"
+			expr="'*** premature disconnection detected in state [' + app_state + '] ***'" /> 
+			<send name="'elog'" target="session.id" />
+			<exit/>
+		</transition>
+		<transition event="connection.failed">
+			<log expr="'*** not premature [' + app_state + '] ***'" />
+			<exit/>
+		</transition>
+
+		<!--
+		<transition state="disconnecting" event="connection.disconnected">
+			<assign name="app_state" expr="'disconnected'" />
+			<log expr="'*** Application is ending  :: ' + app_state + ' :: ***'" />
+			<voxeo:sendemail
+				to="'michael.salisbury@aspect.com'"
+				from="'MyAppp@here.com'"
+				type="'debug'"
+				body="'Advanced Event Handling v04 :: disconnecting'" />
+		</transition>
+		-->
+
+		<transition event="elog">
+			<voxeo:sendemail to="elog_to" from="elog_from"	type="elog_type" subject="app_name"
+				body="app_name + ' - ' + app_des + ' - ' + app_vrs + ' :: ' + elog_body" />
+			<log expr="'*** elog sent [' + elog_body + '] ***'" />
+		</transition>
+
+
+		<transition state="incall_0" event="continue">
+			<assign name="app_state" expr="'incall_1'" />
+			<log expr="'*** incall_0 app_state = ' + app_state + ' ***'" />
+			<send name="'continue'" target="session.id" delay="'3000ms'" />
+			<assign name="elog_body" expr="'triggered from event=continue state=incall_0'" /> 
+			<send name="'elog'" target="session.id" />
+		</transition>
+	
+		<transition state="incall_1" event="continue">
+			<disconnect connectionid="in_connID" />
+			<assign name="app_state" expr="'disconnecting'" />
+			<log expr="'*** incall_1 app_state = ' + app_state + ' ***'" />
+		</transition>
+
+		<transition event="error.connection.wrongstate">
+			<log expr="'*** event$.name = ' + event$.name + ' ***'" />
+			<log expr="'*** event$.connectionid = ' + event$.connectionid + ' ***'" />
+			<log expr="'*** event$.protocol = ' + event$.protocol + ' ***'" />
+			<log expr="'*** event$.reason = ' + event$.reason + ' ***'" />
+			<log expr="'*** event$.info = ' + event$.info + ' ***'" />
+			<log expr="'*** event$.connection = ' + event$.connection + ' ***'" />
+			<log expr="'*** event$.eventid = ' + event$.eventid + ' ***'" />
+			<log expr="'*** event$.eventsource = ' + event$.eventsource + ' ***'" />
+			<log expr="'*** event$.eventsourcetype = ' + event$.eventsourcetype + ' ***'" />
+			<log expr="'*** event$.tagname = ' + event$.tagname + ' ***'" />
+			<!-- The following line will break our application -->
+			<log expr="'*** bogus object = ' + bogus.object + ' ***'" />
+			<!--<exit/>-->
+		</transition>
+
+		<transition event="error.*">
+			<log expr="'an error has occurred (' + event$.name + ')'" />
+			<log expr="'*** event$.reason = ' + event$.reason + ' ***'" />
+			<log expr="'*** event$.tagname = ' + event$.tagname + ' ***'" />
+			<log expr="'*** event$.eventid = ' + event$.eventid + ' ***'" />
+			<log expr="'*** event$.eventsource = ' + event$.eventsource + ' ***'" />
+			<log expr="'*** event$.eventsourcetype = ' + event$.eventsourcetype + ' ***'" />
+			<assign name="elog_body" expr="'*** An unexpected error has occurred ***'" />
+			<send name="'elog'" target="session.id"  />
+			<exit/>
+		</transition>	
+
+		<!--
+		<transition state="'niceGuy'" event="myEvent">
+			<dialogstart src="'niceCaller.vxml'" type="'application/voicexml+xml'" />
+		</transition>
+		<transition state="'meanGuy'" event="myEvent">
+			<dialogstart src="'meanCaller.vxml'" type="'application/voicexml+xml'" />
+		</transition>
+		-->
+
+
+
+		<!--
+		<transition event="connection.alerting">
+			<log expr="'*** The called ID is ' + event$.connection.local + ' ***'" />
+			<log expr="'*** The caller ID is ' + event$.connection.remote + ' ***'" />
+			<if cond="event$.connection.local == '8315551234'">
+				<reject/>
+			<elseif cond="event$.connection.remote == '8315557890'" />
+				<reject/>
+			<else/>
+				<accept/>
+			</if>
+
+		</transition>
+		<transition event="connection.connected">
+			<log expr="'*** Call was answered *** '" />
+			<disconnect/>
+		</transition>
+		<transition event="connection.disconnected">
+			<log expr="'*** Call was disconnected *** '" />
+			<exit/>
+		</transition>
+		 
+		<transition event="connection.failed">
+			<voxeo:sendemail to="'michael.salisbury@aspect.com'" from="'MyAppp@here.com'" type="'debug'" body="'We had an error!'" />
+			<exit/>
+		</transition>
+		-->
+	</eventprocessor>
+
+	<assign name="elog_body" expr="'*** Application is starting ***'" />
+	<send name="'elog'" target="session.id"  />
+
+	<!--
+	<var name="MyVariable" expr="'This is a CCXML Variable'" />
+
+	<log expr="'***Hello World. I just created a variable: ' + MyVariable + ' ***'" />
+	<exit/>
+	-->
+
+</ccxml>
