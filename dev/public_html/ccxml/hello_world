@@ -31,10 +31,8 @@
 			<log expr="'*** connection.connected :: ec.local = '            + ec.local            + ' ***'" />
 			<log expr="'*** connection.connected :: ec.remote = '           + ec.remote           + ' ***'" />
 			<log expr="'*** connection.connected :: ec.originator = '       + ec.originator       + ' ***'" />
-			<exit/>
+			<dialogstart src="'myDialog.xml'" type="'application/voicexml+xml'" dialogid="myDialogID" />
 		</transition>
-
-
 
 		<transition event="connection.failed"
 					cond="('incall_0' == app_state) || ('incall_1' == app_state)">
