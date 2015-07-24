@@ -64,8 +64,7 @@
 			<assign name="app_state" expr="'thankyou'" />
 			<assign name="nxt_state" expr="'testpin'" />
 			<log expr="'*** ' + event$.name + '[' + lst_state + '] >> proceeding to >> [' + app_state + '] ***'" />
-			<!--<dialogstart connectionid="callid_in"-->
-			<dialogstart connectionid="event$.connection.connectionid"
+			<dialogstart connectionid="callid_in"
 				src="'null://?termdigits=%23&amp;text=Please enter your access code buddy.'"
 				type="'application/x-fetchdigits'" />
 		</transition>
@@ -74,7 +73,7 @@
 			<assign name="lst_state" expr="app_state" />
 			<assign name="app_state" expr="nxt_state" />
 			<log expr="'*** ' + event$.name + '[' + lst_state + '] >> proceeding to >> [' + app_state + '] ***'" />
-			<dialogstart connectionid="event$.connection.connectionid"
+			<dialogstart connectionid="callid_in"
 				src="'null://?termdigits=#&amp;text=Thank you. One moment please.'"
 				type="'application/x-texttospeech'" />
 		</transition>
@@ -83,7 +82,7 @@
 			<assign name="lst_state" expr="app_state" />
 			<assign name="app_state" expr="nxt_state" />
 			<log expr="'*** ' + event$.name + '[' + lst_state + '] >> proceeding to >> [' + app_state + '] ***'" />
-			<dialogstart connectionid="event$.connection.connectionid"
+			<dialogstart connectionid="callid_in"
 				src="'null://?termdigits=#&amp;text=Error. Im sorry but there seems to be a problem. One moment please while I try to make an adjustment.'"
 				type="'application/x-texttospeech'" />
 		</transition>
@@ -97,8 +96,10 @@
 				<exit/>
 			</if>
 			<log expr="'*** dialog.exit enterpin :: Starting to play hold music.'" />
-			<dialogstart src="'dialog.vxml'" type="'application/voicexml+xml'"
-				connectionid="callid_in" dialogid="holdMusicDlg" />
+			<dialogstart connectionid="callid_in"
+				src="'dialog.vxml'"
+				type="'application/voicexml+xml'"
+				dialogid="holdMusicDlg" />
 			<!--<createcall dest="'4073192381'" callerid="'4075551212'" connectionid="callid_out"/>-->
 			<createcall dest="'4073192381'" callerid="'4075551212'" connectionid="callid_out"/>
 			<!--<createcall dest="'4079014287'" callerid="'4075551212'" connectionid="callid_out"/>-->
