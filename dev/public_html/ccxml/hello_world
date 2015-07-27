@@ -38,9 +38,6 @@
 			<var name="ec"  expr="event$.connection" />
 			<log expr="'*** connection.connected :: Call was answered ***'" />
 			<log expr="'*** connection.connected :: ec.connectionid = '     + ec.connectionid     + ' ***'" />
-			<!--
-			<log expr="'*** connection.connected :: event$.connectionid = ' + event$.connectionid + ' ***'" />
-			-->
 			<log expr="'*** connection.connected :: ec.protocol.name = '    + ec.protocol.name    + ' ***'" />
 			<log expr="'*** connection.connected :: ec.protocol.version = ' + ec.protocol.version + ' ***'" />
 			<log expr="'*** connection.connected :: ec.state = '            + ec.state            + ' ***'" />
@@ -52,8 +49,7 @@
 			<assign name="lst_state" expr="app_state" />
 			<assign name="app_state" expr="'enterpin'" />
 			<log expr="'*** ' + event$.name + '[' + lst_state + '] >> proceeding to >> [' + app_state + '] ***'" />
-			<!--<dialogstart connectionid="ec.connectionid"-->
-			<dialogstart connectionid="event$.connection.connectionid"
+			<dialogstart connectionid="callid_in"
 				src="'null://?termdigits=#&amp;text=This is a test of the Text to Speech dialog extension.'"
 				type="'application/x-texttospeech'" />
 		</transition>
@@ -74,7 +70,8 @@
 			<assign name="app_state" expr="nxt_state" />
 			<log expr="'*** ' + event$.name + '[' + lst_state + '] >> proceeding to >> [' + app_state + '] ***'" />
 			<dialogstart connectionid="callid_in"
-				src="'null://?termdigits=#&amp;text=Thank you. One moment please.'"
+				src="'null://?termdigits=#&amp;text=' +
+					'Thank you. One moment please.'"
 				type="'application/x-texttospeech'" />
 		</transition>
 
@@ -83,7 +80,10 @@
 			<assign name="app_state" expr="nxt_state" />
 			<log expr="'*** ' + event$.name + '[' + lst_state + '] >> proceeding to >> [' + app_state + '] ***'" />
 			<dialogstart connectionid="callid_in"
-				src="'null://?termdigits=#&amp;text=Error. Im sorry but there seems to be a problem. One moment please while I try to make an adjustment.'"
+				src="'null://?termdigits=#&amp;text=' + 
+					'Error. ' +
+					'Im sorry but there seems to be a problem.' +
+					'One moment please while I try to make an adjustment.'"
 				type="'application/x-texttospeech'" />
 		</transition>
 
