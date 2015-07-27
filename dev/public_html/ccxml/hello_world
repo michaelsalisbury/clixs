@@ -113,8 +113,7 @@
 				src="evowww + '/connecting_call_legs/holdingPattern.xml'"
 				type="'application/voicexml+xml'"
 				dialogid="hold_music_dlg" />
-			<!--<createcall dest="'4073192381'" callerid="'4075551212'" connectionid="callid_out"/>-->
-			<createcall dest="'4073192381'" callerid="'4075551212'" connectionid="callid_in"/>
+			<createcall dest="'4073192381'" callerid="'4075551212'" connectionid="callid_out"/>
 		</transition>
 
 		<transition state="callfailed" event="dialog.exit">
