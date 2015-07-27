@@ -61,7 +61,7 @@
 			<assign name="nxt_state" expr="'testpin'" />
 			<log expr="'*** ' + event$.name + '[' + lst_state + '] >> proceeding to >> [' + app_state + '] ***'" />
 			<dialogstart connectionid="callid_in"
-				src="'null://?termdigits=%23&amp;text=Please enter your access code buddy.'"
+				src="'null://?termdigits=%23&amp;text=Please enter your access code.'"
 				type="'application/x-fetchdigits'" />
 		</transition>
 
@@ -89,13 +89,24 @@
 
 		<transition state="testpin" event="dialog.exit">
 			<assign name="lst_state" expr="app_state" />
-			<assign name="app_state" expr="'calling'" />
-			<log expr="'*** ' + event$.name + '[' + lst_state + '] >> proceeding to >> [' + app_state + '] ***'" />
 			<if cond="'1234' != event$.values.digits">
-				<log expr="'*** dialog.exit enterpin :: Exiting, wrong pin!'" />
-				<exit/>
+				<assign name="app_state" expr="'error'" />
+				<assign name="nxt_state" expr="'enterpin'" />
+				<log expr="'*** ' + event$.name + '[' + lst_state + '] :: wrong pin, retrying...'" />
+			<else/>
+				<assign name="app_state" expr="'thankyou'" />
+				<assign name="nxt_state" expr="'calling'" />
+				<log expr="'*** ' + event$.name + '[' + lst_state + '] :: correct pin, proceeding...'" />
 			</if>
-			<log expr="'*** dialog.exit enterpin :: Starting to play hold music.'" />
+			<log expr="'*** ' + event$.name + '[' + lst_state + '] >> proceeding to >> [' + app_state + '] ***'" />
+			<dialogstart connectionid="callid_in"
+				src="'null://?termdigits=#&amp;text='" 
+				type="'application/x-texttospeech'" />
+
+			<!--<send name="app_state" target="session.id" />-->
+		</transit>
+
+		<transition state="calling" event="dialog.exit">
 			<dialogstart connectionid="callid_in"
 				src="'dialog.vxml'"
 				type="'application/voicexml+xml'"
@@ -104,7 +115,6 @@
 			<createcall dest="'4073192381'" callerid="'4075551212'" connectionid="callid_out"/>
 			<!--<createcall dest="'4079014287'" callerid="'4075551212'" connectionid="callid_out"/>-->
 		</transition>
-
 
 		<!-- ############################ error.dialog.notprepared ############################ -->
 		<transition state="state2" event="error.dialog.notprepared">
