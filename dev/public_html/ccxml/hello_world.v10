@@ -46,7 +46,7 @@
 			<var name="ec" expr="event$.connection" />
 			<log expr="'*** connection.alerting :: Call is ringing [' + ec.connectionid + '] ***'" />
 			<assign name="lst_state" expr="app_state" />
-			<assign name="app_state" expr="'accept'" />
+			<assign name="app_state" expr="'dialing'" />
 			<log expr="'*** ' + event$.name + '[' + lst_state + '] >> proceeding to >> [' + app_state + '] ***'" />
 			<accept/>
 		</transition>
