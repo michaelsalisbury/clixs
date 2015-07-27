@@ -40,7 +40,6 @@
 			<!--<assign name="myState" expr="'dialing'"/>-->
 		    <assign name="myState" expr="'alerting'"/>
 			<!--<createcall dest="'tel:4073863881'" connectionid="myOutboundConnectionID" timeout="'45s'"/>-->
-			<accept/>
 		</transition>
  
 		<transition state="alerting" event="connection.alerting">
