@@ -338,6 +338,7 @@ __chroot_zfs_filesystem () {
 			echo path \"${mountpoint}${path}\" ready for bind mount \"${path}\", proceeding.
 		fi
 	done
+	echo
 	# mounting 
 	for path in ${paths}; do
 		if mount --bind "${path}" "${mountpoint}${path}"; then
@@ -350,6 +351,7 @@ __chroot_zfs_filesystem () {
 	echo
 	echo chrooting to \"${mountpoint}\"...
 	chroot "${mountpoint}" /bin/bash -c "su -"
+	echo
 	# unmount all
 	for path in $(echo ${paths} | tr \  \\n | tac); do
 		if umount "${mountpoint}${path}"; then
