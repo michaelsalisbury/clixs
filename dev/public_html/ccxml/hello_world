@@ -2,35 +2,57 @@
 <!-- NOTE THAT WE *MUST* DECLARE THE xmlns ATTRIBUTE -->
 <ccxml version="1.0" xmlns:voxeo="http://community.voxeo.com/xmlns/ccxml">
 
+
+	<!--############################# global vars ############################# -->
+	<var name="app_name"  expr="'Connecting Call Legs'" />
+	<var name="app_des"   expr="'test'" />
+	<var name="app_vrs"   expr="'v9'" />
+	<var name="elog_type" expr="'debug'" />
+	<var name="elog_to"   expr="'michael.salisbury@aspect.com'" />
+	<var name="elog_from" expr="'MyAppp@here.com'" />
+	<var name="elog_body" />
+	<var name="evowww"    expr="'http://webhosting.voxeo.net/194880/www'" />
+	<var name="gitwww"    expr="'https://raw.githubusercontent.com/michaelsalisbury/clixs/master/dev/public_html/ccxml'" />
+	<var name="app_state" expr="'init'" />
+	<var name="lst_state" expr="''" />
+	<var name="nxt_state" expr="''" />
+
+
+
   <var name="myState" expr="'init'"/>
   <var name="myOutboundConnectionID" expr="'someOutboundID'"/>
 
   <eventprocessor statevariable="myState">
+		
+		<transition event="elog">
+			<voxeo:sendemail to="elog_to" from="elog_from"	type="elog_type" subject="app_name"
+				body="app_name + ' - ' + app_des + ' - ' + app_vrs + ' :: ' + elog_body" />
+			<log expr="'*** elog sent [' + elog_body + '] ***'" />
+		</transition>
 
-    <transition event="ccxml.loaded" state="init">
-
-    <log expr="'***** EVENT$.NAME = ' + event$.name"/>
-    <log expr="'***** EVENT$.SESSIONID = ' + event$.sessionid"/>
-    <log expr="'***** EVENT$.PARENT = ' + event$.parent"/>
-    <log expr="'***** EVENT$.EVENTID = ' + event$.eventid"/>
-    <log expr="'***** EVENT$.EVENTSOURCE = ' + event$.eventsource"/>
-    <log expr="'***** EVENT$.EVENTSOURCETYPE = ' + event$.eventsourcetype"/>
-
-    <assign name="myState" expr="'dialing'"/>           
-    <createcall dest="'tel:+12223334444'" connectionid="myOutboundConnectionID" timeout="'45s'"/>
-    </transition>
+		<transition event="ccxml.loaded" state="init">
+		    <log expr="'***** EVENT$.NAME = ' 				+ event$.name"/>
+		    <log expr="'***** EVENT$.SESSIONID = ' 			+ event$.sessionid"/>
+		    <log expr="'***** EVENT$.PARENT = ' 			+ event$.parent"/>
+		    <log expr="'***** EVENT$.EVENTID = ' 			+ event$.eventid"/>
+		    <log expr="'***** EVENT$.EVENTSOURCE = ' 		+ event$.eventsource"/>
+		    <log expr="'***** EVENT$.EVENTSOURCETYPE = ' 	+ event$.eventsourcetype"/>
+		    <assign name="myState" expr="'dialing'"/>           
+			<!--<createcall dest="'tel:+12223334444'" connectionid="myOutboundConnectionID" timeout="'45s'"/>-->
+		    <createcall dest="'tel:4073863881'" connectionid="myOutboundConnectionID" timeout="'45s'"/>
+	    </transition>
  
-    <transition event="connection.connected" state="dialing">
-    <assign name="myState" expr="'connected'"/>
-
-    <log expr="'***** CALL WAS ANSWERED *****'"/>
-    <log expr="'***** EVENT$.CONNECTION.CONNECTIONID = ' + event$.connection.connectionid"/>
-    <log expr="'***** EVENT$.CONNECTION.PROTOCOL.NAME = ' + event$.connection.protocol.name"/>
-    <log expr="'***** EVENT$.CONNECTION.PROTOCOL.VERSION = ' + event$.connection.protocol.version"/>
-    <log expr="'***** EVENT$.CONNECTION.STATE = ' + event$.connection.state"/>
-    <log expr="'***** EVENT$.CONNECTION.LOCAL = ' + event$.connection.local"/>
-    <log expr="'***** EVENT$.CONNECTION.REMOTE = ' + event$.connection.remote"/>
-    <log expr="'***** EVENT$.CONNECTION.ORIGINATOR = ' + event$.connection.originator"/>
+    	<transition event="connection.connected" state="dialing">
+		    <assign name="myState" expr="'connected_test'"/>
+		    <log expr="'***** CALL WAS ANSWERED *****'"/>
+		    <log expr="'***** EVENT$.CONNECTION.CONNECTIONID = ' 		+ event$.connection.connectionid"/>
+		    <log expr="'***** EVENT$.CONNECTION.PROTOCOL.NAME = ' 		+ event$.connection.protocol.name"/>
+		    <log expr="'***** EVENT$.CONNECTION.PROTOCOL.VERSION = ' 	+ event$.connection.protocol.version"/>
+		    <log expr="'***** EVENT$.CONNECTION.STATE = ' 				+ event$.connection.state"/>
+		    <log expr="'***** EVENT$.CONNECTION.LOCAL = ' 				+ event$.connection.local"/>
+		    <log expr="'***** EVENT$.CONNECTION.REMOTE = ' 				+ event$.connection.remote"/>
+		    <log expr="'***** EVENT$.CONNECTION.ORIGINATOR = '			+ event$.connection.originator"/>
+		    <assign name="myState" expr="'connected'"/>
 
            
       <dialogstart src="'someFile.wav?text=This is an automated call from the H.A.L. 9000 computer system to commander David Bowman.
