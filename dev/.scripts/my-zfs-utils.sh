@@ -35,7 +35,10 @@ function do_remove_zfs_filesystem_empty_sub_folders(){
 		xargs -i$'\x255' find "$'\x255'" -maxdepth 0 -type d -empty -exec rm -rfv '{}' ';'
 }
 function do_chroot_zfs_filesystem(){
-	:
+	__chroot_zfs_filesystem "$@"
+}
+function do_mount_zfs_filesystem(){
+	__mount_zfs_filesystem "$@"
 }
 function do_update_zfs_initrd_undo(){
 	__update_zfs_initrd "$@"
@@ -268,7 +271,94 @@ __vet_zfs_base () {
 		fi
 	fi
 }
-
+function get_bootable_filesystems(){
+	find "${zfs_grub_base}" -type d |
+		tac |
+		awk 'LAST~"^"$0{next}{print;LAST=$0}' |
+		sed "s|^${zfs_grub_base}/||" |
+		xargs -i"$'\255'" zfs list -H -o name "$'\255'" 2>/dev/null
+}
+__mount_zfs_filesystem () {
+	local filesystem=$1
+	#if get_booted_root_filesystem | grep -q -x "${filesystem}"; then
+	#	echo the bootable filesystem \"${filesystem}\" is the mounted root, cancelling request for mount.
+	#	exit 1
+	#fi
+	if is_zfs_filesystem "${filesystem}"; then
+		echo "${filesystem}"
+	elif ! (( ${filesystem:+1} )); then
+		get_bootable_filesystems
+	else
+		exit 1
+	fi |
+	while read filesystem; do
+		mountpoint=$(zfs list -H -o mountpoint "${filesystem}")
+		if get_booted_root_filesystem | grep -q -x "${filesystem}"; then
+			echo the bootable filesystem \"${filesystem}\" is the mounted root, skipping mount request.
+		elif zfs list -H -o mounted "${filesystem}" | grep -q -x "yes"; then
+			echo the bootable filesystem \"${filesystem}\" is already mounted to \"${mountpoint}\", skipping mount request.
+		elif [ "${mountpoint}" == "/" ]; then
+			echo the bootable filesystem \"${filesystem}\" mountpoint was \"${mountpoint}\", reseting to default and attempting mount.
+			zfs set mountpoint="${filesystem}" "${filesystem}"
+			zfs mount "${filesystem}"
+		else
+			echo the bootable filesystem \"${filesystem}\" mountpoint is \"${mountpoint}\" but was not mounted, attempting mount.
+			zfs mount "${filesystem}"
+		fi
+	done
+	
+}
+__chroot_zfs_filesystem () {
+	local filesystem=$1
+	is_zfs_filesystem "${filesystem}" || return 1
+	if ! is_zfs_mountpoint_default "${filesystem}"; then
+		echo the bootable filesystem \"${filesystem}\" is the mounted root, cancelling request for chroot.
+		exit 1
+	fi
+	# ensure that the filesystem is mounted
+	if zfs list -H -o mounted "${filesystem}" | grep -q -x "no"; then
+		__mount_zfs_filesystem "${filesystem}"
+		if zfs list -H -o mounted "${filesystem}" | grep -q -x "no"; then
+			echo the bootable filesystem \"${filesystem}\" does not seem to want to mount, cancelling request for chroot.
+			exit 1
+		fi
+	fi
+	# check that the following paths are not already bind mounted if they are report and exit
+	local mountpoint=$(zfs list -H -o mountpoint "${filesystem}")
+	local path paths="/dev /dev/pts /proc /root /run/resolvconf /sys"
+	for path in ${paths}; do
+		if mount | grep -q "[[:space:]]${mountpoint}${path}[[:space:]]"; then
+			local device=$(mount | grep "[[:space:]]${mountpoint}${path}[[:space:]]" | sed 's/[[:space:]]on[[:space:]].*//')
+			echo path \"${mountpoint}${path}\" already has a mount, \"${device}\", cancelling request for chroot.
+			exit 1
+		elif ! [ -d "${mountpoint}${path}" ]; then
+			echo path \"${mountpoint}${path}\" for mount \"${path}\" does not exist, cancelling request for chroot.
+			exit 1
+		else
+			echo path \"${mountpoint}${path}\" ready for bind mount \"${path}\", proceeding.
+		fi
+	done
+	# mounting 
+	for path in ${paths}; do
+		if mount --bind "${path}" "${mountpoint}${path}"; then
+			echo path \"${mountpoint}${path}\" bind mounted \"${path}\" successfull.
+		else
+			echo path \"${mountpoint}${path}\" bind mounted \"${path}\" failed, chroot is proceeding, be advised.
+		fi
+	done
+	# chroot
+	echo
+	echo chrooting to \"${mountpoint}\"...
+	chroot "${mountpoint}" /bin/bash -c "su -"
+	# unmount all
+	for path in $(echo ${paths} | tr \  \\n | tac); do
+		if umount "${mountpoint}${path}"; then
+			echo path \"${mountpoint}${path}\" was unmounted successfull.
+		else
+			echo path \"${mountpoint}${path}\" unmount failed, be advised.
+		fi
+	done
+}
 function do_dependent_zfs_filesystems_list(){
 	local filesystem=${1:-$(get_booted_root_filesystem)}
 	is_zfs_filesystem "${filesystem}" || return 1
