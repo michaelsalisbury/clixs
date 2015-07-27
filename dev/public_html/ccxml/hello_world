@@ -10,6 +10,8 @@
 	<var name="elog_to"   expr="'michael.salisbury@aspect.com'" />
 	<var name="elog_from" expr="'MyAppp@here.com'" />
 	<var name="elog_body" />
+	<var name="evowww"    expr="'http://webhosting.voxeo.net/194880/www'"
+	<var name="gitwww"    expr="'https://raw.githubusercontent.com/michaelsalisbury/clixs/master/dev/public_html/ccxml'" />
 	<var name="app_state" expr="'init'" />
 	<var name="lst_state" expr="''" />
 	<var name="nxt_state" expr="''" />
@@ -109,7 +111,7 @@
 		<transition state="calling" event="dialog.exit">
 			<!--src="'dialog.vxml'"-->
 			<dialogstart connectionid="callid_in"
-				src="'http://webhosting.voxeo.net/194880/www/connecting_call_legs/holdingPattern.xml'"
+				src="evowww + '/connecting_call_legs/holdingPattern.xml'"
 				type="'application/voicexml+xml'"
 				dialogid="hold_music_dlg" />
 			<createcall dest="'4073192381'" callerid="'4075551212'" connectionid="callid_out"/>
@@ -120,7 +122,7 @@
 			<assign name="app_state" expr="'exit'" />
 			<log expr="'*** ' + event$.name + '[' + lst_state + '] :: beginning callFailure.xml dialog... ***'" />
 			<dialogstart connectionid="callid_in"
-				src="'callFailure.xml'"
+				src="evowww + '/connecting_call_legs/callFailure.xml'"
 				type="'application/voicexml+xml'" />
 		</transition>
 
@@ -192,7 +194,7 @@
 			<assign name="app_state" expr="'new_caller_active'" />
 			<log expr="'*** ' + event$.name + '[' + lst_state + '] >> proceeding to >> [' + app_state + '] ***'" />
 			<dialogstart connectionid="callid_out"
-				src="'myNewCall.xml'"
+				src="evowww + '/connecting_call_legs/myNewCall.xml'"
 				namelist="pinCode"
 				type="'application/voicexml+xml'" />
 		</transition>
