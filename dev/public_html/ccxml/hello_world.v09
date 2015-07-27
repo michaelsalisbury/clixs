@@ -109,7 +109,6 @@
 		</transition>
 
 		<transition state="calling" event="dialog.exit">
-			<!--src="'dialog.vxml'"-->
 			<dialogstart connectionid="callid_in"
 				src="evowww + '/connecting_call_legs/holdingPattern.xml'"
 				type="'application/voicexml+xml'"
@@ -195,7 +194,7 @@
 			<log expr="'*** ' + event$.name + '[' + lst_state + '] >> proceeding to >> [' + app_state + '] ***'" />
 			<dialogstart connectionid="callid_out"
 				src="evowww + '/connecting_call_legs/myNewCall.xml'"
-				namelist="pinCode"
+				namelist="'pinCode'"
 				type="'application/voicexml+xml'" />
 		</transition>
 
