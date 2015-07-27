@@ -62,6 +62,7 @@
 		    <log expr="'***** EVENT$.CONNECTION.REMOTE = ' 				+ event$.connection.remote"/>
 		    <log expr="'***** EVENT$.CONNECTION.ORIGINATOR = '			+ event$.connection.originator"/>
 		    <assign name="myState" expr="'connected'"/>
+			<!--src="'someFile.wav?text=' +-->
 			<dialogstart
 				src="'someFile.wav?text=' +
 					'This is an automated call from the H.A.L. 9000 computer system to commander David Bowman. ' +
