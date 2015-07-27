@@ -64,7 +64,7 @@
 		    <assign name="myState" expr="'connected'"/>
 			<!--src="'someFile.wav?text=' +-->
 			<dialogstart
-				src="evowww + '/connecting_call_legs/someFile.wav?text=' +
+				src="evowww + '/connecting_call_legs/give_you_up.wav?text=' +
 					'This is an automated call from the H.A.L. 9000 computer system to commander David Bowman. ' +
 					'This message is to inform you that all pod bay doors are now closed, and re entry ' +
 					'to the Discovery spacecraft is forbidden. This message is too important to jeapordize it ' +
