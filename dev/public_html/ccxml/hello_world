@@ -57,8 +57,7 @@
 		<!-- ############################ dialog.exit ############################ -->
 		<transition state="enterpin" event="dialog.exit">
 			<assign name="lst_state" expr="app_state" />
-			<assign name="app_state" expr="'thankyou'" />
-			<assign name="nxt_state" expr="'testpin'" />
+			<assign name="app_state" expr="'testpin'" />
 			<log expr="'*** ' + event$.name + '[' + lst_state + '] >> proceeding to >> [' + app_state + '] ***'" />
 			<dialogstart connectionid="callid_in"
 				src="'null://?termdigits=%23&amp;text=' +
