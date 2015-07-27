@@ -329,22 +329,22 @@ __chroot_zfs_filesystem () {
 	for path in ${paths}; do
 		if mount | grep -q "[[:space:]]${mountpoint}${path}[[:space:]]"; then
 			local device=$(mount | grep "[[:space:]]${mountpoint}${path}[[:space:]]" | sed 's/[[:space:]]on[[:space:]].*//')
-			echo path \"${mountpoint}${path}\" already has a mount, \"${device}\", cancelling request for chroot.
+			echo -e path \"${mountpoint}${path}\" \\t already has a mount, \"${device}\", cancelling request for chroot.
 			exit 1
 		elif ! [ -d "${mountpoint}${path}" ]; then
-			echo path \"${mountpoint}${path}\" for mount \"${path}\" does not exist, cancelling request for chroot.
+			echo -e path \"${mountpoint}${path}\" \\t for mount \"${path}\" does not exist, cancelling request for chroot.
 			exit 1
 		else
-			echo path \"${mountpoint}${path}\" ready for bind mount \"${path}\", proceeding.
+			echo -e path \"${mountpoint}${path}\" \\t ready for bind mount \"${path}\", proceeding.
 		fi
 	done
 	echo
 	# mounting 
 	for path in ${paths}; do
 		if mount --bind "${path}" "${mountpoint}${path}"; then
-			echo path \"${mountpoint}${path}\" bind mounted \"${path}\" successfull.
+			echo -e path \"${mountpoint}${path}\" \\t bind mounted \"${path}\" successfull.
 		else
-			echo path \"${mountpoint}${path}\" bind mounted \"${path}\" failed, chroot is proceeding, be advised.
+			echo -e path \"${mountpoint}${path}\" \\t bind mounted \"${path}\" failed, chroot is proceeding, be advised.
 		fi
 	done
 	# chroot
@@ -355,9 +355,9 @@ __chroot_zfs_filesystem () {
 	# unmount all
 	for path in $(echo ${paths} | tr \  \\n | tac); do
 		if umount "${mountpoint}${path}"; then
-			echo path \"${mountpoint}${path}\" was unmounted successfull.
+			echo -e path \"${mountpoint}${path}\" \\t was unmounted successfull.
 		else
-			echo path \"${mountpoint}${path}\" unmount failed, be advised.
+			echo -e path \"${mountpoint}${path}\" \\t unmount failed, be advised.
 		fi
 	done
 }
