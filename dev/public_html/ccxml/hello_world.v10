@@ -38,7 +38,6 @@
 		    <log expr="'***** EVENT$.EVENTSOURCE = ' 		+ event$.eventsource"/>
 		    <log expr="'***** EVENT$.EVENTSOURCETYPE = ' 	+ event$.eventsourcetype"/>
 		    <assign name="myState" expr="'dialing'"/>           
-			<!--<createcall dest="'tel:+12223334444'" connectionid="myOutboundConnectionID" timeout="'45s'"/>-->
 			<!--<createcall dest="'tel:4073863881'" connectionid="myOutboundConnectionID" timeout="'45s'"/>-->
 			<accept/>
 	    </transition>
