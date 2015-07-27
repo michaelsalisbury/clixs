@@ -99,7 +99,7 @@
 				<log expr="'*** ' + event$.name + '[' + lst_state + '] :: correct pin, proceeding... ***'" />
 			</if>
 			<log expr="'*** ' + event$.name + '[' + lst_state + '] >> proceeding to >> [' + app_state + '] ***'" />
-			<send name="'dialog.exit'" target="callin_id" />
+			<send name="dialog.exit" target="session.id" />
 			<!--
 			<dialogstart connectionid="callid_in"
 				src="'null://?termdigits=#&amp;text='" 
