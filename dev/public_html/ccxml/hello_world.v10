@@ -41,7 +41,7 @@
 		    <assign name="myState" expr="'alerting'"/>
 			<!--<createcall dest="'tel:4073863881'" connectionid="myOutboundConnectionID" timeout="'45s'"/>-->
 			<accept/>
-	    </transition>
+		</transition>
  
 		<transition state="alerting" event="connection.alerting">
 			<var name="ec" expr="event$.connection" />
