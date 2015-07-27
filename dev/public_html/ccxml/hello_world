@@ -61,7 +61,8 @@
 			<assign name="nxt_state" expr="'testpin'" />
 			<log expr="'*** ' + event$.name + '[' + lst_state + '] >> proceeding to >> [' + app_state + '] ***'" />
 			<dialogstart connectionid="callid_in"
-				src="'null://?termdigits=%23&amp;text=Please enter your access code.'"
+				src="'null://?termdigits=%23&amp;text=' +
+					'Please enter your access code followed by the pound key.'"
 				type="'application/x-fetchdigits'" />
 		</transition>
 
