@@ -89,7 +89,8 @@
 
 		<transition state="testpin" event="dialog.exit">
 			<assign name="lst_state" expr="app_state" />
-			<if cond="'1234' != event$.values.digits">
+			<assign name="pinCode"   expr="event$.values.digits" />
+			<if cond="'1234' != pinCode">
 				<assign name="app_state" expr="'error'" />
 				<assign name="nxt_state" expr="'enterpin'" />
 				<log expr="'*** ' + event$.name + '[' + lst_state + '] :: wrong pin, retrying... ***'" />
@@ -128,6 +129,27 @@
 			<exit/>
 		</transition>
 
+		<transition state="new_caller_active" event="dialog.exit">
+			<assign name="lst_state" expr="app_state" />
+			<if cond="event$.connectionid == callid_in">
+				<assign name="app_state" expr="'exit'" />
+				<log expr="'*** ' + event$.name + '[' + lst_state + '] >> proceeding to >> [' + app_state + '] ***'" />
+				<exit/>
+			<else/>
+				<dialogterminate dialogid="hold_music_dlg" />
+				<assign name="app_state" expr="'before_bridging'" />
+				<log expr="'*** ' + event$.name + '[' + lst_state + '] >> proceeding to >> [' + app_state + '] ***'" />
+				<send name="'joining'" target="session.id" />
+			</if>
+		</transition>
+
+		<transition state="before_bridging" event="dialog.exit">
+			<assign name="lst_state" expr="app_state" />
+			<assign name="app_state" expr="'joining'" />
+			<log expr="'*** ' + event$.name + '[' + lst_state + '] >> proceeding to >> [' + app_state + '] ***'" />
+			<send name="'user_join_legs'" target="session.id" targettype="'ccxml'" delay="'150ms'" />
+		</transition>
+
 		<!-- ############################ connection.failed ############################ -->
 		<transition state="calling" event="connection.failed">
 			<assign name="lst_state" expr="app_state" />
@@ -141,9 +163,37 @@
 		<!-- ############################ connection.connected ############################ -->
 		<transition state="calling" event="connection.connected">
 			<assign name="lst_state" expr="app_state" />
+			<assign name="app_state" expr="'new_caller_active'" />
 			<assign name="callid_out" expr="event$.callid" />
-			
+			<log expr="'*** ' + event$.name + '[' + lst_state + '] >> proceeding to >> [' + app_state + '] ***'" />
+			<send name="'play_new_caller_dialog'" target="session.id" />
+		</transition>
 
+		<!-- ############################ user_join_legs ############################ -->
+		<transition event="user_join_legs">
+			<join id1="callid_in" id2="callid_out" />
+		</transition>
+
+		<!--############################ joining ############################ -->
+		<transition event="user_join_legs">
+			<log expr="'******* JOINED'" />
+		</transition>
+
+		<!--############################ error ############################ -->
+		<transition event="error.conference.join">
+			<log expr="'*** ERROR DURING JOIN ***'" />
+			<exit />
+		</transition>
+
+		<!-- ############################ play_new_called_dialog ############################ -->
+		<transition state="new_caller_active" event="play_new_caller_dialog">
+			<assign name="lst_state" expr="app_state" />
+			<assign name="app_state" expr="'new_caller_active'" />
+			<log expr="'*** ' + event$.name + '[' + lst_state + '] >> proceeding to >> [' + app_state + '] ***'" />
+			<dialogstart connectionid="callid_out"
+				src="'myNewCall.xml'"
+				namelist="pinCode"
+				type="'application/voicexml+xml'" />
 		</transition>
 
 		<!-- ############################ error.dialog.notprepared ############################ -->
