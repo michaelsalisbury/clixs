@@ -104,7 +104,7 @@
 				type="'application/x-texttospeech'" />
 
 			<!--<send name="app_state" target="session.id" />-->
-		</transit>
+		</transition>
 
 		<transition state="calling" event="dialog.exit">
 			<dialogstart connectionid="callid_in"
