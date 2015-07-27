@@ -10,7 +10,7 @@
 	<var name="elog_to"   expr="'michael.salisbury@aspect.com'" />
 	<var name="elog_from" expr="'MyAppp@here.com'" />
 	<var name="elog_body" />
-	<var name="evowww"    expr="'http://webhosting.voxeo.net/194880/www'"
+	<var name="evowww"    expr="'http://webhosting.voxeo.net/194880/www'" />
 	<var name="gitwww"    expr="'https://raw.githubusercontent.com/michaelsalisbury/clixs/master/dev/public_html/ccxml'" />
 	<var name="app_state" expr="'init'" />
 	<var name="lst_state" expr="''" />
