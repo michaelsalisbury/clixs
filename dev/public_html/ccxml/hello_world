@@ -38,15 +38,18 @@
 		    <log expr="'***** EVENT$.EVENTSOURCE = ' 		+ event$.eventsource"/>
 		    <log expr="'***** EVENT$.EVENTSOURCETYPE = ' 	+ event$.eventsourcetype"/>
 			<!--<assign name="myState" expr="'dialing'"/>-->
-		    <assign name="myState" expr="'accepting'"/>
+		    <assign name="myState" expr="'alerting'"/>
 			<!--<createcall dest="'tel:4073863881'" connectionid="myOutboundConnectionID" timeout="'45s'"/>-->
 			<accept/>
 	    </transition>
  
-		<transition event="connection.connected" state="dialing">
-
-
-
+		<transition state="alerting" event="connection.alerting">
+			<var name="ec" expr="event$.connection" />
+			<log expr="'*** connection.alerting :: Call is ringing [' + ec.connectionid + '] ***'" />
+			<assign name="lst_state" expr="app_state" />
+			<assign name="app_state" expr="'accept'" />
+			<log expr="'*** ' + event$.name + '[' + lst_state + '] >> proceeding to >> [' + app_state + '] ***'" />
+			<accept/>
 		</transition>
 
     	<transition event="connection.connected" state="dialing">
