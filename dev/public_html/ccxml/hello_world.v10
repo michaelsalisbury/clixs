@@ -47,8 +47,6 @@
 			<log expr="'*** connection.alerting :: Call is ringing [' + ec.connectionid + '] ***'" />
 			<assign name="lst_state" expr="app_state" />
 			<assign name="app_state" expr="''" />
-
-
 			<assign name="myState" expr="'dialing'"/>
 			<log expr="'*** ' + event$.name + '[' + lst_state + '] >> proceeding to >> [' + app_state + '] ***'" />
 			<accept/>
