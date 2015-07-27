@@ -37,11 +37,18 @@
 		    <log expr="'***** EVENT$.EVENTID = ' 			+ event$.eventid"/>
 		    <log expr="'***** EVENT$.EVENTSOURCE = ' 		+ event$.eventsource"/>
 		    <log expr="'***** EVENT$.EVENTSOURCETYPE = ' 	+ event$.eventsourcetype"/>
-		    <assign name="myState" expr="'dialing'"/>           
+			<!--<assign name="myState" expr="'dialing'"/>-->
+		    <assign name="myState" expr="'accepting'"/>
 			<!--<createcall dest="'tel:4073863881'" connectionid="myOutboundConnectionID" timeout="'45s'"/>-->
 			<accept/>
 	    </transition>
  
+		<transition event="connection.connected" state="dialing">
+
+
+
+		</transition>
+
     	<transition event="connection.connected" state="dialing">
 		    <log expr="'***** CALL WAS ANSWERED *****'"/>
 		    <log expr="'***** EVENT$.CONNECTION.CONNECTIONID = ' 		+ event$.connection.connectionid"/>
