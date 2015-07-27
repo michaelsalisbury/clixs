@@ -107,8 +107,9 @@
 		</transition>
 
 		<transition state="calling" event="dialog.exit">
+			<!--src="'dialog.vxml'"-->
 			<dialogstart connectionid="callid_in"
-				src="'dialog.vxml'"
+				src="'http://webhosting.voxeo.net/194880/www/connecting_call_legs/holdingPattern.xml'"
 				type="'application/voicexml+xml'"
 				dialogid="hold_music_dlg" />
 			<createcall dest="'4073192381'" callerid="'4075551212'" connectionid="callid_out"/>
