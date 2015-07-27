@@ -43,7 +43,6 @@
 	    </transition>
  
     	<transition event="connection.connected" state="dialing">
-		    <assign name="myState" expr="'connected_test'"/>
 		    <log expr="'***** CALL WAS ANSWERED *****'"/>
 		    <log expr="'***** EVENT$.CONNECTION.CONNECTIONID = ' 		+ event$.connection.connectionid"/>
 		    <log expr="'***** EVENT$.CONNECTION.PROTOCOL.NAME = ' 		+ event$.connection.protocol.name"/>
@@ -53,69 +52,68 @@
 		    <log expr="'***** EVENT$.CONNECTION.REMOTE = ' 				+ event$.connection.remote"/>
 		    <log expr="'***** EVENT$.CONNECTION.ORIGINATOR = '			+ event$.connection.originator"/>
 		    <assign name="myState" expr="'connected'"/>
+			<dialogstart
+				src="'someFile.wav?text=' +
+					'This is an automated call from the H.A.L. 9000 computer system to commander David Bowman. ' +
+					'This message is to inform you that all pod bay doors are now closed, and re entry ' +
+					'to the Discovery spacecraft is forbidden. This message is too important to jeapordize it ' +
+				   	'to human error. This conversation can serve no further purpose. Goodbye.'"
+				type="'audio/wav'"/>
+		</transition>
 
-           
-      <dialogstart src="'someFile.wav?text=This is an automated call from the H.A.L. 9000 computer system to commander David Bowman.
-                                          This message is to inform you that all pod bay doors are now closed, and re entry
-                                          to the Discovery spacecraft is forbidden. This message is too important to jeapordize it to human error.
-  This conversation can serve no further purpose. Goodbye.'" 
-  type="'audio/wav'"/>
+    	<transition event="connection.failed" state="dialing">
+    		<log expr="'***** CONNECTION FAILED *****'"/>
+		    <log expr="'***** EVENT$.NAME = ' + event$.name"/>
+		    <log expr="'***** EVENT$.SESSIONID = ' + event$.sessionid"/>
+		    <log expr="'***** EVENT$.PARENT = ' + event$.parent"/>
+		    <log expr="'***** EVENT$.EVENTID = ' + event$.eventid"/>
+		    <log expr="'***** EVENT$.EVENTSOURCE = ' + event$.eventsource"/>
+		    <log expr="'***** EVENT$.EVENTSOURCETYPE = ' + event$.eventsourcetype"/>
+		    <exit/>
+	    </transition>
 
-    </transition>
+	    <transition event="dialog.exit" state="connected">
+		    <log expr="'***** DIALOG EXIT REACHED *****'"/>
+		    <log expr="'***** EVENT$.NAME  = ' + event$.name"/>
+		    <log expr="'***** EVENT$.DIALOGID  = ' + event$.dialogid"/>
+		    <log expr="'***** EVENT$.CONFERENCEID  = ' + event$.conferenceid"/>
+		    <log expr="'***** EVENT$.CONNECTIONID  = ' + event$.connectionid"/>
+		    <log expr="'***** EVENT$.EVENTID  = ' + event$.eventid"/>
+		    <log expr="'***** EVENT$.EVENTSOURCE  = ' + event$.eventsource"/>
+		    <log expr="'***** EVENT$.EVENTSOURCETYPE  = ' + event$.eventsourcetype"/>
+		     
+		    <log expr="'***** EVENT$.DIALOG.DIALOGID = ' + event$.dialog.dialogid"/>
+		    <log expr="'***** EVENT$.DIALOG.CONNECTIONID = ' + event$.dialog.connectionid"/>
+		    <log expr="'***** EVENT$.DIALOG.CONFERENCEID = ' + event$.dialog.conferenceid"/>
+		    <log expr="'***** EVENT$.DIALOG.TYPE = ' + event$.dialog.type"/>
+		    <log expr="'***** EVENT$.DIALOG.SRC = ' + event$.dialog.src"/>
+		    <log expr="'***** EVENT$.DIALOG.INPUT = ' + event$.dialog.input"/>
+		    <log expr="'***** EVENT$.DIALOG.OUTPUTS = ' + event$.dialog.outputs"/>
+		    <exit/>
+	    </transition>
 
-    <transition event="connection.failed" state="dialing">
-    <log expr="'***** CONNECTION FAILED *****'"/>
-    <log expr="'***** EVENT$.NAME = ' + event$.name"/>
-    <log expr="'***** EVENT$.SESSIONID = ' + event$.sessionid"/>
-    <log expr="'***** EVENT$.PARENT = ' + event$.parent"/>
-    <log expr="'***** EVENT$.EVENTID = ' + event$.eventid"/>
-    <log expr="'***** EVENT$.EVENTSOURCE = ' + event$.eventsource"/>
-    <log expr="'***** EVENT$.EVENTSOURCETYPE = ' + event$.eventsourcetype"/>
-    <exit/>
-    </transition>
+	    <transition event="connection.disconnected">
+    		<log expr="'***** CONNECTION.DISCONNECT EVENT CAUGHT *****'"/>
+		    <log expr="'***** EVENT$.NAME = ' + event$.name"/>
+		    <log expr="'***** EVENT$.CONNECTIONID = ' + event$.connectionid"/>
+		    <log expr="'***** EVENT$.PROTOCOL = ' + event$.protocol"/>
+		    <log expr="'***** EVENT$.REASON = ' + event$.reason"/>
+		    <log expr="'***** EVENT$.INFO = ' + event$.info"/>
+		    <log expr="'***** EVENT$.CONNECTION = ' + event$.connection"/>
+		    <log expr="'***** EVENT$.EVENTID = ' + event$.eventid"/>
+		    <log expr="'***** EVENT$.EVENTSOURCE = ' + event$.eventsource"/>
+		    <log expr="'***** EVENT$.EVENTSOURCETYPE = ' + event$.eventsourcetype"/>
+		    <log expr="'***** EVENT$.TRIGGER = ' + event$.trigger"/>
+	    </transition>
 
-    <transition event="dialog.exit" state="connected">
-    <log expr="'***** DIALOG EXIT REACHED *****'"/>
-    <log expr="'***** EVENT$.NAME  = ' + event$.name"/>
-    <log expr="'***** EVENT$.DIALOGID  = ' + event$.dialogid"/>
-    <log expr="'***** EVENT$.CONFERENCEID  = ' + event$.conferenceid"/>
-    <log expr="'***** EVENT$.CONNECTIONID  = ' + event$.connectionid"/>
-    <log expr="'***** EVENT$.EVENTID  = ' + event$.eventid"/>
-    <log expr="'***** EVENT$.EVENTSOURCE  = ' + event$.eventsource"/>
-    <log expr="'***** EVENT$.EVENTSOURCETYPE  = ' + event$.eventsourcetype"/>
-     
-    <log expr="'***** EVENT$.DIALOG.DIALOGID = ' + event$.dialog.dialogid"/>
-    <log expr="'***** EVENT$.DIALOG.CONNECTIONID = ' + event$.dialog.connectionid"/>
-    <log expr="'***** EVENT$.DIALOG.CONFERENCEID = ' + event$.dialog.conferenceid"/>
-    <log expr="'***** EVENT$.DIALOG.TYPE = ' + event$.dialog.type"/>
-    <log expr="'***** EVENT$.DIALOG.SRC = ' + event$.dialog.src"/>
-    <log expr="'***** EVENT$.DIALOG.INPUT = ' + event$.dialog.input"/>
-    <log expr="'***** EVENT$.DIALOG.OUTPUTS = ' + event$.dialog.outputs"/>
-    <exit/>
-    </transition>
-
-    <transition event="connection.disconnected">
-    <log expr="'***** CONNECTION.DISCONNECT EVENT CAUGHT *****'"/>
-    <log expr="'***** EVENT$.NAME = ' + event$.name"/>
-    <log expr="'***** EVENT$.CONNECTIONID = ' + event$.connectionid"/>
-    <log expr="'***** EVENT$.PROTOCOL = ' + event$.protocol"/>
-    <log expr="'***** EVENT$.REASON = ' + event$.reason"/>
-    <log expr="'***** EVENT$.INFO = ' + event$.info"/>
-    <log expr="'***** EVENT$.CONNECTION = ' + event$.connection"/>
-    <log expr="'***** EVENT$.EVENTID = ' + event$.eventid"/>
-    <log expr="'***** EVENT$.EVENTSOURCE = ' + event$.eventsource"/>
-    <log expr="'***** EVENT$.EVENTSOURCETYPE = ' + event$.eventsourcetype"/>
-    <log expr="'***** EVENT$.TRIGGER = ' + event$.trigger"/>
-    </transition>
-
-    <transition event="error.*">
-      <log expr="'an error has occurred (' + event$.reason + ')'"/>
+	    <transition event="error.*">
+			<log expr="'an error has occurred (' + event$.reason + ')'"/>
               <voxeo:sendemail to="'yourEmail@there.com'"
                         from="'myApp@here.com'"
                         type="'debug'"
                         body=" 'generic error detected ! ' "/>
-      <exit/>
-    </transition>
+			<exit/>
+	    </transition>
 
   </eventprocessor>   
 </ccxml>
