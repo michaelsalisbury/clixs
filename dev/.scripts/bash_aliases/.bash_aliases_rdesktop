@@ -1,0 +1,8 @@
+#!/bin/bash
+alias rdesktop.DLPBMM1-VB.tall='rdesktop 10.173.119.78 -u mi164210 -d cos -T Win7-x86_64 -k en-us -r clipboard:PRIMARYCLIPBOARD -x 0x81 -z -N -a 32 -g 1020x1227 &'
+alias rdesktop.DLPBMM1-VB.wide='rdesktop 10.173.119.78 -u mi164210 -d cos -T Win7-x86_64 -k en-us -r clipboard:PRIMARYCLIPBOARD -x 0x81 -z -N -a 32 -g 1850x1025 &'
+alias  rdesktop.NCFS-BIO.wide='rdesktop 10.174.150.38 -u administrator -d localhost -T RDP-NCFS-BIO  -k en-us -r clipboard:PRIMARYCLIPBOARD -x 0x81 -z -N -a 32 -g 1850x1025 &'
+alias  rdesktop.NCFS-PHY.wide='rdesktop 10.173.151.30 -u administrator -d localhost -T RDP-NCFS-PHY  -k en-us -r clipboard:PRIMARYCLIPBOARD -x 0x81 -z -N -a 32 -g 1850x1025 &'
+alias rdesktop.NCFS-YSTR.wide='rdesktop 10.173.150.35 -u administrator -d localhost -T RDP-NCFS-YSTR -k en-us -r clipboard:PRIMARYCLIPBOARD -x 0x81 -z -N -a 32 -g 1850x1025 &'
+alias rdesktop.VBOX.wide='rdesktop 10.173.119.78 -T VBOX -k en-us -r clipboard:PRIMARYCLIPBOARD -x 0x81 -z -N -a 32 -g 1850x1025 &'
+alias rdesktop.VBOX.cosit='rdesktop 10.173.119.105 -T VBOX -k en-us -r clipboard:PRIMARYCLIPBOARD -x 0x81 -z -N -a 32 -g 1850x1025 &'
