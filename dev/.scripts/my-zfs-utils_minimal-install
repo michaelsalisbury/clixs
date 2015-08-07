@@ -1,0 +1,17 @@
+Start-Date: 2015-08-07  10:45:30 Commandline: apt-get install git
+Start-Date: 2015-08-01  21:46:05 Commandline: apt-get install man manpages
+Start-Date: 2015-08-01  21:33:20 Commandline: apt-get install bash-completion
+Start-Date: 2015-08-01  21:02:41 Commandline: apt-get install linux-headers-3.13.0-53-generic linux-headers-3.13.0-58-generic
+Start-Date: 2015-08-01  20:58:43 Commandline: apt-get install linux-image-extra-3.13.0-53-generic
+Start-Date: 2015-08-01  20:57:29 Commandline: apt-get install linux-image-3.13.0-53-generic
+Start-Date: 2015-08-01  20:47:10 Commandline: apt-get install libusbhid-common
+Start-Date: 2015-08-01  20:40:09 Commandline: apt-get install usbutils
+Start-Date: 2015-07-26  02:12:55 Commandline: apt-get install grub2-common grub-pc
+Start-Date: 2015-07-25  22:46:25 Commandline: apt-get install ubuntu-zfs
+Start-Date: 2015-07-25  22:42:05 Commandline: apt-get install apt-file
+Start-Date: 2015-07-25  22:39:46 Commandline: apt-get install --no-install-recommends linux-image-generic linux-headers-generic
+Start-Date: 2015-07-25  22:34:39 Commandline: apt-get install ubuntu-minimal software-properties-common
+Start-Date: 2015-07-25  22:28:41 Commandline: apt-get upgrade
+Start-Date: 2015-07-25  22:20:58 Commandline: apt-get install rsync
+Start-Date: 2015-07-25  22:20:25 Commandline: apt-get install vim screen
+Start-Date: 2015-07-25  22:17:37 Commandline: apt-get install ssh openssh-server
