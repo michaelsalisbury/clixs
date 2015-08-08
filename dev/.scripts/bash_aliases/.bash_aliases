@@ -12,8 +12,9 @@ function command_history_filter(){
 	awk -f <(cat <&9 9<&-) <(history)
 } ; export -f command_history_filter
 
+#alias history-filter='command_history_filter'
+alias history-filter='awk "BEGIN{for(i=3;i<ARGC;i++){list[ARGV[i]]=0;}}{if(!(\$2 in list))print;}" <(history) 2>/dev/null --'
 alias history-cmd-list='history | awk "{print \$2}" | sort -u | column --'
-alias history-filter='command_history_filter'
 alias apt-history='(cat /var/log/apt/history.log; zcat -q `ls -1 -t /var/log/apt/history.log.*.gz`) | sed -n "/^Start-Date/{N;s/\n/ /;p}" | tac'
 #NOTE apt-history-filter requires gawk (GNU awk) the default in ubuntu is mawk
 alias apt-history-filter='awk "{gsub(/^|$/,\"@\",\$2);sub(/^/,\"@\",\$7);print}" | awk -F@ "{print \$2, \$4}"'
