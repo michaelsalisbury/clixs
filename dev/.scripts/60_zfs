@@ -42,7 +42,7 @@ while read INITRD; do
 	FOLDER=$(dirname  "${INITRD#${BOOT}}")
 	INITRD=$(basename "${INITRD}")
 	KERNEL=${INITRD/${zfsINITRD_PREFIX}/${zfsKERNEL_PREFIX}}
-	
+	KERNEL=${KERNEL%.v[0-9]*}
 
 	# skip filesystems that don't exist in the pool
 	#zfs get type -Hp "${zfsFILESYSTEM}" &> /dev/null || continue
