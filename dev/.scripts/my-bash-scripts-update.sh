@@ -14,7 +14,7 @@ function get(){
 	SRC="${GIT}/${USER}/${REPO}/${BRANCH}/${SUB}"
 	mkdir -p "${DST}"
 	wget  -O "${DST}/${TRG}" "${SRC}/${TRG}"
-	( ${MOD:+1} ) &&
+	(( ${MOD:+1} )) &&
 	chmod +x "${DST}/${TRG}"
 }
 
@@ -22,6 +22,6 @@ function get(){
 SUB="dev/.scripts"
 DST="/root/.bash_scripts.d"
 get "my-bash-scripts-update.sh" +x
-
-
+get "60_zfs"                    +x
+get "my-zfs-utils.sh"           +x
 
