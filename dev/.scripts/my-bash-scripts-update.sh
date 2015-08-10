@@ -10,15 +10,18 @@ BRANCH="master"
 
 function get(){
 	TRG=$1
+	MOD=$2
 	SRC="${GIT}/${USER}/${REPO}/${BRANCH}/${SUB}"
 	mkdir -p "${DST}"
 	wget  -O "${DST}/${TRG}" "${SRC}/${TRG}"
+	( ${MOD:+1} ) &&
+	chmod +x "${DST}/${TRG}"
 }
 
 # my-zfs-utils
 SUB="dev/.scripts"
 DST="/root/.bash_scripts.d"
-get "my-bash-scripts-update.sh"
+get "my-bash-scripts-update.sh" +x
 
 
 
