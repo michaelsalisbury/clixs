@@ -1,0 +1,4 @@
+#!/bin/bash
+
+
+GIT="http://"

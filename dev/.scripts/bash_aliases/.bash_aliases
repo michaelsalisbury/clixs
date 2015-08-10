@@ -24,4 +24,5 @@ alias apt-history-install='apt-history | awk "/Commandline/&&/install/{print}"  
 alias apt-history-remove=' apt-history | awk "/Commandline/&&/remove/{print}"          | apt-history-filter'
 alias apt-history-purge='  apt-history | awk "/Commandline/&&/remove/||/purge/{print}" | apt-history-filter'
 
-alias my-zfs-utils="~/.scripts/my-zfs-utils.sh"
+alias my-zfs-utils="~/.bash_scripts.d/my-zfs-utils.sh"
+alias my-bash-scripts-update="~/.bash_scripts.d/my-bash-scripts-update.sh"
