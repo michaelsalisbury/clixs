@@ -4,7 +4,8 @@ BOOT="/boot"
 zfsINITRD_PREFIX="initrd.img-"
 zfsKERNEL_PREFIX="vmlinuz-"
 zfsINITRD_STOR="${BOOT}/zfs"
-zfsGRUB_OPTS_FILENAME="grub.cfg"
+#GRUB_CMDLINE_LINUX_DEFAULT="max_loop=64 acpi_osi=Linux acpi_backlight=vendor"
+GRUB_CMDLINE_LINUX_DEFAULT="quiet max_loop=32 splash"
 
 # functions
 cat <<-GRUB
@@ -18,12 +19,50 @@ cat <<-GRUB
 	 	insmod diskfilter
 	 	insmod mdraid09
 	 	insmod ext2
+	 	# boot_opts="${GRUB_CMDLINE_LINUX_DEFAULT}"
 	}
 	function zfs_boot {
 	 	linux   \${kernel} rpool=\${rpool} bootfs=\${bootfs} root=ZFS= boot=zfs ro \${boot_opts}
 	 	initrd  \${initrd}
 	}
 GRUB
+
+function set_GRUB_CMDLINE_ZFS_DEFAULT(){
+	echo "zfsINITRD_STOR::${zfsINITRD_STOR}"
+	echo "FOLDER::${FOLDER}"
+	echo "INITRD::${INITRD}"
+
+	local CMDLINE=$(< <(echo "${GRUB_CMDLINE_LINUX_DEFAULT}") tr \  \\n)
+
+	local SUB GRUB_OPTS OPT OPT_NAME SEARCH=${BOOT}
+	while read SUB; do
+		SEARCH="${SEARCH}/${SUB}"
+		GRUB_OPTS="${SEARCH}/grub.cfg"
+		if [ -f "${GRUB_OPTS}" ]; then
+			echo "GRUB_OPTS::${GRUB_OPTS}"
+			while read OPT; do
+				OPT_NAME=${OPT:1}
+				OPT_NAME=${OPT_NAME%%=*}
+				echo "      OPT::${OPT}::${OPT_NAME}"
+				case "${OPT:0:1}" in
+					+)	if grep -q "^${OPT_NAME}\(=\|$\)" <<< "${CMDLINE}"; then
+							CMDLINE=$(sed "s/^${OPT_NAME}\(=.*\)\?$/${OPT:1}/" <<< "${CMDLINE}")
+						else
+							CMDLINE+=$'\n'"${OPT:1}"
+						fi
+						;;
+					-)	CMDLINE=$(sed "/^${OPT_NAME}\(=.*\)\?$/d" <<< "${CMDLINE}")
+						;;
+					*)	echo MALFORMED::ERROR::${OPT}
+						;;
+				esac
+			done < "${GRUB_OPTS}"
+		else
+			echo "   SEARCH::${SEARCH}"
+		fi
+	done < <(< <(echo "${FOLDER#/}") tr \/ \\n)
+	echo "CMDLINE::${CMDLINE}"
+}
 
 zfsSYSTEM_LAST=
 zfsROOT_LAST=
@@ -84,32 +123,9 @@ while read INITRD; do
 	fi
 
 	# determine kernel command line arguments starting with GRUB_CMDLINE_LINUX_DEFAULT
-	GRUB_CMDLINE_ZFS=$(< <(echo "${GRUB_CMDLINE_LINUX_DEFAULT}") tr \  \\n)
-	SEARCH_FOLDER=${BOOT}
-	# parse all the subfolders between the "${zfsINITRD_STOR}" (/boot/zfs) and the zfs INITRD dataset home (/boot/zfs/[dataset path]) in variable "${FOLDER}"
-	# we are searching for the file "${zfsGRUB_OPTS_FILENAME}" (grub.cfg defined at the head)
-	while read SUB_FOLDER; do
-		SEARCH_FOLDER="${SEARCH_FOLDER}/${SUB_FOLDER}"
-		# parse each line.  each line should be a seperate argument prepended with a + or - to indicate add/agment or remove
-		while read KERNEL_LINE_OPT; do
-				OPT_NAME=${KERNEL_LINE_OPT%%=*}
-				#echo "KERNEL_LINE_OPT::${SEARCH_FOLDER}/${zfsGRUB_OPTS_FILENAME}::${KERNEL_LINE_OPT}" 1>&2
-				echo "KERNEL line option: ${SEARCH_FOLDER}/${zfsGRUB_OPTS_FILENAME} :: ${KERNEL_LINE_OPT}"
-				case "${KERNEL_LINE_OPT:0:1}" in
-					+)	if grep -q "^${OPT_NAME:1}\(=\|$\)" <<< "${GRUB_CMDLINE_ZFS}"; then
-							GRUB_CMDLINE_ZFS=$(sed "s/^${OPT_NAME:1}\(=.*\)\?$/${KERNEL_LINE_OPT:1}/" <<< "${GRUB_CMDLINE_ZFS}")
-						else
-							GRUB_CMDLINE_ZFS+=$'\n'"${KERNEL_LINE_OPT:1}"
-						fi
-						;;
-					-)	GRUB_CMDLINE_ZFS=$(sed "/^${OPT_NAME:1}\(=.*\)\?$/d" <<< "${GRUB_CMDLINE_ZFS}")
-						;;
-					*)	echo ZFS KERNEL command line argument is malformed :: \"${KERNEL_LINE_OPT}\" \< \"${SEARCH_FOLDER}/${zfsGRUB_OPTS_FILENAME}\"
-						;;
-				esac
-		done 2>/dev/null < "${SEARCH_FOLDER}/${zfsGRUB_OPTS_FILENAME}"
-	done < <(< <(echo "${FOLDER#/}") tr \/ \\n) 1>&2
-	GRUB_CMDLINE_ZFS=$(echo ${GRUB_CMDLINE_ZFS})
+	# augment based on grub.cfg files within the zfs boot folder structure "zfsINITRD_STOR"
+	# grub.cfg files should contain a list of arguments prepended with a + or - to indicate add/amend or remove
+	set_GRUB_CMDLINE_ZFS_DEFAULT 1>&2
 
 	# menuentry
 	#linux   /vmlinuz-${kernel} rpool=${rpool} bootfs=${bootfs} root=ZFS= boot=zfs ro ${boot_opts}
@@ -123,18 +139,17 @@ while read INITRD; do
 		 			bootfs="${zfsFILESYSTEM}"
 		 			kernel="${FOLDER}/${KERNEL}"
 		 			initrd="${FOLDER}/${INITRD}"
-		 			boot_opts="${GRUB_CMDLINE_ZFS}"
+		 			boot_opts="${GRUB_CMDLINE_LINUX_DEFAULT}"
 		 			zfs_boot
 		 		}
 	GRUB
 
 	#Found linux image: /boot/vmlinuz-3.13.0-29-generic
 	#Found initrd image: /boot/initrd.img-3.13.0-29-generic
-	cat <<-STATUS 1>&2
-		Found linux  image: /boot${FOLDER}/${KERNEL}
-		Found initrd image: /boot${FOLDER}/${INITRD}
-		Found GRUB options: ${GRUB_CMDLINE_ZFS}
-	STATUS
+	#cat <<-STATUS 1>&2
+	#	Found linux  image: /boot${FOLDER}/${KERNEL}
+	#	Found initrd image: /boot${FOLDER}/${INITRD}
+	#STATUS
 
 	# remember
 	zfsSYSTEM_LAST=${zfsSYSTEM}

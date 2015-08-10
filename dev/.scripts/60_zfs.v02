@@ -5,6 +5,8 @@ zfsINITRD_PREFIX="initrd.img-"
 zfsKERNEL_PREFIX="vmlinuz-"
 zfsINITRD_STOR="${BOOT}/zfs"
 zfsGRUB_OPTS_FILENAME="grub.cfg"
+#GRUB_CMDLINE_LINUX_DEFAULT="max_loop=64 acpi_osi=Linux acpi_backlight=vendor"
+GRUB_CMDLINE_LINUX_DEFAULT="quiet max_loop=32 splash"
 
 # functions
 cat <<-GRUB
@@ -18,12 +20,44 @@ cat <<-GRUB
 	 	insmod diskfilter
 	 	insmod mdraid09
 	 	insmod ext2
+	 	# boot_opts="${GRUB_CMDLINE_LINUX_DEFAULT}"
 	}
 	function zfs_boot {
 	 	linux   \${kernel} rpool=\${rpool} bootfs=\${bootfs} root=ZFS= boot=zfs ro \${boot_opts}
 	 	initrd  \${initrd}
 	}
 GRUB
+
+function set_GRUB_CMDLINE_ZFS_DEFAULT(){
+
+	GRUB_CMDLINE_ZFS=$(< <(echo "${GRUB_CMDLINE_LINUX_DEFAULT}") tr \  \\n)
+	SEARCH_FOLDER=${BOOT}
+	# parse all the subfolders between the "${zfsINITRD_STOR}" (/boot/zfs) and the zfs INITRD dataset home (/boot/zfs/[dataset path]) in variable "${FOLDER}"
+	# we are searching for the file "${zfsGRUB_OPTS_FILENAME}" (grub.cfg defined at the head)
+	while read SUB_FOLDER; do
+		SEARCH_FOLDER="${SEARCH_FOLDER}/${SUB_FOLDER}"
+		# parse each line.  each line should be a seperate argument prepended with a + or - to indicate add/agment or remove
+		while read KERNEL_LINE_OPT; do
+				OPT_NAME=${KERNEL_LINE_OPT%%=*}
+				#echo "KERNEL_LINE_OPT::${SEARCH_FOLDER}/${zfsGRUB_OPTS_FILENAME}::${KERNEL_LINE_OPT}" 1>&2
+				echo "KERNEL_LINE_OPT::${SEARCH_FOLDER}/${zfsGRUB_OPTS_FILENAME}::${KERNEL_LINE_OPT}"
+				case "${KERNEL_LINE_OPT:0:1}" in
+					+)	if grep -q "^${OPT_NAME:1}\(=\|$\)" <<< "${GRUB_CMDLINE_ZFS}"; then
+							GRUB_CMDLINE_ZFS=$(sed "s/^${OPT_NAME:1}\(=.*\)\?$/${KERNEL_LINE_OPT:1}/" <<< "${GRUB_CMDLINE_ZFS}")
+						else
+							GRUB_CMDLINE_ZFS+=$'\n'"${KERNEL_LINE_OPT:1}"
+						fi
+						;;
+					-)	GRUB_CMDLINE_ZFS=$(sed "/^${OPT_NAME:1}\(=.*\)\?$/d" <<< "${GRUB_CMDLINE_ZFS}")
+						;;
+					*)	echo ZFS KERNEL command line argument is malformed :: \"${KERNEL_LINE_OPT}\" \< \"${SEARCH_FOLDER}/${zfsGRUB_OPTS_FILENAME}\"
+						;;
+				esac
+		done 2>/dev/null < "${SEARCH_FOLDER}/${zfsGRUB_OPTS_FILENAME}"
+	done < <(< <(echo "${FOLDER#/}") tr \/ \\n)
+	GRUB_CMDLINE_ZFS=$(echo ${GRUB_CMDLINE_ZFS})
+	echo "GRUB_CMDLINE_ZFS::${GRUB_CMDLINE_ZFS}"
+}
 
 zfsSYSTEM_LAST=
 zfsROOT_LAST=
