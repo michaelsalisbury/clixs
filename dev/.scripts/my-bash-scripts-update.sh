@@ -15,7 +15,7 @@ function get(){
 	mkdir -p "${DST}"
 	wget  -O "${DST}/${TRG}" "${SRC}/${TRG}"
 	(( ${MOD:+1} )) &&
-	chmod +x "${DST}/${TRG}"
+	chmod ${MOD} "${DST}/${TRG}"
 }
 
 # my-zfs-utils
