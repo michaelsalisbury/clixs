@@ -37,7 +37,7 @@ function get(){
 function add(){
 	# add/append or update/replace
 	local TRG=$1
-	local SST=${2:-#} # START/STOP TAG/LINE comment character
+	local SST=${2:-####} # START/STOP TAG/LINE comment character
 	local SRC="${GIT}/${USER}/${REPO}/${BRANCH}/${SUB}"
 	local LBL="${SST} [${SRC}/${TRG}] ${SST}"
 	# load both the target content and the destination file
