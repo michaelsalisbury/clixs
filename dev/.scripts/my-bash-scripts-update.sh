@@ -39,7 +39,6 @@ function add(){
 			<<< "${LBL}" cat
 			<<< "${TRG}" cat
 			<<< "${LBL}" cat
-
 		) >> "${DST}/${TRG}"
 	fi
 }
