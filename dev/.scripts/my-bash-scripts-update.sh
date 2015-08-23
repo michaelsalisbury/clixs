@@ -22,22 +22,29 @@ function add(){
 	local TRG=$1
 	local SST=${2:-#} # START/STOP TAG/LINE comment character
 	local SRC="${GIT}/${USER}/${REPO}/${BRANCH}/${SUB}"
-	local TMP=$(<"${DST}/${TRG}")
-	local TRG=$(wget -O- "${SRC}/${TRG}")
 	local LBL="${SST} [${SRC}/${TRG}] ${SST}"
+	# load
+	local TMP=$(<"${DST}/${TRG}")
+	local ADD=$(wget -q -O- "${SRC}/${TRG}")
+	# parse
 	local       BEGIN END
 	read -d $'' BEGIN END < <(< <(<<< "${TMP}" grep -n -F -x "${LBL}") cut -f1 -d:)
+	echo "BEGIN:${BEGIN} END:${END}"
+	echo "SRC:${SRC}"
+	echo "ADD:${#ADD}"
+	echo "TMP:${#TMP}:"
+	echo "LBL:${LBL}"
 	if (( ${BEGIN:+1} )); then
 		mkdir -p "${DST}"
 		(
 			<<< "${TMP}" head -${BEGIN}
-			<<< "${TRG}" cat
+			<<< "${ADD}" cat
 			<<< "${TMP}" tail -n +${END}
 		) > "${DST}/${TRG}"
 	else
 		(
 			<<< "${LBL}" cat
-			<<< "${TRG}" cat
+			<<< "${ADD}" cat
 			<<< "${LBL}" cat
 		) >> "${DST}/${TRG}"
 	fi
@@ -46,15 +53,15 @@ function add(){
 # my-zfs-utils
 SUB="dev/.scripts"
 DST="/root/.bash_scripts.d"
-get "my-bash-scripts-update.sh" +x
-get "60_zfs"                    +x
-get "my-zfs-utils.sh"           +x
+#get "my-bash-scripts-update.sh" +x
+#get "60_zfs"                    +x
+#get "my-zfs-utils.sh"           +x
 
 SUB="dev/.scripts/bash_completion"
 DST="/root"
-get ".bash_completion"
-get ".bash_completion.d/grub-mod"
-get ".bash_completion.d/vboxmanage_completion.bash"
+#get ".bash_completion"
+#get ".bash_completion.d/grub-mod"
+#get ".bash_completion.d/vboxmanage_completion.bash"
 
 SUB="dev/.scripts/bash_aliases"
 DST="/root/test"

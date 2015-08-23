@@ -1,5 +1,4 @@
 #!/bin/bash
-#[ clixs ]
 function command_history_filter(){
 	exec 9<<-AWK
 		BEGIN {
