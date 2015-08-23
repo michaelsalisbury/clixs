@@ -349,7 +349,7 @@ __chroot_zfs_filesystem () {
 	done
 	# chroot
 	echo
-	export debain_chroot=$(basename "${filesystem}")
+	export debian_chroot=$(basename "${filesystem}")
 	echo chrooting to \"${mountpoint}\"...
 	chroot "${mountpoint}" /bin/bash -c "su -"
 	unset debian_chroot
