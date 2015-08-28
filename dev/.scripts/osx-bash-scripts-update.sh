@@ -11,18 +11,18 @@ function main(){
 	SUB="dev/.scripts"
 	DST="${HOME}/.bash_scripts.d"
 	get "my-bash-scripts-update.sh" +x
-	get "60_zfs"                    +x
-	get "my-zfs-utils.sh"           +x
+	#get "60_zfs"                    +x
+	#get "my-zfs-utils.sh"           +x
 
 	SUB="dev/.scripts/bash_completion"
 	DST="${HOME}"
 	get ".bash_completion"
-	get ".bash_completion.d/grub-mod"
+	#get ".bash_completion.d/grub-mod"
 	get ".bash_completion.d/vboxmanage_completion.bash"
 
-	SUB="dev/.scripts/bash_aliases"
-	DST="${HOME}"
-	add ".bash_aliases"
+	#SUB="dev/.scripts/bash_aliases"
+	#DST="${HOME}"
+	#add ".bash_aliases"
 
 }
 function get(){
