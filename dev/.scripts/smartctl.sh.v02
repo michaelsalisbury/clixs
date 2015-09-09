@@ -39,11 +39,11 @@ function main(){
 function get_md_devices(){
 	local ID=$1
 	which mdadm &>/dev/null || { echo "NA"; return 1; }
-	local DEVICES UUID
-	while read x x UUID; do
-		DEVICES="${DEVICES}${DEVICES:+,}$(mdadm --detail --scan 2>/dev/null | grep "${UUID}" | awk '{print substr($2,6)}')"
-	done < <(mdadm --examine /dev/disk/by-id/${ID}-* 2>/dev/null | grep "UUID")
-	echo ${DEVICES:-NA}
+	local DEVICES MINOR
+	while read x x x MINOR; do
+		DEVICES="${DEVICES}${DEVICES:+,}md${MINOR}"
+	done < <(mdadm --examine /dev/disk/by-id/${ID}-* 2>/dev/null | grep "Preferred Minor")
+	echo ${DEVICES:-NR}
 }
 function get_zfs_pools(){
 	local ID=$1

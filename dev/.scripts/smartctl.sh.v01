@@ -20,39 +20,18 @@ function main(){
 		get_sources
 	fi
 
-	local DISK ID DETAILS SIZE OVERALL TEMPCEL POOL
+	local DISK ID DETAILS SIZE OVERALL
 	while read DISK ID; do
 		DETAILS=$(get_disk_details ${DISK})
 		   SIZE=$(get_disk_size    ${DISK})
 		   TIME=$(get_power_on_time         ${ID})
-		TEMPCEL=$(get_temperature           ${ID})
-			 MD=$(get_md_devices            ${ID})
-		  POOLS=$(get_zfs_pools				${ID})
 		 HEALTH=$(get_overall_health        ${ID})
 		  COUNT=$(get_reallocated_sector_ct ${ID})
-		echo $DISK $ID ${TIME} ${COUNT} ${HEALTH} ${TEMPCEL} ${MD} ${POOLS} ${DETAILS}
+		echo $DISK $ID ${TIME} ${COUNT} ${HEALTH} ${DETAILS}
 	done < <(list_disks) |\
 	column -t |\
 	tee /tmp/disks
 
-}
-function get_md_devices(){
-	local ID=$1
-	which mdadm &>/dev/null || { echo "NA"; return 1; }
-	local DEVICES UUID
-	while read x x UUID; do
-		DEVICES="${DEVICES}${DEVICES:+,}$(mdadm --detail --scan 2>/dev/null | grep "${UUID}" | awk '{print substr($2,6)}')"
-	done < <(mdadm --examine /dev/disk/by-id/${ID}-* 2>/dev/null | grep "UUID")
-	echo ${DEVICES:-NA}
-}
-function get_zfs_pools(){
-	local ID=$1
-	which zpool &>/dev/null || { echo "NA"; return 1; }
-	local POOLS POOL
-	while read POOL; do
-		zpool list ${POOL} -v | grep -q "${ID}" && POOLS="${POOLS}${POOLS:+/}${POOL}"
-	done < <(zpool list | tail -n +2 | awk {print\ \$1})
-	echo "${POOLS:-NA}"
 }
 function get_sources(){
 	! [ -f "/tmp/${APP}.lshw" ] && lshw -short > "/tmp/${APP}.lshw" &
@@ -94,11 +73,11 @@ function get_overall_health(){
 }
 function get_temperature(){
 	local ID=$1
-	local FIELD='10'
-	local QUERY='Temperature_Celsius'
+	local FIELD='NF'
+	local QUERY='overall-health'
 	# get total hours
-	local TEMPCEL=$(get_smart_report_object ${ID} ${FIELD} ${QUERY})
-	echo ${TEMPCEL:-NA}
+	local TEMP=$(get_smart_report_object ${ID} ${FIELD} ${QUERY})
+	echo ${HEALTH}
 }
 function get_reallocated_sector_ct(){
 	shopt -s extglob
