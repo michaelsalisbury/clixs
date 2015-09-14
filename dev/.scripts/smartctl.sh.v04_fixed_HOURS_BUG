@@ -4,8 +4,9 @@ shopt -s extglob
 function main(){
 	while [[ "${1//[^[:alpha:]-]/_}" != +(--|) ]]; do
 		local _arg= && case "${_arg:=$1}" in
-			-R|--refresh)		REFRESH=true;;
-			*)					false;;
+			-R|--refresh)		rm -f "/tmp/${APP}"*
+								REFRESH=true;;
+			*)			false;;
 		esac
 		(( $? )) || { shift; continue; }
 		# other code or arg parsing
@@ -13,15 +14,12 @@ function main(){
 	done
 
 	if ${REFRESH:-false}; then
-		rm -f "/tmp/${APP}"*
 		time get_sources
 		echo
 	else
-		show_data_age
 		get_sources
 	fi
 
-	local COLUMNS="- ID Age SC Health oC MD ZFS Size Make Model"
 	local DISK ID DETAILS SIZE OVERALL TEMPCEL POOL
 	while read DISK ID; do
 		DETAILS=$(get_disk_details ${DISK})
@@ -34,9 +32,9 @@ function main(){
 		  COUNT=$(get_reallocated_sector_ct ${ID})
 		echo $DISK $ID ${TIME} ${COUNT} ${HEALTH} ${TEMPCEL} ${MD} ${POOLS} ${DETAILS}
 	done < <(list_disks) |\
-	sed "1i${COLUMNS}" |\
 	column -t |\
-	sed $'1s/^/\e[4;32m/;1!s/^/\e[0m/'
+	tee /tmp/disks
+
 }
 function get_md_devices(){
 	local ID=$1
@@ -57,30 +55,11 @@ function get_zfs_pools(){
 	echo "${POOLS:-NA}"
 }
 function get_sources(){
-	local LSHW="/tmp/${APP}.lshw"
-	! [ -f "${LSHW}" ] && lshw -short > "${LSHW}" &
+	! [ -f "/tmp/${APP}.lshw" ] && lshw -short > "/tmp/${APP}.lshw" &
 	while read DISK ID; do
 		! [ -f "/tmp/${APP}.${ID}" ] && smartctl -a /dev/disk/by-id/${ID} > "/tmp/${APP}.${ID}" &
 	done < <(list_disks)
 	wait
-}
-function show_data_age(){
-	local NOW=$(date +%s)
-	local LSHW="/tmp/${APP}.lshw"
-	#local LSHW=$(readlink -f "/tmp/config"*)
-	local DELIM='.'
-	local AGE=$(< <(stat -t "${LSHW}") awk {print\ \$14})
-		  AGE=$(( NOW - AGE ))
-	# break down total seconds
-	local DAYS=$(( AGE / 86400 ))
-	local HOURS=${DELIM}$(( AGE % 86400 / 3600 ))
-	local MINUTES=${DELIM}$(( AGE % 1440 / 60 ))
-	local SECONDS=${DELIM}$(( AGE % 60 ))
-	# fix zeros
-		  HOURS=${HOURS:(-2)}
-		  MINUTES=${MINUTES:(-2)}
-		  SECONDS=${SECONDS:(-2)}
-	echo $'\e'"[31m"Details are ${DAYS}d${DELIM}${HOURS}h${DELIM}${MINUTES}m${DELIM}${SECONDS}s old\!$'\e'"[0m"
 }
 function list_disks(){
 	ls -l /dev/disk/by-id/ |\
@@ -96,8 +75,7 @@ function get_disk_size(){
 }
 function get_disk_details(){
 	local DISK=$1
-	local LSHW="/tmp/${APP}.lshw"
-	sed -n "s/.*${DISK} *disk *//p" "${LSHW}"
+	sed -n "s/.*${DISK} *disk *//p" "/tmp/${APP}.lshw"
 }
 function get_smart_report_object(){
 	local ID=$1
