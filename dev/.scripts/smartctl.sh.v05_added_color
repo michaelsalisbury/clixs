@@ -21,7 +21,7 @@ function main(){
 		get_sources
 	fi
 
-	local COLUMNS="- ID Age SC Health oC MD ZFS Size Make Model"
+	local COLUMNS="- ID Age SC Health tC MD ZFS Size Make Model"
 	local DISK ID DETAILS SIZE OVERALL TEMPCEL POOL
 	while read DISK ID; do
 		DETAILS=$(get_disk_details ${DISK})
