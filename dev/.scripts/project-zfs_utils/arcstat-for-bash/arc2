@@ -1,51 +1,130 @@
 #!/bin/bash
-case "${1//[^[:alpha:]-]/}" in -[GgMmKk][Bb])	ARK=${1#?};; *) ARK=GB;; esac
-
-read -d $'' <<-AWK
-	/^size/		{print "arcSizeb[0]="\$3}
-	/^misses/	{print "arcMiss[0]="\$3}
-	/^hits/		{print "arcHits[0]="\$3}
-	/l2_size/	{print "arcSizeb[2]="\$3}
-	/l2_misses/ {print "arcMiss[2]="\$3}
-	/l2_hits/	{print "arcHits[2]="\$3}
-AWK
-source <(awk "${REPLY}" /proc/spl/kstat/zfs/arcstats)
-for i in 0 2; do
-		j=$(( i++ ))
-
-		arcRead[$j]=`bc <<< ${arcHits[$j]}+${arcMiss[$j]}`
-
-		read -d $'' ArcMiss[$j] ArcHits[$j] ArcRead[$j] < <(
-			bc -l <<-BC
-				scale=3
-				${arcMiss[$j]} - ${arcMiss[$i]:-0}
-				${arcHits[$j]} - ${arcHits[$i]:-0}
-				${arcRead[$j]} - ${arcRead[$i]:-0}
-			BC
-		)
-
-		#swap for next loop
-		arcMiss[$i]=${arcMiss[$j]}
-		arcHits[$i]=${arcHits[$j]}
-		arcRead[$i]=${arcRead[$j]}
-
-		#devision by zero error fixorrr
-			if (( ArcHits[$j] != 0 )); then
-				arcHitp[$j]=`bc -l <<< 'scale=3; 100*'"${ArcHits[$j]}/${ArcRead[$j]}"`
-			else
-				arcHitp[$j]=0
-			fi
-
-		#format arcSize
-			case "${ARK:0:1}" in
-				G|g)	arcSize[$j]=`bc <<< ${arcSizeb[$j]}/1024/1024/1024`;;
-				M|m)	arcSize[$j]=`bc <<< ${arcSizeb[$j]}/1024/1024`;;
-				K|k)	arcSize[$j]=`bc <<< ${arcSizeb[$j]}/1024`;;
-			esac
-
-	
-		#(( arcSizeb[1] )) || break
+while (( $# )); do
+	case "${1//[^[:digit:][:alpha:].-]/}" in
+		[0-9].[0-9][0-9]|.[0-9]|\
+		[0-9].[0-9]|.[0-9][0-9]|\
+		[0-9][0-9].[0-9]|\
+		[0-9][0-9]|[0-9])	LAPSE=${1};;
+		-[GgMmKk][Bb])		ARK=${1#?};;
+	esac
+	shift
 done
+ARK=${ARK:-MB}
+LAPSE=${LAPSE:-0.5}
+let CNT++
+
+while true; do
+	while (( CNT-- )); do
+	
+		# build AWK /proc/spl/kstat/zfs/arcstats grab	
+		read -d $'' <<-AWK
+			/^size/		{print "arcSizeb[0]="\$3}
+			/^misses/	{print "arcMiss[0]="\$3}
+			/^hits/		{print "arcHits[0]="\$3}
+			/l2_size/	{print "arcSizeb[2]="\$3}
+			/l2_misses/ {print "arcMiss[2]="\$3}
+			/l2_hits/	{print "arcHits[2]="\$3}
+		AWK
+		# get /proc/spl/kstat/zfs/arcstats data
+		source <(awk "${REPLY}" /proc/spl/kstat/zfs/arcstats)
+
+		# print header
+		if ! (( CNT )); then
+			if (( arcSizeb[2] > 0 )); then
+				printf '\e[33m'
+				echo "|-----------------------------------------------------------------------------------------------------------------------|"
+				printf '%-11s %-10s %-10s %-10s %-7s %-2s %-10s %-10s %-10s %-10s %-6s %-2s %-2s %-5s %-3s \n' \
+					\|l1reads l1miss l1hits l1hit% size \| l2reads l2misses l2hits l2hit% size disk_access%  \|
+				echo "|-----------------------------------------------------------------------------------------------------------------------|"
+				printf '\e[0m'
+			else
+				printf '\e[33m'
+				echo "|----------------------------------------------------|"
+				printf '%-11s %-10s %-10s %-10s %-7s %-2s %-10s %-10s %-10s %-10s %-6s %-2s %-2s %-5s %-3s \n' \
+					\|l1reads l1miss l1hits l1hit% size \|
+				echo "|----------------------------------------------------|"
+				printf '\e[0m'
+			fi
+		fi
+
+		# 2 passes: first pass  j=0, i=1
+		#			second pass j=2, i=3
+		#           
+		# last while loop data resides in array var indexs i=1 and i=3
+		for i in 0 2; do
+			j=$(( i++ ))
+
+			# compute arcReads
+			#arcRead[$j]=`bc <<< ${arcHits[$j]}+${arcMiss[$j]}`
+
+			# build BC compute 
+			read -d $'' <<-BC
+				scale=0
+				${arcMiss[$j]} - ${arcMiss[$i]:-${arcMiss[$j]}}
+				${arcHits[$j]} - ${arcHits[$i]:-${arcHits[$j]}}
+				${arcHits[$j]} + ${arcMiss[$j]} - ${arcRead[$i]:-(${arcHits[$j]} + ${arcMiss[$j]})}
+				${arcHits[$j]} + ${arcMiss[$j]}
+				${arcHits[$j]}
+				${arcMiss[$j]}
+			BC
+			#read -d $'' <<-BC
+			#	scale=3
+			#	${arcMiss[$j]}                  - ${arcMiss[$i]:-${arcMiss[$j]}}
+			#	${arcHits[$j]}                  - ${arcHits[$i]:-${arcHits[$j]}}
+			#	${arcHits[$j]} + ${arcMiss[$j]} - ${arcRead[$i]:-0}
+			#BC
+
+			#swap for next loop
+			#arcMiss[$i]=${arcMiss[$j]}
+			#arcHits[$i]=${arcHits[$j]}
+			#arcRead[$i]=${arcRead[$j]}
+
+			read -d $'' arcMiss[$j] arcHits[$j] arcRead[$j] arcRead[$i] arcHits[$i] arcMiss[$i] < <(bc -l <<< "${REPLY}")
+			#echo x = $x
+
+			#devision by zero error fix
+				if (( arcHits[$j] != 0 )); then
+					arcHitp[$j]=`bc -l <<< 'scale=3; 100*'"${arcHits[$j]}/${arcRead[$j]}"`
+				else
+					arcHitp[$j]=0
+				fi
+
+			#format arcSize
+				case "${ARK:0:1}" in
+					G|g)	arcSize[$j]=`bc <<< ${arcSizeb[$j]}/1024/1024/1024`;;
+					M|m)	arcSize[$j]=`bc <<< ${arcSizeb[$j]}/1024/1024`;;
+					K|k)	arcSize[$j]=`bc <<< ${arcSizeb[$j]}/1024`;;
+				esac
+
+			# break if no l2arc	
+			if ! (( arcSizeb[2] )); then
+				break
+			# if processing l2arc on second pass
+			elif (( j )); then
+				if (( arcRead[$j] != $zero ));then
+					cachep=`bc -l <<< 'scale=3; 100*'"${arcMiss[$j]}/${arcRead[$j]}"`
+				else
+					cachep=0
+				fi
+				#diska=`echo scale=3\; '100-'$cachep|bc -l`
+				diska=$cachep
+			fi
+		done
+		#print data
+		if (( arcSizeb[2] > 0 )); then
+			printf '\e[33m|\e[0m%-10s %-10s %-10s %-10s %-1s %-2s\e[33m %-2s\e[0m %-10s %-10s %-10s %-10s %-7s %-10s %-7s\e[33m %-1s\e[0m \n' \
+					$l1read $l1miss $l1hits $l1hitp% $l1size ${ARK} \| $l2read $l2miss $l2hits $l2hitp% ${l2size}GB $diska% \|
+		else
+			printf '\e[33m|\e[0m%-10s %-10s %-10s %-10s %-1s %-2s\e[33m %-2s\e[0m %-10s %-10s %-10s %-10s %-7s %-10s %-7s\e[33m %-1s\e[0m \n' \
+				$arcRead $arcMiss $arcHits $arcHitp% $arcSize ${ARK} \|
+		fi
+		sleep ${LAPSE}
+	done
+	CNT=25
+done
+
+
+
 exit
 
 echo "This will display the cache hit and miss ratio's."
