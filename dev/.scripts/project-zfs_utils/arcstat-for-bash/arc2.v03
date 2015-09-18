@@ -1,0 +1,128 @@
+#!/bin/bash
+case "${1//[^[:alpha:]-]/}" in -[GgMmKk][Bb])	ARK=${1#?};; *) ARK=GB;; esac
+
+echo "This will display the cache hit and miss ratio's."
+echo "for a time limited run (in seconds) add a number of seconds behind this command"
+printf "\n\n"
+#create counter variable
+zero=0
+if [ -z $VAR2 ];then
+        VAR2=1000000
+fi
+
+while true; do
+	count=25
+	l2sizeb=`awk '/l2_size/ {printf $3;}' /proc/spl/kstat/zfs/arcstats`
+
+	if (( l2sizeb > 0 )); then
+			printf '\e[33m'
+			echo "|-----------------------------------------------------------------------------------------------------------------------|"
+			printf '%-11s %-10s %-10s %-10s %-7s %-2s %-10s %-10s %-10s %-10s %-6s %-2s %-2s %-5s %-3s \n' \
+				\|l1reads l1miss l1hits l1hit% size \| l2reads l2misses l2hits l2hit% size disk_access%  \|
+			echo "|-----------------------------------------------------------------------------------------------------------------------|"
+			printf '\e[0m'
+	else
+			printf '\e[33m'
+			echo "|----------------------------------------------------|"
+			printf '%-11s %-10s %-10s %-10s %-7s %-2s %-10s %-10s %-10s %-10s %-6s %-2s %-2s %-5s %-3s \n' \
+				\|l1reads l1miss l1hits l1hit% size \|
+			echo "|----------------------------------------------------|"
+			printf '\e[0m'
+	fi
+
+	while (( count-- )); do
+
+		#READ DATA AGAIN FOR COMPARISON
+		    l1miss2=`awk '/^misses/ {printf $3;}' /proc/spl/kstat/zfs/arcstats`
+			l1hits2=`awk '/^hits/ {printf $3;}' /proc/spl/kstat/zfs/arcstats`
+			l1read2=`bc <<< $l1hits2+$l1miss2`
+	
+		#do math and calculate access and misses for arc1
+			read -d $'' l1miss l1hits l1read < <(
+				bc -l <<-BC
+					scale=3
+					$l1miss2 - ${l1miss1:-0}
+					$l1hits2 - ${l1hits1:-0}
+					$l1read2 - ${l1read1:-0}
+				BC
+			)
+
+		#swap for next loop
+		l1miss1=$l1miss2
+		l1hits1=$l1hits2
+		l1read1=$l1read2
+
+		#devision by zero error fixorrr
+                if  [[ `echo $l1hits` -ne $zero ]];then
+                        l1hitp=`echo scale=3\; '100*'$l1hits/$l1read''|bc -l`
+                else
+                        l1hitp=0
+                fi
+
+		#format l1arc size display
+			l1sizeb=`awk '/^size/ {printf $3;}' /proc/spl/kstat/zfs/arcstats`
+
+			case "${ARK:0:1}" in
+				G|g)	l1size=`echo $l1sizeb/1024/1024/1024|bc`;;
+				M|m)	l1size=`echo $l1sizeb/1024/1024|bc`;;
+				K|k)	l1size=`echo $l1sizeb/1024|bc`;;
+				*)	;;
+			esac
+
+		# l2arc
+		if [[ `echo $l2sizeb` -ne $zero ]];then 
+	      	l2miss2=`awk '/l2_misses/ {printf $3;}' /proc/spl/kstat/zfs/arcstats`
+	        l2hits2=`awk '/l2_hits/ {printf $3;}' /proc/spl/kstat/zfs/arcstats`
+	        l2read2=`bc <<< $l2hits2+$l2miss2`
+	      	
+			read -d $'' l2miss l2hits l2read < <(
+				bc -l <<-BC
+					scale=3
+					$l2miss2 - ${l2miss1:-0}
+					$l2hits2 - ${l2hits1:-0}
+					$l2read2 - ${l2read1:-0}
+				BC
+			)
+
+			#swap for next loop
+			l2miss1=$l2miss2
+			l2hits1=$l2hits2
+			l2read1=$l2read2
+
+			#devision by zero error fixorrr
+			if  [[ `echo $l2hits` -ne $zero ]];then
+				l2hitp=`echo scale=3\; '100*'$l2hits/$l2read''|bc -l`
+			else
+				l2hitp=0
+			fi
+
+			#format l1arc size display
+				case "${ARK:0:1}" in
+					G|g)	l2size=`echo $l2sizeb/1024/1024/1024|bc`;;
+					M|m)	l2size=`echo $l2sizeb/1024/1024|bc`;;
+					K|k)	l2size=`echo $l2sizeb/1024|bc`;;
+				esac
+
+			if  [[ `echo $l2read` -ne $zero ]];then
+					cachep=`echo scale=3\; '100*'$l2miss/$l1read|bc -l`
+			else
+				cachep=0
+			fi
+			#diska=`echo scale=3\; '100-'$cachep|bc -l`
+			diska=$cachep
+
+	        printf '\e[33m|\e[0m%-10s %-10s %-10s %-10s %-1s %-2s\e[33m %-2s\e[0m %-10s %-10s %-10s %-10s %-7s %-10s %-7s\e[33m %-1s\e[0m \n' \
+						$l1read $l1miss $l1hits $l1hitp% $l1size ${ARK} \| $l2read $l2miss $l2hits $l2hitp% ${l2size}GB $diska% \|
+			
+			l2sizeb=`awk '/l2_size/ {printf $3;}' /proc/spl/kstat/zfs/arcstats`
+	else
+        	printf '\e[33m|\e[0m%-10s %-10s %-10s %-10s %-1s %-2s\e[33m %-2s\e[0m %-10s %-10s %-10s %-10s %-7s %-10s %-7s\e[33m %-1s\e[0m \n' \
+						$l1read $l1miss $l1hits $l1hitp% $l1size ${ARK} \|
+	fi
+	
+	sleep .5
+
+	done
+
+done
+
