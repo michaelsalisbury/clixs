@@ -48,8 +48,8 @@ while true; do
 			fi
 		fi
 
-		# 2 passes: first pass  j=0, i=1 (l1arc)
-					second pass j=2, i=3 (l2arc is it exists)
+		# 2 passes: first pass  j=0, i=1
+		#			second pass j=2, i=3
 		#           
 		# last while loop data resides in array var indexs i=1 and i=3
 		for i in 0 2; do
@@ -92,11 +92,11 @@ while true; do
 		#print data
 		if (( arcSizeb[2] > 0 )); then
 			printf '\e[33m|\e[0m%-10s %-10s %-10s %-10s %-1s %-2s\e[33m %-2s\e[0m %-10s %-10s %-10s %-10s %-7s %-10s %-7s\e[33m %-1s\e[0m \n' \
-				${arcRead[0]} ${arcMiss[0]} ${arcHits[0]} ${arcHitp[0]}% ${arcSize[0]} ${UNITS} \|\
-				${arcRead[2]} ${arcMiss[2]} ${arcHits[2]} ${arcHitp[2]}% ${arcSize[2]} ${UNITS} ${arcCache}% \|
+				${arcRead[0]} ${arcMiss[0]} ${arcHits[0]} ${arcHitp[0]}% ${arcSize[0]}${UNITS} \|\
+				${arcRead[2]} ${arcMiss[2]} ${arcHits[2]} ${arcHitp[2]}% ${arcSize[2]}${UNITS} ${arcCache}% \|
 		else
 			printf '\e[33m|\e[0m%-10s %-10s %-10s %-10s %-1s %-2s\e[33m %-2s\e[0m %-10s %-10s %-10s %-10s %-7s %-10s %-7s\e[33m %-1s\e[0m \n' \
-				${arcRead[0]} ${arcMiss[0]} ${arcHits[0]} ${arcHitp[0]}% ${arcSize[0]} ${UNITS} \|
+				${arcRead[0]} ${arcMiss[0]} ${arcHits[0]} ${arcHitp[0]}% ${arcSize[0]}${UNITS} \|
 		fi
 		sleep ${LAPSE}
 	done
