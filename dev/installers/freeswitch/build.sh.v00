@@ -1,0 +1,65 @@
+#!/bin/bash
+
+VERSION=v1.6
+BASE="/opt/freeswitch"
+RSRC="/opt/freeswitch/resources"
+GIT="${BASE}/${VERSION}"
+
+mkdir -p "${GIT}"
+#git clone -b ${VERSION} https://freeswitch.org/stash/scm/fs/freeswitch.git "${GIT}"
+mkdir -p /opt/freeswitch/resources
+
+for URL in \
+	'https://mirror.umd.edu/ubuntu/pool/main/libv/libvpx/libvpx2_1.4.0-4_amd64.deb' \
+	'https://mirror.umd.edu/ubuntu/pool/main/libv/libvpx/libvpx-dev_1.4.0-4_amd64.deb'
+do
+	rm   -f "${RSRC}/$(basename "${URL}")" 
+	wget -O "${RSRC}/$(basename "${URL}")" "${URL}"
+	dpkg -i "${RSRC}/$(basename "${URL}")"
+done		
+
+apt-get install -y -f
+
+apt-get install build-essential flex bison libncurses5-dev unixodbc-dev libnspr4 autoconf automake libtool libltdl3-dev
+apt-get install python-software-properties
+apt-get update
+apt-get install -y devscripts gawk g++ git-core libjpeg-dev make python-dev pkg-config libtiff4-dev libperl-dev libgdbm-dev libdb-dev gettext equivs mlocate git dpkg-dev wget sox flac
+apt-get install -y -f
+
+
+
+exit
+
+
+  180  apt-get install build-essential flex bison libncurses5-dev unixodbc-dev libnspr4 autoconf automake libtool libmudflap0-4.8-dev-armhf-cross* libltdl3-dev
+
+
+
+  203  apt-get install sqlite3
+  205  apt-get install libsqlite3-dev
+  209  apt-get install libcurl3
+  212  apt-get install libcurl4-*
+  213  apt-get install libcurl4-gnutls-dev 
+  216  apt-get install libpcre3-dev
+  219  apt-get install speex
+  221  apt-get install speex
+  224  apt-get install libspeex-dev
+  225  apt-get install libspeexdsp-dev 
+  227  apt-get install libldns-dev
+  229  apt-get install libedit-dev
+  232  apt-get install libyuv-dev
+  265  apt-get install gparted
+  341  apt-get install cmake
+  356  apt-get install apt-files
+  357  apt-get install apt-file
+  360  apt-get install clang
+  452  apt-get install libvpx-dev
+  461  apt-get remove libvpx1 libvpx-dev
+  462  apt-get remove libvpx-dev
+  481  apt-get install lua5.2
+  486  apt-get install liblua5.2-dev 
+  495  apt-get install libopus-dev
+  499  apt-get install libsndfile1-dev
+  530  apt-get install extundelete 
+  534  history | grep apt-get
+  535  history | grep apt-get >> build.sh 
