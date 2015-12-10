@@ -1,0 +1,198 @@
+#!/bin/bash
+
+__sed_escape_string () {
+	local count=${1:-1}
+	local sed_special_chars=$' >'
+	local sed_escape_chars=$'\\\\'
+	local sed_escape_chars=$(count=${count//[^[:digit:]]/} < <(printf %$(( count * 2 ))s) sed "s/./${sed_escape_chars}/g")
+	sed "s/\([${sed_special_chars}]\)/${sed_escape_chars}\1/g"
+}
+__grub_list_menuentries_raw () {
+    local config_file=$1
+	cat <<-AWK | awk -F "[\"']" -f <(cat) "${config_file}"
+		/^[ \t]*menuentry[ \t]/{
+			menuentry=\$2
+			if (submenu_l)
+				for (submenu_i = 1; submenu_i <= submenu_l; submenu_i++)
+					printf submenus[submenu_i]">"
+			print menuentry
+		}
+		/^[ \t]*submenu[ \t]/{
+			submenu_l++
+			submenus[submenu_l]=\$2
+		}
+		/}[ \t]*$/{
+			if (menuentry) {
+				menuentry=""
+			} else if (submenu_l) {
+				delete submenus[submenu_l]
+				submenu_l--
+			}
+		}
+	AWK
+}
+__grub_list_menuentries_new () {
+    local config_file=$(__grub_dir)/grub.cfg
+	# the list of posibles completions must have escaped characters escaped twice
+    if [ -f "$config_file" ];then
+		local  cur=${COMP_WORDS[COMP_CWORD]}
+		local list=$(__grub_list_menuentries_raw $config_file)
+			   cur=$(<<< "${cur}"  __sed_escape_string 1) 
+			  list=$(<<< "${list}" __sed_escape_string 2)
+        local IFS=$'\n'
+        COMPREPLY=( $(compgen -W "$list" -- "$cur" ))
+    fi
+}
+
+# in addition to replacing __grub_list_menuentries with __grub_list_menuentries_new in the _grub_set_entry command
+# we need to remove the "-o filenames" from the complete command that enables autocomplete for grub-set-default and grub-reboot
+# the "-o filenames" is a poor choice since many of grubs auto generated titles contain forward slashes
+__grub_autocomplete_sed_tweaks="/^[[:space:]]*__grub_list_menuentries$/s/$/_new/
+				/^[[:space:]]*complete -F _grub_set_entry/s/-o filenames//"
+. <(sed "${__grub_autocomplete_sed_tweaks}" /etc/bash_completion.d/grub)
+
+
+__my_zfs_list_bootable_filesystems () {
+	local zfs_grub_base="$(__grub_dir)/../zfs"
+	find "${zfs_grub_base}" -type d |
+		tac |
+		awk 'LAST~"^"$0"/"{next}{print;LAST=$0}' |
+		sed "s|^${zfs_grub_base}||" |
+		xargs -i"$'\255'" zfs list -H -o name "$'\255'" 2>/dev/null
+}
+__my_zfs_list_chroot_zvol_cache(){
+	local cache_refresh_gate='5'
+	local cache="/tmp/.${FUNCNAME[1]}_${FUNCNAME}_${PPID}"
+	if [ -e "${cache}" ]; then
+		cat "${cache}"
+	else
+		cat <<-AT | at -q c now + ${cache_refresh_gate} minutes &>/dev/null
+			/bin/rm -f "${cache}"
+		AT
+		__my_zfs_list_chroot_zvol_details 2>/dev/null | tee "${cache}"
+	fi
+}
+__my_zfs_list_chroot_zvol(){
+	local      zfs_fs ISCHROOT x
+	while read zfs_fs ISCHROOT x; do
+		${ISCHROOT} && echo ${zfs_fs}
+	done < <(< <(__my_zfs_list_chroot_zvol_cache) sort)
+}
+__my_zfs_list_chroot_zvol_details(){
+	local      zfs_pool zfs_pool_l zfs_fs zfs_fs zfs_fs_l zfs_zvols=$(< <(find /dev/zvol -type l) sort)
+	local      zd zd_a zd_named_path zd_real_path zd_sys_size512 zd_size_k zd_size_m zd_size_g fouta
+	while read zd_named_path; do
+			zfs_fs=${zd_named_path#/dev/zvol/}
+			zfs_pool=${zfs_fs%%/*}
+			(( ${#zfs_fs}   > ${zfs_fs_l:-0} ))   && zfs_fs_l=${#zfs_fs}
+			(( ${#zfs_pool} > ${zfs_pool_l:-0} )) && zfs_pool_l=${#zfs_pool}
+	done <<< "${zfs_zvols}"
+	while read zd_named_path; do
+		(
+			zfs_pool=${zd_named_path#/dev/zvol/}
+			zfs_fs=${zfs_pool#*/}
+			zfs_pool=${zfs_pool%%/*}
+
+			read -a zd_a < <(__my_zfs_get_zvol_details ${zd_named_path})
+				zd=${zd_a[0]}
+			zd_real_path=/dev/${zd}
+			zd_sys_size512=${zd_a[1]}
+			zd_size_k=$(bc <<< "scale=3; ${zd_sys_size512} / 2")
+			zd_size_m=$(bc <<< "scale=3; ${zd_sys_size512} / 2000")
+			zd_size_g=$(bc <<< "scale=3; ${zd_sys_size512} / 2000000")
+			fouta=( "${zd_a[@]:2}" )
+
+			                                                                            local ISCHROOT=false
+			[ "boot sector" == "${fouta[*]:2:2}" ]  && local ISBOOT=true             || local ISBOOT=false
+			[ "filesystem"  == "${fouta[5]}"     ]  && local ISEXTFS=true            || local ISEXTFS=false
+			[ "swap file"   == "${fouta[*]:2:2}" ]  && local ISSWAP=true             || local ISSWAP=false
+			[ "LVM2 PV"     == "${fouta[*]:1:2}" ]  && local ISLVM2=true             || local ISLVM2=false
+			[ "data"        == "${fouta[*]:1}"   ]  && local ISDATA=true             || local ISDATA=false
+
+			[[ "${fouta[@]:1}" =~ (UUID=)([^, ]+) ]] && local UUID=${BASH_REMATCH[2]} || local UUID="NA"
+
+			if ${ISEXTFS}; then
+				local FS=${fouta[4]}
+				local ISCHROOT=true
+			elif ${ISBOOT}; then
+				local FS='Boot'
+			elif ${ISSWAP}; then
+				local FS='SWAP'
+			elif ${ISLVM2}; then
+				local FS='lvm2'
+			else
+				local FS='NA'
+			fi
+
+			zfs_fs=${zd_named_path#/dev/zvol/}
+			zfs_pool=${zfs_fs%%/*}
+
+			printf "%-${zfs_fs_l}s  %-5s  %-4s %'9.3f GB  %-7s  %${zfs_pool_l}s  %s\n" ${zfs_fs} ${ISCHROOT} ${FS} ${zd_size_g} ${zd} ${zfs_pool} ${UUID}
+		) &
+	done <<< "${zfs_zvols}"
+	wait
+}
+__my_zfs_get_zvol_details(){
+	local      zd_named_path=$1
+	local      zd zd_real_path zd_sys_path zd_sys_size512 fout ID_FS_UUID ID_FS_UUID_ENC ID_FS_TYPE
+	zd_real_path=$(readlink -f ${zd_named_path})
+	zd=$(basename ${zd_real_path})
+	zd_sys_path=$(readlink -f /sys/class/block/${zd})
+	zd_sys_size512=$(cat ${zd_sys_path}/size)
+	fout=$(< <(file -sL ${zd_named_path}) sed 's/UUID: /UUID=/')
+	#. <(blkid -o udev /dev/${zd})
+	#echo ${zd} ${zd_sys_size512} ${ID_FS_TYPE:-NULL} ${fout}
+	echo ${zd} ${zd_sys_size512} ${fout}
+}
+
+_my_zfs_utils () {
+	local script
+	if < <(alias "${1}" 2>/dev/null) read; then
+		REPLY=${REPLY##*=\'}
+		REPLY=${REPLY%\'}
+		script=${REPLY//\~/${HOME}}
+	elif < <(which "$1" 2>/dev/null) read; then
+		script=${REPLY}
+	else
+		script="${HOME}/.scripts/my-zfs-utils.sh"
+	fi
+	if [ -f "$script" ];then
+		COMPREPLY=()
+		local cur=`_get_cword`
+		local prev=${COMP_WORDS[COMP_CWORD-1]}
+
+		if (( COMP_CWORD == 1 )); then
+			local list=$("${script}")
+		else
+			case "${COMP_WORDS[1]}" in
+				grub_reboot|\
+				grub_set_default)
+					__grub_list_menuentries_new
+					return
+					;;
+				remove_zfs_fs_empty_sub_fldrs)
+					local list=$(zfs list -H -o name -t filesystem)
+					;;
+				update_zfs_initrd|\
+				update_zfs_initrd_undo|\
+				clone_zfs_filesystem|\
+				remove_zfs_filesystem|\
+				dependent_zfs_fs_list|\
+				mount_zfs_filesystem|\
+				chroot_zfs_filesystem)
+					local list=$(__my_zfs_list_bootable_filesystems)
+					;;
+				chroot_zvol)
+					local list=$(__my_zfs_list_chroot_zvol)
+					;;
+			esac
+		fi
+		local IFS=$'\n'
+		COMPREPLY=( $(compgen -W "${list}" -- "$cur" ))
+	fi
+}
+__my_zfs_utils_program="my-zfs-utils"
+complete -F _my_zfs_utils ${__my_zfs_utils_program}
+unset __my_zfs_utils_program
+
+

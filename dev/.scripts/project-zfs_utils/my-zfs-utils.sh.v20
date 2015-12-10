@@ -1,0 +1,895 @@
+#!/bin/bash
+
+function main(){
+	if declare -F "do_${1}" &>/dev/null; then
+		local cmd=$1
+		shift
+		do_$cmd "$@"
+	else
+		declare -F | sed -n 's/^declare -f do_//p'
+	fi
+}
+function do_help(){
+	declare -F | sed -n 's/^declare -f do_//p'
+}
+function do_dev(){
+	get_booted_root_filesystem
+}
+function do_list_bootable_fs(){
+	__grub_list_menuentries_raw | __sed_escape_string 1
+}
+function do_list_chroot_fs(){
+	:
+}
+function do_list_all_zvol(){
+	< <(__list_chroot_zvol_cache) sort
+}
+function do_list_chroot_zvol(){
+	__list_chroot_zvol_fs
+}
+function do_grub_set_default(){
+	grub-set-default "${1}"
+}
+function do_grub_reboot(){
+	grub-reboot "${1}"
+}
+function do_update_grub(){
+	update-grub
+}
+function do_remove_zfs_filesystem_empty_sub_folders(){
+	local filesystem=$1
+	is_zfs_filesystem "${filesystem}" || return 1
+	get_zfs_mountpoint_folder_list "${filesystem}" |
+		grep -v -x -f <(get_zfs_mountpoint) |
+		xargs -i$'\x255' find "$'\x255'" -maxdepth 0 -type d -empty -exec rm -rfv '{}' ';'
+}
+function do_chroot_zvol(){
+	__chroot_zvol "$@"
+}
+function do_chroot_zfs_filesystem(){
+	__chroot_zfs_filesystem "$@"
+}
+function do_mount_zfs_filesystem(){
+	__mount_zfs_filesystem "$@"
+}
+function do_update_zfs_initrd_undo(){
+	__update_zfs_initrd "$@"
+}
+function do_update_zfs_initrd(){
+	__update_zfs_initrd "$@"
+}
+function do_clone_zfs_filesystem(){
+	__clone_bootable_zfs_filesystem "$@"
+}
+function do_remove_zfs_filesystem(){
+	__remove_bootable_zfs_filesystem "$@"
+}
+function do_add_zfs_filesystem_to_grub(){
+	:
+}
+function is_zfs_volume(){
+	local filesystem="${1#/dev/vzol/}"
+	zfs list -t volume -H -o name "${filesystem}" &>/dev/null && return 0
+
+	local zd_named_path="/dev/zvol/${filesystem}"
+	local zd_real_path=$(readlink -f ${zd_named_path})
+	local zd=$(basename "${zd_real_path}")
+	local zd_sys_path=$(readlink -f /sys/class/block/${zd})
+
+	# block device is not a partition
+	[ -f "${zd_sys_path}/partition" ] || return 1
+
+	local zd_sys_path_parent=${zd_sys_path%/*}
+	local zd_parent=$(basename "${zd_sys_path_parent}")
+	local zd_named_paths=$(find /dev/zvol -type l -exec echo -n '{} ' ';' -exec readlink -f '{}' ';')
+	local zd_named_parent=$(awk -v zd_parent=${zd_parent} '$NF~zd_parent"$"{print $1}' <<< "${zd_named_paths}")
+
+	# parent zfs filesystem could not be matched
+	(( ${#zd_named_parent} )) || return 1
+
+	filesystem=${zd_named_parent#/dev/zvol/}
+	#echo ${zd_named_parent}
+	#echo ${filesystem}
+
+	# recurse
+	${FUNCNAME} "${filesystem}"
+}
+function is_zfs_filesystem(){
+	local filesystem=$1
+	zfs list -t filesystem -H -o name "${filesystem%/}" &>/dev/null
+}
+function get_zfs_mountpoint(){
+	local filesystem=$1
+	if (( ${filesystem:+1} )); then
+		zfs list -t filesystem -H -o mountpoint "${filesystem%/}" 2>/dev/null
+	else
+		zfs list -t filesystem -H -o mountpoint 2>/dev/null
+	fi
+}
+function get_zfs_mountpoint_folder_list(){
+	local filesystem=$1
+	local mountpoint=$(get_zfs_mountpoint "${filesystem}")
+	find "${mountpoint%/}" -maxdepth 1 -type d
+}
+function is_zfs_mountpoint_default(){
+	local filesystem=$1
+	zfs list -t filesystem -H -o mountpoint "${filesystem%/}" | grep -q "/${filesystem}"
+}
+function get_booted_root_filesystem(){
+	mount | awk '$3=="/"{print $1}'
+}
+function get_system_kernels(){
+	case "$(get_OS)" in
+		Ubuntu)	ls -1 /boot/vmlinuz* 2>/dev/null;;
+	esac
+}
+function get_OS(){
+	if which lsb_release &>/dev/null; then
+		lsb_release -s -i
+	fi
+}
+function get_(){
+	:
+
+}
+
+__sed_escape_string () {
+	local count=${1:-1}
+	local sed_special_chars=$' >'
+	local sed_escape_chars=$'\\\\'
+	local sed_escape_chars=$(count=${count//[^[:digit:]]/} < <(printf %$(( count * 2 ))s) sed "s/./${sed_escape_chars}/g")
+	sed "s/\([${sed_special_chars}]\)/${sed_escape_chars}\1/g"
+
+}
+__grub_list_menuentries_raw () {
+	cat <<-AWK | awk -F "['\"]" -f <(cat) /boot/grub/grub.cfg | __sed_escape_string
+		/^[ \t]*menuentry[ \t]/{
+			menuentry=\$2
+
+			if (submenu_l)
+				for (submenu_i = 1; submenu_i <= submenu_l; submenu_i++)
+					printf submenus[submenu_i]">"
+			print menuentry
+		}
+		/^[ \t]*submenu[ \t]/{
+			submenu_l++
+			submenus[submenu_l]=\$2
+		}
+		/}[ \t]*$/{
+			if (menuentry) {
+				menuentry=""
+			} else if (submenu_l) {
+				delete submenus[submenu_l]
+				submenu_l--
+			}
+		}
+	AWK
+}
+__verify_zfs_grub_stor () {
+	local filesystem=$1
+	if ! is_zfs_filesystem "${filesystem}"; then
+		cat <<-ERROR 1>&2
+			${filesystem}\" is not a zfs filesystem.
+		ERROR
+	elif ! [ -d "${zfs_grub_base}/${filesystem}" ]; then
+		cat <<-ERROR 1>&2
+			The zfs grub stor "${zfs_grub_base}/${filesystem}" for filesystem "${filesystem}" does not exist.
+			If the filesystem is bootable please use the following commands to ammend and update grub.
+			# $0 add_zfs_filesystem_to_grub ${filesystem}
+			# $0 update_grub
+		ERROR
+	else
+		return 0
+	fi
+		return 1
+}
+__update_zfs_initrd () {
+	:
+	local filesystem=${1:-$(get_booted_root_filesystem)}
+	__verify_zfs_grub_stor "${filesystem}" || return 1
+	local zfs_stor="${zfs_grub_base}/${filesystem}"
+	local OS=$(get_OS)
+	local KERNEL KERNEL_zfs INITRD INITRD_zfs INITRD_vers
+	while read KERNEL; do
+		case "${OS}" in
+			Ubuntu)
+				INITRD=$(basename "${KERNEL}")
+				INITRD=$(dirname "${KERNEL}")"/${INITRD/vmlinuz-/initrd.img-}"
+			;;
+		esac
+		# set vars
+		KERNEL_zfs=$(basename "${KERNEL}")
+		INITRD_zfs=$(basename "${INITRD}")
+		KERNEL_zfs="${zfs_stor}/${KERNEL_zfs}"
+		INITRD_zfs="${zfs_stor}/${INITRD_zfs}"
+		
+		if [ -d "${zfs_stor}" ] && [ -f "${KERNEL}" ] && [ -f "${INITRD}" ]; then
+			# progress/status
+			echo -e Processing... \\t KERNEL :: ${KERNEL} \\t INITRD :: ${INITRD}
+			case "${FUNCNAME[1]}" in
+				do_update_zfs_initrd_undo)
+					# test if initrd.img is not new and remove accordingly
+					if ! [ -f "${INITRD_zfs}" ]; then
+						echo INITRD \"${INITRD_zfs}\" not found so not testing for removal.
+					elif diff "${INITRD}" "${INITRD_zfs}" &> /dev/null; then
+						rm -vf "${INITRD_zfs}"
+						ls -1 "${INITRD_zfs}".v* 2>/dev/null |
+							tail -1 |
+							xargs -i$'\x255' mv -v "$'\x255'" "${INITRD_zfs}"
+					else
+						echo INITRD \"${INITRD_zfs}\" differs from \"${INITRD}\" so not removing.
+					fi
+					;;
+				do_update_zfs_initrd)
+					# hard link kernel
+					if ! [ -f "${KERNEL_zfs}" ]; then
+						echo linking ${KERNEL} to ${zfs_stor}
+						ln -f "${KERNEL}" "${zfs_stor}/".
+					else
+						echo KERNEL not updated.
+					fi
+					# hard link initrd, preserve existing/workig versions
+					if ! [ -f "${INITRD_zfs}" ]; then
+						echo linking ${INITRD} to ${zfs_stor}
+						ln -f "${INITRD}"  "${zfs_stor}/".
+					# test if initrd.img is new and increment accordingly
+					elif ! diff "${INITRD}" "${INITRD_zfs}" &> /dev/null; then
+						INITRD_vers=$(ls -1 "${INITRD_zfs}".v* 2>/dev/null | tail -1)
+						INITRD_vers=${INITRD_vers: -2}
+						INITRD_vers=0$(( ${INITRD_vers:- -1} + 1 ))
+						INITRD_vers=${INITRD_vers: -2}
+						mv -v "${INITRD_zfs}"{,.v${INITRD_vers}}
+						echo linking ${INITRD} to ${zfs_stor}
+						ln -f "${INITRD}"  "${zfs_stor}/".
+					else
+						echo INITRD not updated.
+					fi
+					;;
+			esac
+		fi
+	done < <(get_system_kernels)
+}
+__vet_zfs_base () {
+	local filesystem=$1
+	if ! is_zfs_filesystem "${filesystem}"; then
+		if ! is_zfs_filesystem "${filesystem%%/*}"; then
+			echo zfs pool \"${filesystem%%/*}\" does not exists.
+			echo new base zfs filesystem for clone cannot be created, cancelling request for clone.
+			exit 1
+		elif ! is_zfs_filesystem "${filesystem%/*}"; then
+			echo zfs parent filesystem \"${filesystem%%/*}\" does not exist.
+			echo new base zfs filesystem for clone cannot be created, cancelling request for clone.
+			exit 1
+		else
+			zfs create "${filesystem}"
+			echo new base zfs filesystem created... "${filesystem}"
+		fi
+	else
+		# ensure we didn't choose the booted filesystem
+		if get_booted_root_filesystem | grep -q -x "${filesystem}"; then
+			echo selected base zfs filesystem \"${filesystem}\" is the current mounted root/bootable filesystem.
+			echo nesting a cloned root/bootable filesystem here is ill-advised, cancelling request for clone.
+			exit 1
+		fi
+		# the base zfs filesystem that containes root/bootable filesystems should be mounted in it's default location
+		if ! is_zfs_mountpoint_default "${filesystem}"; then
+			echo selected base zfs filesystem \"${filesystem}\" is not mounted in it\'s default location.
+			echo although this is not a technical problem it may indicate that the selected filesystem is not appropriate, cancelling request for clone.
+			exit 1
+		fi
+		# the base zfs filesystem that containes root/bootable filesystems should probably not contain any standard folders that are not also zfs filesystems
+		# files for in-system documentation are to be expected.
+		if get_zfs_mountpoint_folder_list "${filesystem}" | grep -q -v -x -f <(get_zfs_mountpoint); then
+			echo selected base zfs filesystem \"${filesystem}\" contains unix folders that are not filesystems.
+			echo if they are empty please remove them with the command \"$0 remove_zfs_filesystem_empty_sub_folders\" and try to clone again.
+			echo if not then this filesystem may not be appropriate, cancelling request for clone.
+			exit 1
+		fi
+		# the relative grub stor for the base zfs filesystem that containes root/bootable grub stors should probably be
+		# either empty or contain sub-folders.  if it contains files and no folders it may be root/bootable grub stor
+		if [ -d "${zfs_grub_base}/${filesystem%/}" ] &&
+			 find "${zfs_grub_base}/${filesystem%/}" -maxdepth 1 -type f | read &&
+			 ! find "${zfs_grub_base}/${filesystem%/}" -maxdepth 1 -mindepth 1 -type d | read; then
+			echo new base zfs filesystem \"${filesystem%/}\" grub stor \"${zfs_grub_base}/${filesystem%/}\" contains files and no directories.
+			echo please investigate this filesystem and the related grub stor to be sure it is not a root/bootable filesystem.
+			echo if you would like to proceed please empty the directory \"${zfs_grub_base}/${filesystem%/}\" of files and try again, cancelling request for clone.
+			exit 1
+		fi
+		# the relative grub stor for the base zfs filesystem that containes root/bootable grub stors should be a directory
+		if [ -e "${zfs_grub_base}/${filesystem%/}" ] && ! [ -d "${zfs_grub_root}/${filesystem%/}" ]; then
+			echo new base zfs \"${filesystem%/}\" grub stor \"${zfs_grub_base}/${filesystem%/}\" path exists but is not a directory, cancelling request for clone.
+			exit 1
+		fi
+		# the relative grub stor for the base zfs filesystem that containes root/bootable grub stors needs to be created
+		if ! [ -e "${zfs_grub_base}/${filesystem%/}" ]; then
+			echo creating zfs base grub stor \"${zfs_grub_base}/${filesystem%/}\".
+			mkdir -p "${zfs_grub_base}/${filesystem%/}"
+		else
+			echo new base zfs filesystem \"${filesystem%/}\" grub stor \"${zfs_grub_base}/${filesystem%/}\" exists and contains no files.
+			echo this probably means that the request new base zfs filesystem will work as expected as a container for root/bootable filesystems.
+		fi
+	fi
+}
+function get_bootable_filesystems(){
+	find "${zfs_grub_base}" -type d |
+		tac |
+		awk 'LAST~"^"$0{next}{print;LAST=$0}' |
+		sed "s|^${zfs_grub_base}/||" |
+		xargs -i"$'\255'" zfs list -H -o name "$'\255'" 2>/dev/null
+}
+__mount_zfs_filesystem () {
+	local filesystem=$1
+	#if get_booted_root_filesystem | grep -q -x "${filesystem}"; then
+	#	echo the bootable filesystem \"${filesystem}\" is the mounted root, cancelling request for mount.
+	#	exit 1
+	#fi
+	if is_zfs_filesystem "${filesystem}"; then
+		echo "${filesystem}"
+	elif ! (( ${filesystem:+1} )); then
+		get_bootable_filesystems
+	else
+		exit 1
+	fi |
+	while read filesystem; do
+		mountpoint=$(zfs list -H -o mountpoint "${filesystem}")
+		if get_booted_root_filesystem | grep -q -x "${filesystem}"; then
+			echo the bootable filesystem \"${filesystem}\" is the mounted root, skipping mount request.
+		elif zfs list -H -o mounted "${filesystem}" | grep -q -x "yes"; then
+			echo the bootable filesystem \"${filesystem}\" is already mounted to \"${mountpoint}\", skipping mount request.
+		elif [ "${mountpoint}" == "/" ]; then
+			echo the bootable filesystem \"${filesystem}\" mountpoint was \"${mountpoint}\", reseting to default and attempting mount.
+			zfs set mountpoint="${filesystem}" "${filesystem}"
+			zfs mount "${filesystem}"
+		else
+			echo the bootable filesystem \"${filesystem}\" mountpoint is \"${mountpoint}\" but was not mounted, attempting mount.
+			zfs mount "${filesystem}"
+		fi
+	done
+	
+}
+
+
+__list_chroot_zvol_cache(){
+	local cache_refresh_gate='2'
+	local cache="/tmp/.$(basename "$0")_${FUNCNAME}_${PPID}"
+	if [ -e "${cache}" ]; then
+		cat "${cache}"
+	else
+		#cat <<-AT | at -q c now + ${cache_refresh_gate} minutes
+		cat <<-AT | at -q c now + ${cache_refresh_gate} minutes 2>/dev/null
+			/bin/rm -f "${cache}"
+		AT
+		__list_chroot_zvol_details 2>/dev/null | tee "${cache}"
+	fi
+}
+__list_chroot_zvol_fs(){
+	local      zfs_fs ISCHROOT x
+	while read zfs_fs ISCHROOT x; do
+		${ISCHROOT} && echo ${zfs_fs}
+	done < <(< <(__list_chroot_zvol_cache) sort)
+}
+__list_chroot_zvol_details(){
+	local      zfs_pool zfs_pool_l zfs_fs zfs_fs zfs_fs_l zfs_zvols=$(< <(find /dev/zvol -type l) sort)
+	local      zd zd_a zd_named_path zd_real_path zd_sys_size512 zd_size_k zd_size_m zd_size_g fouta
+	while read zd_named_path; do
+			zfs_fs=${zd_named_path#/dev/zvol/}
+			zfs_pool=${zfs_fs%%/*}
+			(( ${#zfs_fs}   > ${zfs_fs_l:-0} ))   && zfs_fs_l=${#zfs_fs}
+			(( ${#zfs_pool} > ${zfs_pool_l:-0} )) && zfs_pool_l=${#zfs_pool}
+	done <<< "${zfs_zvols}"
+	while read zd_named_path; do
+		(
+			zfs_pool=${zd_named_path#/dev/zvol/}
+			zfs_fs=${zfs_pool#*/}
+			zfs_pool=${zfs_pool%%/*}
+
+			read -a zd_a < <(__get_zvol_details ${zd_named_path})
+				zd=${zd_a[0]}
+			zd_real_path=/dev/${zd}
+			zd_sys_size512=${zd_a[1]}
+			zd_size_k=$(bc <<< "scale=3; ${zd_sys_size512} / 2")
+			zd_size_m=$(bc <<< "scale=3; ${zd_sys_size512} / 2000")
+			zd_size_g=$(bc <<< "scale=3; ${zd_sys_size512} / 2000000")
+			fouta=( "${zd_a[@]:2}" )
+
+			                                                                            local ISCHROOT=false
+			[ "boot sector" == "${fouta[*]:2:2}" ]  && local ISBOOT=true             || local ISBOOT=false
+			[ "filesystem"  == "${fouta[5]}"     ]  && local ISEXTFS=true            || local ISEXTFS=false
+			[ "swap file"   == "${fouta[*]:2:2}" ]  && local ISSWAP=true             || local ISSWAP=false
+			[ "LVM2 PV"     == "${fouta[*]:1:2}" ]  && local ISLVM2=true             || local ISLVM2=false
+			[ "data"        == "${fouta[*]:1}"   ]  && local ISDATA=true             || local ISDATA=false
+
+			[[ "${fouta[@]:1}" =~ (UUID=)([^, ]+) ]] && local UUID=${BASH_REMATCH[2]} || local UUID="NA"
+
+			if ${ISEXTFS}; then
+				local FS=${fouta[4]}
+				local ISCHROOT=true
+			elif ${ISBOOT}; then
+				local FS='Boot'
+			elif ${ISSWAP}; then
+				local FS='SWAP'
+			elif ${ISLVM2}; then
+				local FS='lvm2'
+			else
+				local FS='NA'
+			fi
+
+			zfs_fs=${zd_named_path#/dev/zvol/}
+			zfs_pool=${zfs_fs%%/*}
+
+			printf "%-${zfs_fs_l}s  %-5s  %-4s %'9.3f GB  %-7s  %${zfs_pool_l}s  %s\n" ${zfs_fs} ${ISCHROOT} ${FS} ${zd_size_g} ${zd} ${zfs_pool} ${UUID}
+		) &
+	done <<< "${zfs_zvols}"
+	wait
+}
+__get_zvol_details(){
+	local      zd_named_path=$1
+	local      zd zd_real_path zd_sys_path zd_sys_size512 fout ID_FS_UUID ID_FS_UUID_ENC ID_FS_TYPE
+	zd_real_path=$(readlink -f ${zd_named_path})
+	zd=$(basename ${zd_real_path})
+	zd_sys_path=$(readlink -f /sys/class/block/${zd})
+	zd_sys_size512=$(cat ${zd_sys_path}/size)
+	fout=$(< <(file -sL ${zd_named_path}) sed 's/UUID: /UUID=/')
+	#. <(blkid -o udev /dev/${zd})
+	#echo ${zd} ${zd_sys_size512} ${ID_FS_TYPE:-NULL} ${fout}
+	echo ${zd} ${zd_sys_size512} ${fout}
+}
+
+__chroot_zvol () {
+	echo start1
+	local filesystem=$1
+
+	if ! is_zfs_volume "${filesystem}"; then
+		# parent is not filesystem, cancel request
+		return 1
+	else
+		echo TADA
+
+	fi
+	echo done
+	return
+
+	zd_named_path="/dev/zvol/${filesystem#/dev/vzol}"
+	zd_real_path=$(readlink -f ${zd_named_path})
+	zd=$(basename "${zd_real_path}")
+	zd_sys_path=$(readlink -f /sys/class/block/${zd})
+
+	if [ -f "${zd_sys_path}/partition" ]; then
+		zd_sys_path_parent=${zd_sys_path%/*}
+		zd_sys_part=$(<"${zd_sys_path}/partition")
+
+	fi
+
+	echo PATH
+	echo "${zd_sys_path}"
+	echo ROOT
+	ls -l "${zd_sys_path}"
+	cat "${zd_sys_path}/partition" | sed 's/^/partition=/'
+	cat "${zd_sys_path}/dev" | sed 's/^/dev=/'
+	echo SLAVES
+	ls -l "${zd_sys_path}/slaves"
+
+
+
+
+	is_zfs_volume "${filesystem}" || return 1
+
+	# setup mount point	
+	[ -d "/mnt/zvol/${filesystem}" ] || mkdir -p /mnt/zvol/${filesystem}
+	# mount if not yet mounted
+	
+
+
+
+	echo done
+}
+
+__chroot_zfs_filesystem () {
+	local filesystem=$1
+	is_zfs_filesystem "${filesystem}" || return 1
+	if ! is_zfs_mountpoint_default "${filesystem}"; then
+		echo the bootable filesystem \"${filesystem}\" is the mounted root, cancelling request for chroot.
+		exit 1
+	fi
+	# ensure that the filesystem is mounted
+	if zfs list -H -o mounted "${filesystem}" | grep -q -x "no"; then
+		__mount_zfs_filesystem "${filesystem}"
+		if zfs list -H -o mounted "${filesystem}" | grep -q -x "no"; then
+			echo the bootable filesystem \"${filesystem}\" does not seem to want to mount, cancelling request for chroot.
+			exit 1
+		fi
+	fi
+	# check that the following paths are not already bind mounted if they are report and exit
+	local mountpoint=$(zfs list -H -o mountpoint "${filesystem}")
+	local sep fill path paths="/dev /dev/pts /proc /root /run/resolvconf /sys"
+	for path in ${paths}; do (( ${#path} > ${#fill} )) && fill=${path//?/ }; done
+	for path in ${paths}; do
+		sep=${fill:${#path}}
+		if mount | grep -q "[[:space:]]${mountpoint}${path}[[:space:]]"; then
+			local device=$(mount | grep "[[:space:]]${mountpoint}${path}[[:space:]]" | sed 's/[[:space:]]on[[:space:]].*//')
+			echo -e path \"${mountpoint}${path}\" "${sep}" already has a mount, \"${device}\", cancelling request for chroot.
+			exit 1
+		elif ! [ -d "${mountpoint}${path}" ]; then
+			echo -e path \"${mountpoint}${path}\" "${sep}" for mount \"${path}\" does not exist, "${sep}" cancelling request for chroot.
+			exit 1
+		else
+			echo -e path \"${mountpoint}${path}\" "${sep}" ready to bind mount \"${path}\", "${sep}" proceeding.
+		fi
+	done
+	echo
+	# mounting 
+	for path in ${paths}; do
+		sep=${fill:${#path}}
+		if mount --bind "${path}" "${mountpoint}${path}"; then
+			echo -e path \"${mountpoint}${path}\" "${sep}" bind mounted \"${path}\" "${sep}" successfull.
+		else
+			echo -e path \"${mountpoint}${path}\" "${sep}" bind mounted \"${path}\" failed, "${sep}" chroot is proceeding, be advised.
+		fi
+	done
+	# chroot
+	echo
+	#export debian_chroot=$(basename "${filesystem}")
+	echo chrooting to \"${mountpoint}\"...
+	__chroot__00
+	#chroot "${mountpoint}" /bin/bash -c "su -"
+	unset debian_chroot
+	echo
+	# unmount all
+	for path in $(echo ${paths} | tr \  \\n | tac); do
+		sep=${fill:${#path}}
+		if umount "${mountpoint}${path}"; then
+			echo -e path \"${mountpoint}${path}\" "${sep}" was unmounted successfull.
+		else
+			echo -e path \"${mountpoint}${path}\" "${sep}" unmount failed, be advised.
+		fi
+	done
+}
+function __chroot__00(){
+	local erase=$'\e[1A\e[s\e[K\e[m'
+	local   red='\e[0;31m'
+	local green='\e[0;32m'
+	local  blue='\e[0;34m'
+	local   clr='\e[0m'
+	local   PS1="(${red}${filesystem##*/}${clr})${green}\u${clr}@${green}\h${clr}:${blue}\w${clr}\$ "
+
+			#echo -n \$'\e[2A\e[s\e[K\e[m'
+	chroot "${mountpoint}" /bin/su - <<-CHROOT
+		# since we can't supress "stdin: is not a tty" error, the following ANSI escape sequences cursor movement erases it
+		echo -n $'\e[1A\e[s\e[K\e[m'
+		# commands within the interactive bash shell seem to echo so we use follow-up cursor movements to erase them as well
+		/bin/bash -i -l <<-SHELL
+			echo -n $'\e[1A\e[s\e[K\e[m\e[1A\e[s\e[K\e[m'
+			export PS1="${PS1}"
+			echo -n $'\e[1A\e[s\e[K\e[m\e[1A\e[s\e[K\e[m'
+			export TEST=1234
+			echo -n $'\e[1A\e[s\e[K\e[m\e[1A\e[s\e[K\e[m'
+			exec </dev/tty
+		SHELL
+	CHROOT
+			#exec </dev/tty
+			#echo -n \$'\e[2A\e[s\e[K\e[m\e[1B\e[s\e[K\e[m'
+
+	return
+	# we are not loading roots profile
+	chroot "${mountpoint}" /bin/su - <<-CHROOT
+		# since we can't supress "stdin: is not a tty" error, the following ANSI escape sequences cursor movement erases it
+		echo -n $'\e[1A\e[s\e[K\e[m'
+		export PS1="(${red}${filesystem##*/}${clr})${green}\u${clr}@${green}\h${clr}:${blue}\w${clr}\$ "
+		. ~/.bash_aliases
+		alias
+		/bin/bash --norc --noprofile </dev/tty
+		#/bin/bash --norc </dev/tty
+		#/bin/bash --noprofile </dev/tty
+	CHROOT
+	#chroot "${mountpoint}" /bin/su -c 'export debian_chroot="1234"; /bin/bash' -
+
+	return
+	# stdin: is not a tty
+	chroot "${mountpoint}" /bin/su - <<-CHROOT
+		export debian_chroot="1234"
+		/bin/bash </dev/tty
+	CHROOT
+
+	return
+	# no error
+	chroot "${mountpoint}" /bin/su -
+
+	return
+	# stdin: is not a tty
+	chroot "${mountpoint}" /bin/bash <<-CHROOT
+		/bin/su - <<-SU
+			export debian_chroot="1234"
+			/bin/bash </dev/tty
+		SU
+	CHROOT
+
+	return
+	# groups: cannot find name for group ID 127
+	# debian_chroot works
+	# we don't login to the home directory	
+	chroot "${mountpoint}" /bin/bash <<-CHROOT
+		export debian_chroot="1234"
+		echo debain_chroot=\$debian_chroot
+		/bin/bash -l -i </dev/tty
+	CHROOT
+
+	return
+	# no errors
+	chroot "${mountpoint}" /bin/bash <<-CHROOT
+		su - </dev/tty
+	CHROOT
+
+	return
+	# stdin: is not a tty	
+	chroot "${mountpoint}" /bin/bash <<-CHROOT
+		su -
+	CHROOT
+	# no errors
+	chroot "${mountpoint}" /bin/bash -c "su -"
+
+	return
+	# groups: cannot find name for group ID 127
+	# echo exec
+	chroot "${mountpoint}" <<-CHROOT
+		exec </dev/tty
+	CHROOT
+}
+function do_dependent_zfs_filesystems_list(){
+	local filesystem=${1:-$(get_booted_root_filesystem)}
+	is_zfs_filesystem "${filesystem}" || return 1
+	local zfs_pool=${filesystem%%/*}
+	zfs list -t filesystem -H -o name,origin -r "${zfs_pool}" |
+		sed -n "\|[[:space:]]${filesystem}@.*|s|[[:space:]]${filesystem}@.*||p"
+
+}
+__remove_bootable_zfs_filesystem () {
+	local filesystem=$1
+	is_zfs_filesystem "${filesystem}" || return 1
+	local zfs_stor="${zfs_grub_base}/${filesystem}"
+	# filesystem should not be current booted root
+	if get_booted_root_filesystem | grep -q -x "${filesystem}"; then
+		echo the bootable filesystem \"${filesystem}\" is the mounted root, cancelling request for removal.
+		echo
+		exit 1
+	fi
+
+	# filesystem should not have dependent clones
+	if < <(do_dependent_zfs_filesystems_list "${filesystem}") read; then
+		echo the bootable filesystem \"${filesystem}\" has dependent clone filesystems, cancelling request for removal.
+		echo
+		echo Dependent Clone Filesystems
+		echo "${REPLY}"
+		echo
+		exit 1
+	fi
+
+	# filesystem should not have any nested filesystems or volumes
+	if < <(zfs list -t volume,filesystem -H -o name  -r -d 1 "${filesystem}" | grep -v -x "${filesystem}" && echo -n $'\x255') read -d $'\x255'; then
+		echo the bootable filesystem \"${filesystem}\" has nested filesystems or volumes, cancelling request for removal.
+		echo
+		echo Nested Filesystems or Volumes
+		echo "${REPLY}"
+		exit 1
+	fi
+
+	# the grub stor should exist and not have any sub-folders
+	if [ -e "${zfs_stor}" ] && ! [ -d "${zfs_stor}" ]; then
+			echo the filesystem \"${filesystem%/}\" grub stor \"${zfs_grub_base}/${filesystem%/}\" exists but is not a directory, cancelling request for removal.
+			exit 1
+	elif [ -d "${zfs_stor}" ] && < <(find "${zfs_stor}" -maxdepth 1 -mindepth 1 -type d && echo -n $'\x255') read -d $'\x255'; then
+			echo the filesystem \"${filesystem%/}\" grub stor \"${zfs_grub_base}/${filesystem%/}\" exists but has sub-directories, cancelling request for removal.
+			exit 1
+	elif ! [ -e "${zfs_stor}" ]; then
+			echo the filesystem \"${filesystem%/}\" grub stor \"${zfs_grub_base}/${filesystem%/}\" does not exists, cancelling request for removal.
+			exit 1
+	fi
+
+	# destroy filesystem and related snapshots automatically
+	if ! zfs destroy -r "${filesystem}"; then
+		echo the filesystem \"${filesystem%/}\" could not be recursivelly destroyed, cancelling request for removal.
+		exit 1
+	fi
+
+	# remove grub stor
+	rm -rvf -- "${zfs_stor}"
+}
+__clone_bootable_zfs_filesystem () {
+	local filesystem alt_zfs_name alt_version alt_zfs_base
+	while [[ "${1//[^[:alpha:]-]/_}" != +(--|) ]]; do
+			case "${1}" in
+				--name)		shift
+							alt_zfs_name=$1;;
+				--version)	shift
+							alt_version=0000${1//[^[:digit:]]/}
+							alt_version=${alt_version: -4};;
+				--zfs-base)	shift
+							alt_zfs_base=$1
+							vet_zfs_base "${alt_zfs_base}";;
+				*)			is_zfs_filesystem "$1" && filesystem=$1;;
+			esac
+			shift
+	done
+	local filesystem=${filesystem:-$(get_booted_root_filesystem)}
+	local zfs_stor="${zfs_grub_base}/${filesystem%/}"
+	local OS=$(get_OS)
+	
+	# set base zfs filesystem
+	(( ${alt_zfs_base:+1} )) && local zfs_base=${alt_zfs_base} || local zfs_base=$(dirname "${filesystem%/}")
+
+	# verify that the filesystem to be cloned has a zfs grub stor with files in it
+	# we are assuming that if it does that amongst those files are kernels and initrds
+	# we also assume that retained versions (files that end in *.v[:digit:][:digit:]) are not esential
+	if ! __verify_zfs_grub_stor "${filesystem%/}"; then
+		echo cancelling request for clone.
+		exit 1
+	elif [ -d "${zfs_grub_base}/${filesystem%/}" ] &&
+		 ! find "${zfs_grub_base}/${filesystem%/}" -maxdepth 1 -type f | sed -n 2p | read; then
+		echo selected zfs filesystem \"${filesystem%/}\" to clone has less than 2 files
+		echo in it\'s zfs grub stor \"${zfs_grub_base}/${filesystem%/}\", cancelling request for clone.
+		exit 1
+	elif [ -d "${zfs_grub_base}/${filesystem%/}" ] &&
+		 find "${zfs_grub_base}/${filesystem%/}" -maxdepth 1 -mindepth 1 -type d | read; then
+		echo selected zfs filesystem \"${filesystem%/}\" to clone has directories
+		echo in it\'s zfs grub stor \"${zfs_grub_base}/${filesystem%/}\", cancelling request for clone.
+		exit 1
+	fi
+
+	# if a new name is supplied then date or version components of the filesystem name do not need to be verified
+    # if the name exists then the version number if not supplied will be automatically calculated
+	if (( ${alt_zfs_name:+1} )); then
+		local zfs_name=${alt_zfs_name}
+	# if only a version number is supplied verify that date and version components are not malformed and
+	# that the supplied version number is equal to or greater than what would have been automatically calculated
+	elif (( ${alt_version:+1} )); then
+		if is_date_in_filesystem_name_malformed "${filesystem}"; then
+			echo filesystem name \"${filesystem}\" does not have the expected date component or it is malformed.
+			echo filesystem name is expected to be in the format [name]-[version]-[date +%Y.%m.%d].
+			echo we will not be able to extrapolate the appropriate name component for the clone.
+			echo either don\'t specify a version or specify a new name, cancelling request for clone.
+			exit 1
+		elif is_version_in_filesystem_name_malformed "${filesystem}"; then
+			echo filesystem name \"${zfs_name}\" does not have the expected version component or it is malfomed.
+			echo filesystem name is expected to be in the format [name]-[version]-[date +%Y.%m.%d].
+			echo we will not be able to extrapolate the appropriate name component for the clone.
+			echo either don\'t specify a version or specify a new name, cancelling request for clone.
+			exit 1
+		else
+			local zfs_name=$(get_name_in_filesystem_name "${filesystem}")
+			
+		fi
+	# if neither a name nor a version are supplied then check that date and version are not malformed
+	# if date or version are malformed then assume the filesystem name is the base name for the clone
+	else
+		if is_date_in_filesystem_name_malformed "${filesystem}"; then
+			local zfs_name=$(basename "${filesystem%/}")
+		elif is_version_in_filesystem_name_malformed "${filesystem}"; then
+			local zfs_name=$(basename "${filesystem%/}")
+		else
+			local zfs_name=$(get_name_in_filesystem_name "${filesystem}")
+		fi
+	fi
+	# calculate version
+	local version=$(get_next_version_for_filesystem_name "${zfs_base}" "${zfs_name}")
+	# if alternate version is selected verify that it is in range
+	if (( ${alt_version:+1} )); then
+		if (( alt_version >= version )); then
+			version=${alt_version}
+		else
+			echo the selected alternate version number \"${alt_version}\" is not within range.
+			echo the version must be greater than to equal to the \"${version}\", cancelling request for clone.
+			exit 1
+		fi
+	fi
+	# calculate date, prep vars
+	local zfs_date=$(get_date_for_clone_filesystem_name)
+	local zfs_snap="${filesystem}@${zfs_name}-${version}-${zfs_date}"
+	local zfs_clone="${zfs_base}/${zfs_name}-${version}-${zfs_date}"
+	local zfs_grub_seed="${zfs_grub_base}/${filesystem}"
+	local zfs_grub_stor="${zfs_grub_base}/${zfs_clone}"
+
+	# make zfs_grub_stor and copy files from zfs_grub_seed
+	# zfs_grub_stor should either not exists or be empty if not we should exit with error
+	if [ -e "${zfs_grub_stor}" ] && ! [ -d "${zfs_grub_stor}" ]; then
+		echo zfs_grub_stor \"${zfs_grub_stor}\" for clone filesystem \"${zfs_clone}\" exists but is not a directory.
+		echo please rectify this before proceeding, try again when ready, cancelling request for clone.
+		exit 1
+	elif [ -d "${zfs_grub_stor}" ] && ! find "${zfs_grub_stor}" -maxdepth 0 -empty | read; then
+		echo zfs_grub_stor \"${zfs_grub_stor}\" for clone filesystem \"${zfs_clone}\" exists but is not empty.
+		echo please rectify this before proceeding, try again when ready, cancelling request for clone.
+		exit 1
+	else
+		echo creating zfs_grub_stor \"${zfs_grub_stor}\"
+		mkdir -p "${zfs_grub_stor}"
+		echo populating zfs_grub_stor \"${zfs_grub_stor}\"
+		find "${zfs_grub_seed}" -mindepth 1 -not -iname '*.v??' -exec cp -f '{}' "${zfs_grub_stor}" ';'
+	fi
+
+	# snapshot filesystem, if this snapshot already exists then skip this step
+	if zfs list -t snapshot -H -o name "${zfs_snap}" &>/dev/null; then
+		echo snapshot \"${zfs_snap}\" already exists, this must be a repeat try, moving to clone.
+		echo if you need a fresh snapshot then please remove this one using the command \"zfs destroy [snapshot]\"
+	else
+		echo taking zfs snapshot \"${zfs_snap}\"
+		zfs snapshot "${zfs_snap}"
+	fi
+	# clone snapshot
+	if zfs list -t filesystem -H -o name "${zfs_clone}" &>/dev/null; then
+		echo clone filesystem \"${zfs_clone}\" already exists, this must be a repeat try, moving to grub_stor.
+		echo if you need a fresh clone then please remove this one using the command \"zfs destroy [filesystem]\"
+	else
+		echo generating zfs clone filesystem \"${zfs_clone}\"
+		zfs clone "${zfs_snap}" "${zfs_clone}"
+	fi
+
+	echo
+	echo ...... zfs_name :: ${zfs_name}
+	echo ....... version :: ${version}
+	echo ...... zfs_date :: ${zfs_date}
+	echo
+	echo ...... zfs_base :: ${zfs_base}
+	echo .... filesystem :: ${filesystem}
+	echo ...... zfs_snap :: ${zfs_snap}
+	echo ..... zfs_clone :: ${zfs_clone}
+	echo
+	echo . zfs_grub_base :: ${zfs_grub_base}
+	echo . zfs_grub_seed :: ${zfs_grub_seed}
+	echo . zfs_grub_stor :: ${zfs_grub_stor}
+	echo
+
+	# run grub update
+	update-grub
+}
+function is_version_in_filesystem_name_malformed(){
+	local filesystem=$1
+	(( ${filesystem:+1} )) || return 1
+	local version=$(get_version_in_filesystem_name "${filesystem}")
+	! [[ "${version//[^[:digit:]]/}" =~ ^[[:digit:]]{4}$ ]]
+}
+function is_date_in_filesystem_name_malformed(){
+	local filesystem=$1
+	(( ${filesystem:+1} )) || return 1
+	local date=$(get_date_in_filesystem_name "${filesystem}")
+	! date --date="${date//./\/}" &>/dev/null
+}
+function get_version_in_filesystem_name(){
+	local filesystem=$1
+	(( ${filesystem:+1} )) || return 1
+	echo "${filesystem: -15:4}"
+}
+function get_date_in_filesystem_name(){
+	local filesystem=$1
+	(( ${filesystem:+1} )) || return 1
+	echo "${filesystem: -10}"
+}
+function get_name_in_filesystem_name(){
+	local filesystem=$1
+	(( ${filesystem:+1} )) || return 1
+	basename "${filesystem::-16}"
+}
+function get_date_for_clone_filesystem_name(){
+	date +%Y.%m.%d
+}
+function get_next_version_for_filesystem_name(){
+	local filesystem=$1
+	local name=$2
+	local version
+	(( ${filesystem:+1} )) || return 1
+	< <(zfs list -t filesystem -H -o name -d 1 -r "${filesystem%/}" |
+		grep "^${filesystem%/}/${name}-" |
+		while read filesystem; do
+			is_version_in_filesystem_name_malformed "${filesystem}" ||
+			get_version_in_filesystem_name "${filesystem}"
+		done |
+		sort -r) read version
+	version=000$(( ${version:- -1} + 1 ))
+	echo ${version: -4}
+}
+
+
+
+
+
+# GLOBAL VARS
+zfs_grub_base='/boot/zfs'
+grub_vmlinuz=
+main "$@"

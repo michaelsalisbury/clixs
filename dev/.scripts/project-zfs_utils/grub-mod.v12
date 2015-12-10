@@ -1,0 +1,431 @@
+#!/bin/bash
+
+__sed_escape_string () {
+	local count=${1:-1}
+	local sed_special_chars=$' >'
+	local sed_escape_chars=$'\\\\'
+	local sed_escape_chars=$(count=${count//[^[:digit:]]/} < <(printf %$(( count * 2 ))s) sed "s/./${sed_escape_chars}/g")
+	sed "s/\([${sed_special_chars}]\)/${sed_escape_chars}\1/g"
+}
+__value_is_number(){
+	local VALUE=${1//[\$\`]/}
+	(( ${#VALUE} )) || return 1
+	[[ "${VALUE}" =~ (^[[:digit:]]+$)|(^[[:digit:]]*[.][[:digit:]]*$) ]] || return 1
+	[[ "${VALUE}" =~ ^[.]$ ]] && return 1
+	return 0
+}
+__get_cache () {
+	local func_to_cache=$1
+	if declare -F "${func_to_cache}" &>/dev/null ; then
+		shift
+	else
+		local tail tails delim
+		while true; do
+			while read tails; do
+				while read delim; do
+					for tail in ${tails} ${tails^} ${tails^^}; do
+						# test for funcname tail and parent function
+						[[ "${FUNCNAME[1]}" =~ (.*)("${delim}${tail}"$) ]] &&
+							declare -F "${BASH_REMATCH[1]}" &>/dev/null &&
+							func_to_cache="${BASH_REMATCH[1]}" &&
+							break 4
+					done
+				done <<-DELIM
+					_
+
+				DELIM
+			done <<-TAILS
+				cache
+			TAILS
+			# if all function name tests fail, fail this
+			return 1
+		done
+	fi
+	# time till cache is removed in minutes
+	if __value_is_number "${1}"; then
+		local cache_refresh_gate=${1}
+		shift
+	else
+		local cache_refresh_gate=2
+	fi
+
+	# hash func_to_cache, PPID and args
+	local HASH=$(<<< "${func_to_cache}${PPID}$@" md5sum)
+	      HASH=${HASH%% *}
+
+	# define cache file
+	local cache="/tmp/.bash-autocomp_${HASH}"
+
+	# if cache exists return cache
+	if [ -e "${cache}" ] && [ -s "${cache}" ]; then
+		cat "${cache}"
+	# else set cache clear job, run and tee to cache 
+	else
+		cat <<-AT | at -q c now + ${cache_refresh_gate} minutes 2>/dev/null
+			/bin/rm -f "${cache}"
+		AT
+		< <(${func_to_cache} "$@" 2>/dev/null) tee "${cache}"
+	fi
+}
+__grub_list_menuentries_raw () {
+    local config_file=$1
+	cat <<-AWK | awk -F "[\"']" -f <(cat) "${config_file}"
+		/^[ \t]*menuentry[ \t]/{
+			menuentry=\$2
+			if (submenu_l)
+				for (submenu_i = 1; submenu_i <= submenu_l; submenu_i++)
+					printf submenus[submenu_i]">"
+			print menuentry
+		}
+		/^[ \t]*submenu[ \t]/{
+			submenu_l++
+			submenus[submenu_l]=\$2
+		}
+		/}[ \t]*$/{
+			if (menuentry) {
+				menuentry=""
+			} else if (submenu_l) {
+				delete submenus[submenu_l]
+				submenu_l--
+			}
+		}
+	AWK
+}
+
+# in addition to replacing __grub_list_menuentries with __grub_list_menuentries_new in the _grub_set_entry command
+# we need to remove the "-o filenames" from the complete command that enables autocomplete for grub-set-default and grub-reboot
+# the "-o filenames" is a poor choice since many of grubs auto generated titles contain forward slashes
+__grub_autocomplete_sed_tweaks="/^[[:space:]]*__grub_list_menuentries$/s/$/_new/
+				/^[[:space:]]*complete -F _grub_set_entry/s/-o filenames//"
+. <(sed "${__grub_autocomplete_sed_tweaks}" /etc/bash_completion.d/grub)
+
+
+__my_zfs_list_bootable_filesystems () {
+
+	local zfs_grub_base="$(__grub_dir)/../zfs"
+	find "${zfs_grub_base}" -type d |
+		tee /tmp/step01 |
+		tac |
+		awk 'LAST~"^"$0"/"{next}{print;LAST=$0}' |
+		tee /tmp/step02 |
+		sed "s|^${zfs_grub_base}/||" |
+		tee /tmp/step03 |
+		xargs -i"$'\255'" zfs list -H -o name "$'\255'" 2>/dev/null |
+		tee /tmp/step04
+}
+
+__my_zfs_list_bootable_fs(){
+	:
+}
+__my_zfs_list_chroot_fs(){
+	# this will list only the filesystem (and not volumes) that have no children
+	< <(
+		while read name; do
+			zfs list -r -H -o name -t filesystem "${name}" 2>/dev/null &
+		done < <(
+			while read name; do
+				zfs list -r -H -o name "${name}" |
+				tac |
+				awk 'LAST~"^"$0"/"{next}{print;LAST=$0}' |
+				tac &
+			done < <(
+				zpool list -H -o name
+			)
+		)
+	) sort
+}
+
+__my_zfs_list_chroot_vol(){
+	#< <(< <(__get_cache __my_zfs_list_all_vol_details 5) sort) grep "[[:space:]]ext[234][[:space:]]"
+	< <(< <(__get_cache __my_zfs_list_all_vol_details 5) sort) awk "/[[:space:]]ext[234][[:space:]]/{\$(NF-1="
+}
+__my_zfs_list_all_vol_details(){
+	local      zfs_vols=$(find /dev/zvol -type l)
+	
+	local -A ID_PART_ENTRY_TYPES
+	local                            ID_PART_ENTRY_NAME     ID_PART_ENTRY_TYPE
+	while read                       ID_PART_ENTRY_TYPE     ID_PART_ENTRY_NAME; do
+		     ID_PART_ENTRY_TYPES[0x${ID_PART_ENTRY_TYPE}]=${ID_PART_ENTRY_NAME}
+	done < <(sfdisk -T)
+
+	local    fd_MEM_IN fd_MEM_OUT
+	randomfd fd_MEM_IN fd_MEM_OUT
+
+	(
+		fd_MEM_ARY=()
+		arg_ARY=()
+		while read -u ${fd_MEM_OUT} -a REPLY; do
+			(( ${REPLY[1]} )) || break
+			fd_MEM_ARY[${#fd_MEM_ARY[*]}]="/proc/${REPLY[0]}/fd/${REPLY[1]}"
+			read -u ${fd_MEM_IN} -a REPLY
+			for i in ${!REPLY[*]}; do
+				(( ${REPLY[$i]} > ${arg_ARY[$i]:-0} )) && arg_ARY[$i]=${REPLY[$i]}
+			done
+		done
+
+		for i in ${!fd_MEM_ARY[*]}; do
+			echo ${arg_ARY[*]} >& ${fd_MEM_ARY[$i]} &
+		done
+	) &
+	while read zd_named_path; do
+		(
+			randomfd          fd_SUB
+			echo ${BASHPID} ${fd_SUB} $(date +%s.%N) >& ${fd_MEM_OUT}
+
+			. <(__my_zfs_get_vol_details ${zd_named_path})
+			FS=$(__my_zfs_get_vol_fs)
+
+			echo            ${#ZFS}      ${#FS}     ${#ZD_SIZE_G}          ${#ZD}      ${#ZPOOL}     ${#UUID} >& ${fd_MEM_IN}
+			read -u ${fd_SUB}  ZFS_l        FS_l       ZD_SIZE_G_l            ZD_l        ZPOOL_l       UUID_l
+			printf        "%-${ZFS_l}s  %-${FS_l}s %'${ZD_SIZE_G_l}.3f GB  %-${ZD_l}s  %${ZPOOL_l}s  %-${UUID_l}s\n"\
+                            "${ZFS}"      ${FS}      ${ZD_SIZE_G}            ${ZD}      ${ZPOOL}       ${UUID}
+		) &
+	done <<< "${zfs_vols}"
+
+	sleep 1
+	echo ${BASHPID} 0 $(date +%s.%N) >& ${fd_MEM_OUT}
+
+	wait
+}
+__my_zfs_get_vol_fs(){
+	if ${ISEXTFS}; then
+		local FS=${FILE[4]}
+	elif ${ISSWAP}; then
+		local FS='SWAP'
+	elif ${ISLVM2}; then
+		local FS='lvm2'
+	elif ${ISDATA}; then
+		if (( ${#ID_PART_ENTRY_TYPE} )); then
+			local FS=${ID_PART_ENTRY_TYPES[${ID_PART_ENTRY_TYPE}]}
+		else
+			local FS='data'
+		fi
+	else
+		if (( ${#ID_FS_TYPE} )); then
+			local FS=${ID_FS_TYPE}
+		elif (( ${#ID_PART_ENTRY_TYPE} )); then
+			local FS=${ID_PART_ENTRY_TYPES[${ID_PART_ENTRY_TYPE}]}
+		elif (( ${#ID_PART_TABLE_TYPE} )); then
+			local FS=${ID_PART_TABLE_TYPE}
+		else
+			local FS='unknown'
+		fi
+	fi
+	echo "${FS}"
+}
+__my_zfs_get_vol_details(){
+	local zd_named_path=$1
+	local ZFS=${zd_named_path#/dev/zvol/}
+	local ZPOOL=${ZFS%%/*}
+	local ZD_REAL_PATH=$(readlink -f ${zd_named_path})
+	local ZD=$(basename ${ZD_REAL_PATH})
+	local ZD_SYS_PATH=$(readlink -f /sys/class/block/${ZD})
+	local ZD_SYS_SIZE512=$(<"${ZD_SYS_PATH}/size")
+	blkid -po udev "/dev/${ZD}" &
+	echo ZD_SIZE_K=$(bc <<< "scale=3; ${ZD_SYS_SIZE512} / 2") &
+	echo ZD_SIZE_M=$(bc <<< "scale=3; ${ZD_SYS_SIZE512} / 2000") &
+	echo ZD_SIZE_G=$(bc <<< "scale=3; ${ZD_SYS_SIZE512} / 2000000") &
+	local   FILE
+	read -a FILE < <(< <(file -sL ${zd_named_path}) sed 's/UUID: /UUID=/')
+	declare -p FILE ZFS ZPOOL ${!ZD*} &
+
+	[ "boot sector" == "${FILE[*]:2:2}" ]   && echo ISBOOT=true             || echo ISBOOT=false
+	[ "filesystem"  == "${FILE[5]}"     ]   && echo ISEXTFS=true            || echo ISEXTFS=false
+	[ "swap file"   == "${FILE[*]:2:2}" ]   && echo ISSWAP=true             || echo ISSWAP=false
+	[ "LVM2 PV"     == "${FILE[*]:1:2}" ]   && echo ISLVM2=true             || echo ISLVM2=false
+	[ "data"        == "${FILE[*]:1}"   ]   && echo ISDATA=true             || echo ISDATA=false
+	[[ "${FILE[@]:1}" =~ (UUID=)([^, ]+) ]] && echo UUID=${BASH_REMATCH[2]} || echo UUID=NA
+}
+
+_my_zfs_utils () {
+	local REDUCE='false'
+	#local REDUCE='true'
+	local script
+	if < <(alias "${1}" 2>/dev/null) read; then
+		REPLY=${REPLY##*=\'}
+		REPLY=${REPLY%\'}
+		script=${REPLY//\~/${HOME}}
+	elif < <(which "$1" 2>/dev/null) read; then
+		script=${REPLY}
+	else
+		script="${HOME}/.scripts/my-zfs-utils.sh"
+	fi
+	if [ -f "$script" ];then
+		COMPREPLY=()
+		local cur=`_get_cword`
+		local prev=${COMP_WORDS[COMP_CWORD-1]}
+
+		if (( COMP_CWORD == 1 )); then
+			local list=$("${script}")
+		else
+			case "${COMP_WORDS[1]}" in
+				grub_set_next_reboot|\
+				grub_set_default)
+					__grub_list_menuentries
+					return
+					;;
+				grub_get_menuentries|\
+				grub_set_default_)
+					REDUCE='true'
+					__grub_list_menuentries
+					return
+					;;
+				remove_boot_fs_empty_sub_fldrs)
+					local list=$(zfs list -H -o name -t filesystem)
+					;;
+				update_fs_initrd|\
+				update_fs_initrd_undo|\
+				clone_boot_fs|\
+				clone_boot_fs_snapshot|\
+				remove_boot_fs|\
+				mount_boot_fs|\
+				chroot_boot_fs)
+					local list=$(__my_zfs_list_bootable_filesystems)
+					;;
+				chroot_vol)
+					local list=$(__my_zfs_list_chroot_vol)
+					;;
+				chroot_fs)
+					local list=$(__get_cache __my_zfs_list_chroot_fs 2)
+					;;
+				list_)
+					__my_zfs_list_
+					return
+					;;
+				list__)
+					REDUCE='true'
+					__my_zfs_list_
+					return
+					;;
+			esac
+		fi
+		local IFS=$'\n'
+		COMPREPLY=( $(compgen -W "${list}" -- "$cur" ) )
+	fi
+}
+__grub_list_menuentries () {
+    local config_file=$(__grub_dir)/grub.cfg
+	local REDUCE=${REDUCE:-true}
+	# the list of posibles completions must have escaped characters escaped twice
+    if [ -f "$config_file" ];then
+		# retrieve grub list
+		local list=$(__grub_list_menuentries_raw $config_file)
+		#local compreply_reduce_delim=$'\\\>'
+		local compreply_reduce_delim=$'>'
+		__compreply_process_list
+		return
+		local  cur=${COMP_WORDS[COMP_CWORD]}
+			   cur=$(<<< "${cur}"  __sed_escape_string 1) 
+			  list=$(<<< "${list}" __sed_escape_string 2)
+		# is there only one match
+		local IFS=$'\n'
+        COMPREPLY=( $(compgen -W "$list" -- "$cur" ))
+		(( ${#COMPREPLY[*]} == 1 )) && return
+		# reduce matches
+		${REDUCE} && __compreply_reduce && return
+		# failsafe
+        COMPREPLY=( $(compgen -W "$list" -- "$cur" ))
+    fi
+}
+__my_zfs_list_(){
+	local POOLS=$(__my_zfs_list_pools)
+	local DELIM='/'
+	local REDUCE=${REDUCE:-true}
+	# determine pool
+	COMPREPLY=( $(compgen -W "${POOLS}" -- "${cur%%/*}") )
+	(( ${#COMPREPLY[*]} > 1 )) && return
+	# is there only one match
+	local list=$(__my_zfs_list_pool_fs_cache "${COMPREPLY[0]}")
+	local compreply_reduce_delim=$'\/'
+	__compreply_process_list
+}
+__compreply_process_list(){
+	local REDUCE=${compreply_reduce:-${REDUCE:-false}}
+	local  delim=${1:-${compreply_reduce_delim:-/}}
+	local   list=${compreply_process_list:-${list}}
+	(( ${#list} )) || return 1
+	local    cur=${COMP_WORDS[COMP_CWORD]}
+		     cur=$(<<< "${cur}"  __sed_escape_string 1)
+		    list=$(<<< "${list}" __sed_escape_string 2)
+	# is there only one match
+	local IFS=${compreply_process_list_delim:-$'\n'}
+	COMPREPLY=( $(compgen -W "${list}" -- "${cur}") )
+	(( ${#COMPREPLY[*]} == 1 )) && return
+	# reduce matches
+	${REDUCE} && __compreply_reduce "${delim}" && return
+	# failsafe
+	COMPREPLY=( $(compgen -W "${list}" -- "${cur}") )
+}
+__compreply_reduce_old(){
+	local   delim=${1:-${compreply_reduce_delim:-/}}
+	local    list=$(printf "%s\n" "${COMPREPLY[@]}")
+	local cnt_max=${compreply_reduce_max:-20}
+	local cnt
+	while (( cnt++ < cnt_max )); do
+		COMPREPLY=( $(< <(<<< "${list}" grep -o "^[^${delim}]\+\(${delim}[^${delim}]\+\)\{${cnt}\}") sort -u) )
+		(( ${#COMPREPLY[*]} > 1 )) && return 0
+	done
+	return 1
+}
+__compreply_reduce(){
+	local REGEX_DELIM=${1:-${compreply_reduce_delim:-/}}
+	local BASH_DELIM=$(__sed_escape_string 1 <<< "${REGEX_DELIM}")
+	local depth depth_cnt depth_max=${compreply_reduce_max:-20}
+	local i line line_out COMPREPLY_TMP
+	while (( depth++ < depth_max )); do
+		COMPREPLY_TMP=()
+		for i in ${!COMPREPLY[*]}; do
+			line=${COMPREPLY[$1]}
+			depth_cnt=${depth}
+
+
+
+		done
+	done
+	return
+
+	depth_cnt=${depth}
+	# if the line starts with the delimiter strip it
+	if [[ "${line}" =~ ^("${REGEX_DELIM}")(.*) ]]; then
+		line=${BASH_REMATCH[2]}
+		printf "${REGEX_DELIM}"
+	fi
+	# step through each field
+	while (( depth_cnt )); do
+		# if we're not on the first step print the delimiter
+		if (( depth_cnt-- < depth )); then
+			printf "${REGEX_DELIM}"
+		fi
+		# if the line does not contain the delimiter print line and break
+		if [[ "${line}" =~ "${REGEX_DELIM}" ]]; then
+			# print the first field left in the line
+			printf "${line%%${BASH_DELIM}*}"
+			# strip the first field and the delimiter from the field
+			line=${line#*${BASH_DELIM}}
+		else
+			printf "${line}"
+			break
+		fi
+	done
+	# print a line feed
+	printf "\n"
+done <<< "${list}"
+
+}
+__my_zfs_list_pools(){
+	zpool list -H -o name
+}
+__my_zfs_list_pool_fs(){
+	local POOL=$1
+	zfs list -H -o name -t filesystem -r "${POOL}"
+}
+__my_zfs_list_pool_fs_cache(){
+	local POOL=$1
+	__get_cache 1 "${POOL}"
+}
+
+__my_zfs_utils_program="my-zfs-utils"
+complete -F _my_zfs_utils ${__my_zfs_utils_program}
+unset __my_zfs_utils_program
+
+
