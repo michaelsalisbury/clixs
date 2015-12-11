@@ -27,4 +27,4 @@ alias apt-history-purge='  apt-history | awk "/Commandline/&&/remove/||/purge/{p
 alias my-zfs-utils="~/.bash_scripts.d/my-zfs-utils.sh"
 alias my-bash-scripts-updater="~/.bash_scripts.d/bash-scripts-updater-for-ubuntu.sh"
 
-alias apt-get-keys="apt-get update 2>&1 | awk '/NO_PUBKEY/{print $NF}' | xargs apt-key adv --keyserver keyserver.ubuntu.com --recv-keys"
+alias apt-get-keys="apt-get update 2>&1 | awk '/NO_PUBKEY/{print \$NF}' | xargs apt-key adv --keyserver keyserver.ubuntu.com --recv-keys"
