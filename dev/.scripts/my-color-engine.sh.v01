@@ -1,0 +1,187 @@
+#!/bin/bash
+
+function main(){
+	declare -A FORMATS
+	populate_formats
+	(( $# )) && chc "$@" || color_test
+}
+function color_test(){
+	local c color i intensity s style fill="      "
+	echo
+	chc +n red underline -- "Color Test                                                                                                    "
+	for c in `seq 30 38`; do
+		color=$(get_format_name $c)
+		chc $COLOR -- "${fill:0: -${#color}}" ${color}
+		for i in 2 0 1 ; do
+			intensity=$(get_format_name $i)
+			echo -n "::"
+			chc $c $i -- ${intensity}
+		done
+		for s in 4 7 9 ; do
+			style=$(get_format_name $s)
+			echo -n "::"
+			chc $c $s -- ${style}
+		done
+		if (( c == 38 )); then
+			echo
+			continue
+		else
+			c=$(( c + 10 ))
+			color=$(get_format_name $c)
+		fi
+		#echo -n "::"
+		chc $c -- "${fill:0: -${#color}}" ${color}
+		for i in 2 0 1 ; do
+			intensity=$(get_format_name $i)
+			echo -n "::"
+			chc $c $i -- ${intensity}
+		done
+		for s in 4 7 9 ; do
+			style=$(get_format_name $s)
+			echo -n "::"
+			chc $c $s -- ${style}
+		done
+		echo
+	done
+	echo
+}
+function populate_formats(){
+	local DATA KEY VALUE
+
+	read -d $'' DATA <<-DATA	
+		default			0
+		clear			0
+		normal			0
+		light			0
+		bold			1
+		bright			1
+		b				1
+		dark			2
+		dim				2
+		d				2
+
+		underline		4
+		u				4
+		invert			7
+		i				7
+
+		strike			9
+		strikethrough	9
+		s				9
+
+		black	30
+		red		31
+		green	32
+		brown	33
+		blue	34
+		purple	35
+		cyan	36
+		white	37
+		grey	38
+
+		BLACK	40
+		RED		41
+		GREEN	42
+		BROWN	43
+		BLUE	44
+		PURPLE	45
+		CYAN	46
+		WHITE	47
+		GREY	48
+	DATA
+
+	while read KEY VALUE; do
+		(( ${KEY:+1} )) || continue
+		FORMATS[${KEY}]=${VALUE}
+		(( ${FORMATS[${VALUE}]:+1} )) && continue
+		FORMATS[${VALUE}]=${KEY}
+	done <<< "${DATA}"	
+	return
+	for KEY in `seq 48`; do
+		(( ${FORMATS[${KEY}]:+1} )) && continue
+		FORMATS[${KEY}]=NA${KEY}
+		FORMATS[NA${KEY}]=${KEY}
+	done
+}
+function get_format_name(){
+	local KEY=${1//[^[:alpha:][:digit:]]/}
+	local VALUE=${FORMATS[${KEY}]}
+	(( ${VALUE:+1} )) || return 1
+	if [ -n "${VALUE//[^[:alpha:]]/}" ]; then
+		echo -n "${VALUE}"
+	elif [ -n "${VALUE//[^[:digit:]]/}" ]; then
+		echo -n "${FORMATS[${VALUE}]}"
+	fi
+}
+function get_format_code(){
+	local KEY=${1//[^[:alpha:][:digit:]]/}
+	local VALUE=${FORMATS[${KEY}]}
+	(( ${VALUE:+1} )) || return 1
+	if [ -n "${VALUE//[^[:alpha:]]/}" ]; then
+		echo -n "${KEY}"
+	elif [ -n "${VALUE//[^[:digit:]]/}" ]; then
+		echo -n "${VALUE}"
+	fi
+}
+function chc(){
+	local CODE KEY VALUE NO_NEWLINE 
+	while [[ "${1//[^[:alpha:]-+]/_}" != +(--|) ]]; do
+		case "$1" in
+			+n)	NO_NEWLINE="";;
+			-e)	ECHO_FORMAT=true;;
+			-t)	color_test;;
+			*)	false;;
+		esac
+		(( $? )) || { shift; continue;}
+		# remove '-' or '--' from the start of each color format code
+		KEY=${1#-}
+		VALUE=$(get_format_code ${KEY#-})
+		(( ${VALUE:+1} )) &&
+			CODE[${#CODE[*]}]=${VALUE}
+		shift
+	done
+	[ "${1//[^-]/_}" == "--" ] && shift
+	CODE=$(< <(< <(< <(echo ${CODE[*]}) tr \  \\n) sort -n) tr \\n \;)
+	CODE=${CODE%;}m
+	
+	if ${ECHO_FORMAT:-false}; then
+		:
+	fi
+	case "${SHELL:-bash}" in
+		/bin/bash|bash)
+			echo ${NO_NEWLINE--n} -e '\e['"${CODE}$@"${@:+'\e[0m'}
+			;;
+	esac
+}
+function EXPORT(){
+	# EXPORT will take as input a file name or variable=value syntax
+	# EXPORT can only take one Variable=value pair, you must use a
+	# file to push a list
+	if [ -e "$1" ]; then 
+		local -a line=( )
+		while read -a line; do
+			echo exporting :: "${line[*]}"
+			eval export       "${line[*]}"
+		done < "$1"
+	elif read -t 0 -N 0; then
+		local -a pipeline=( )
+		while read -a pipeline; do
+			echo exporting :: "${pipeline[*]}"
+			eval export       "${pipeline[*]}"
+		done < <(read -t 0 -N 0 && cat)
+	elif (( ${#@} > 0 )); then
+		echo exporting :: "$@"
+		eval export       "$@"
+	fi
+}
+BASH_SRCFQFN=$(readlink -nf "${BASH_SOURCE}")
+BASH_SRCDIR=$(dirname   "${BASH_SRCFQFN}")
+BASH_SRCNAME=$(basename "${BASH_SRCFQFN}")
+main "$@"
+		#set GREEN='%{\\e[32;1m%}'
+		#set WHITE='%{\\e[37;0m%}'
+		#set SBO="\${GREEN}NMR[\${WHITE}"
+		#set SBC="\${GREEN}]\${WHITE}"
+		#set AMP="\${GREEN}@\${WHITE}"
+		#set prompt='%{\\033]0;%n@%m:%c\\007%}'"\${SBO}%n\${AMP}%m %c\${SBC}%# "
+		#/bin/csh -i
