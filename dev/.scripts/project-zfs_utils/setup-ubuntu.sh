@@ -23,7 +23,9 @@ function main(){
 	true && {
 		echo "grub-pc grub-pc/install_devices multiselect"        | debconf-set-selections
 		echo "grub-pc grub-pc/install_devices_empty boolean true" | debconf-set-selections
+		debconf-show grub-pc
 		DEBIAN_FRONTEND=noninteractive apt-get -y install grub-pc
+		debconf-show grub-pc
 
 		#DEBIAN_FRONTEND=text apt-get -y install linux-image-generic linux-headers-generic
 		#apt-get -y install linux-image-generic linux-headers-generic
