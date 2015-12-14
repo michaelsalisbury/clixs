@@ -1,5 +1,16 @@
 #!/bin/bash
 
+false && {
+	apt-get -o Dpkg::Options::="--force-confnew" --force-yes -fuy dist-upgrade
+	#DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" dist-upgrade
+	# grub2 apt-get auto answer
+	echo "grub-pc grub-pc/install_devices_empty   boolean true" | debconf-set-selections
+ 	# this installs grub2
+	DEBIAN_FRONTEND=text apt-get -y install linux-image-generic linux-headers-generic
+
+}
+#add-apt-repository universe multiverse restricted
+
 function main(){
 	false && {
 		apt-get -y install vim curl software-properties-common debconf-utils # add-apt-repository
@@ -9,21 +20,28 @@ function main(){
 			xargs apt-key adv --keyserver keyserver.ubuntu.com --recv-keys
 		apt-get update
 	}
-	false && {
+	true && {
 		echo "grub-pc grub-pc/install_devices multiselect"        | debconf-set-selections
 		echo "grub-pc grub-pc/install_devices_empty boolean true" | debconf-set-selections
 		debconf-show grub-pc
 		DEBIAN_FRONTEND=noninteractive apt-get -y install grub-pc
 		debconf-show grub-pc
 		DEBIAN_FRONTEND=noninteractive apt-get -y install linux-image-generic linux-headers-generic
+		#apt-get -y install linux-image-generic linux-headers-generic
 	}
-	true && {
+	false && {
 		apt-get -y install dkms build-essential
+
 		apt-get -y install spl spl-dkms zfs-dkms zfsutils
 		apt-get -y install zfs-initramfs
 	}
 	
 	
+	
+
+
+
+
 }
 function setup_sources_list(){
 	local codename=$(lsb_release -cs)
