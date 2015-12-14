@@ -21,9 +21,9 @@ function main(){
 		apt-get update
 	}
 	true && {
-		echo "grub-pc grub-pc/install_devices string multiselect" | debconf-set-selections
+		echo "grub-pc grub-pc/install_devices multiselect"        | debconf-set-selections
 		echo "grub-pc grub-pc/install_devices_empty boolean true" | debconf-set-selections
-		DEBIAN_FRONTEND=text apt-get -y install linux-image-generic linux-headers-generic
+		#DEBIAN_FRONTEND=text apt-get -y install linux-image-generic linux-headers-generic
 		#apt-get -y install linux-image-generic linux-headers-generic
 	}
 	false && {
