@@ -2,7 +2,7 @@
 
 function main(){
 	false && {
-		apt-get -y install vim curl software-properties-common debconf-utils # add-apt-repository
+		apt-get -y install vim curl software-properties-common debconf-utils git bash-completion # add-apt-repository
 		setup_sources_list
 		apt-get update 2>&1 |
 			awk '/NO_PUBKEY/{print $NF}' |

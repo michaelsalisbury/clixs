@@ -1,0 +1,4 @@
+# "rpool/ROOT" may need to be manually modified
+zfs list -H -o name -r rpool/ROOT |
+        xargs -i@ zfs set mountpoint=/@ @ && true
+zfs mount -a && true
