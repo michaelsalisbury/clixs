@@ -312,12 +312,12 @@ __make_boot_fs_scripts(){
 			. <(blkid -o udev "${ID_FS_DEV}") # ID_FS_UUID ID_FS_UUID_ENC ID_FS_TYPE
 			if ! [ -f "etc/fstab" ] || ! grep -q "^UUID=${ID_FS_UUID}[[:space:]]\+/boot[[:space:]]" "etc/fstab"; then
 				echo UUID=${ID_FS_UUID} /boot ${ID_FS_TYPE} defaults 0 2 >> "etc/fstab"
-				echo UUID \"${ID_FS_UUID}\" configured in \"etc/fstab\" to mount to path \"/boot\".
+				echo device UUID \"${ID_FS_UUID}\" configured in \"etc/fstab\" to mount to path \"/boot\".
 			else
-				echo UUID \"${ID_FS_UUID}\" already configured in \"etc/fstab\" to mount to path \"/boot\".
+				echo device UUID \"${ID_FS_UUID}\" already configured in \"etc/fstab\" to mount to path \"/boot\".
 			fi
 		else
-			echo UUID not configured in \"etc/fstab\" to mount path \"/boot\", error path not discoverable.
+			echo device UUID not configured in \"etc/fstab\" to mount path \"/boot\", error path not discoverable.
 		fi
 	fi
 }
