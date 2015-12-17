@@ -303,6 +303,7 @@ __make_boot_(){
 	local id=${4:-dev}
 	local size=${5:-3G}
 	local mountpoint=
+	local cnt=
 	declare -F "${FUNCNAME}${distro}" &>/dev/null || return 1
 	# check if parent filesystem exists
 	if ! is_zfs_filesystem "${filesystem}"; then
@@ -345,10 +346,8 @@ __make_boot_(){
 		__make_boot_vol)
 			zfs create -o refreservation=none -V ${size} "${filesystem}"
 			(( $? )) && echo target volume \"${filesystem}\" create error, exiting. && exit 6
-			sleep 1
-			readlink -e "/dev/zvol/${filesystem}"
-			file "$(readlink -e "/dev/zvol/${filesystem}")"
-			< <(file "$(readlink -e "/dev/zvol/${filesystem}")") grep "block special"
+			while ! [ -f "/dev/zvol/${filesystem}" ] && (( cnt++ < 10000 )); do echo -n .; done; echo
+			< <(file "$(readlink -e "/dev/zvol/${filesystem}")") grep -q "block special"
 			(( $? )) && echo target volume \"${filesystem}\" device missing or not block special, exiting. && exit 7
 			mkfs.ext4 "$(readlink -e "/dev/zvol/${filesystem}")"
 			(( $? )) && echo target volume \"${filesystem}\" format error, exiting. && exit 8
@@ -361,7 +360,7 @@ __make_boot_(){
 			;;
 	esac
 
-	${FUNCNAME}_${distro,,} "${mountpoint}" "${@:2}"
+	${FUNCNAME}${distro,,} "${mountpoint}" "${@:2}"
 
 	case "${FUNCNAME[1]}" in
 		__make_boot_fs)		_make_boot_fs_scripts "${filesystem}";;
