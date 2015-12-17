@@ -305,9 +305,9 @@ __make_boot_(){
 	local mountpoint=
 	declare -F "${FUNCNAME}_${distro}" &>/dev/null || return 1
 	# check if parent filesystem exists
-	if ! is_zfs_filesystem "${filesystem}"; then
-		echo zfs filesystem \"${filesystem}\" does not exist.  cancelling request to build fs.
-		exit 1
+	if ! is_zfs_filesystem "${filesystem}" && ! is_zfs_volume "${filesystem}"; then
+		echo zfs fs/vol \"${filesystem}\" does not exist.  cancelling request to make boot fs/vol.
+		exit 2
 	# make distro fs as required
 	elif filesystem+="/${distro}" && ! is_zfs_filesystem "${filesystem}"; then
 		zfs create "${filesystem}"
@@ -326,7 +326,7 @@ __make_boot_(){
 		echo
 		echo List of revisions with the target ID.
 		echo "${REPLY}"
-		exit 1
+		exit 3
 	fi
 	filesystem+="/${id}-0000-$(get_date_for_clone_filesystem_name)"
 	case "${FUNCNAME[1]}" in
@@ -359,7 +359,7 @@ __make_boot_(){
 		__make_boot_vol)	;;
 	esac
 }
-__make_boot_fs_ubuntu(){
+__make_boot_ubuntu(){
 	local mountpoint=${1}
 	local distro=${2}
 	local version=${3}
