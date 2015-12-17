@@ -303,7 +303,7 @@ __make_boot_(){
 	local id=${4:-dev}
 	local size=${5:-3G}
 	local mountpoint=
-	declare -F "${FUNCNAME}_${distro}" &>/dev/null || return 1
+	declare -F "${FUNCNAME}${distro}" &>/dev/null || return 1
 	# check if parent filesystem exists
 	if ! is_zfs_filesystem "${filesystem}" && ! is_zfs_volume "${filesystem}"; then
 		echo zfs fs/vol \"${filesystem}\" does not exist.  cancelling request to make boot fs/vol.
