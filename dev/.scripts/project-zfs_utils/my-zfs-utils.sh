@@ -305,7 +305,7 @@ __make_boot_(){
 	local mountpoint=
 	declare -F "${FUNCNAME}${distro}" &>/dev/null || return 1
 	# check if parent filesystem exists
-	if ! is_zfs_filesystem "${filesystem}" && ! is_zfs_volume "${filesystem}"; then
+	if ! is_zfs_filesystem "${filesystem}"; then
 		echo zfs fs/vol \"${filesystem}\" does not exist.  cancelling request to make boot fs/vol.
 		exit 2
 	# make distro fs as required
@@ -327,27 +327,33 @@ __make_boot_(){
 		echo List of revisions with the target ID.
 		echo "${REPLY}"
 		exit 3
+	elif < <(zfs list -H -o name -t volume -r "${filesystem}" | grep -x "${filesystem}/${id}-.*" && echo -n $'\x255') read -d $'\x255'; then
+		echo the target ID \"${id}\" already exists, cancelling request to build fs.
+		echo
+		echo List of revisions with the target ID.
+		echo "${REPLY}"
+		exit 4
 	fi
 	filesystem+="/${id}-0000-$(get_date_for_clone_filesystem_name)"
 	case "${FUNCNAME[1]}" in
 		__make_boot_fs)
 			zfs create "${filesystem}"
-			(( $? )) && echo target filesystem \"${filesystem}\" create error, exiting. && exit 1
+			(( $? )) && echo target filesystem \"${filesystem}\" create error, exiting. && exit 5
 			< <(get_mountinfo_entries "${filesystem}") read x mountpoint x x x x x
 			;;
 
 		__make_boot_vol)
 			zfs create -o refreservation=none -V ${size} "${filesystem}"
-			(( $? )) && echo target volume \"${filesystem}\" create error, exiting. && exit 2
-			< <(file "$(readlink -e "/dev/zvol/${filesystem}")") grep -q "block special"
-			(( $? )) && echo target volume \"${filesystem}\" device missing or not block special, exiting. && exit 3
+			(( $? )) && echo target volume \"${filesystem}\" create error, exiting. && exit 6
+			< <(file "$(readlink -e "/dev/zvol/${filesystem}")") grep "block special"
+			(( $? )) && echo target volume \"${filesystem}\" device missing or not block special, exiting. && exit 7
 			mkfs.ext4 "$(readlink -e "/dev/zvol/${filesystem}")"
-			(( $? )) && echo target volume \"${filesystem}\" format error, exiting. && exit 4
+			(( $? )) && echo target volume \"${filesystem}\" format error, exiting. && exit 8
 			local ID_FS_UUID ID_FS_UUID_ENC ID_FS_TYPE
 			. <(blkid -o udev "$(readlink -e "/dev/zvol/${filesystem}")")
 			mkdir "/${filesystem}"
 			mount -v -t ${ID_FS_TYPE} "$(readlink -e "/dev/zvol/${filesystem}")" "/${filesystem}"
-			(( $? )) && echo target volume \"${filesystem}\" mount error, exiting. && exit 5
+			(( $? )) && echo target volume \"${filesystem}\" mount error, exiting. && exit 9
 			< <(get_mountinfo_entries "$(readlink -e "/dev/zvol/${filesystem}")") read x mountpoint x x x x x
 			;;
 	esac
