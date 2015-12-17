@@ -346,7 +346,7 @@ __make_boot_(){
 		__make_boot_vol)
 			zfs create -o refreservation=none -V ${size} "${filesystem}"
 			(( $? )) && echo target volume \"${filesystem}\" create error, exiting. && exit 6
-			while ! [ -L "/dev/zvol/${filesystem}" ] && (( cnt++ < 10000 )); do echo -n .; done; echo ${cnt}
+			while ! [ -L "/dev/zvol/${filesystem}" ] && (( cnt++ < 600 )); do sleep .1; echo -n .; done; echo
 			< <(file "$(readlink -e "/dev/zvol/${filesystem}")") grep -q "block special"
 			(( $? )) && echo target volume \"${filesystem}\" device missing or not block special, exiting. && exit 7
 			mkfs.ext4 "$(readlink -e "/dev/zvol/${filesystem}")"
