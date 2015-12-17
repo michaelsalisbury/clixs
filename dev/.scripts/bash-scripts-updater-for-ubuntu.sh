@@ -19,6 +19,8 @@ function main(){
 	get "setup-ubuntu.sh"           +x
 	DST="${HOME}/.bash_completion.d"
 	get "grub-mod"
+	DST="${HOME}/.etc/default"
+	get "grub"
 
 	SUB="dev/.scripts/bash_completion"
 	DST="${HOME}"

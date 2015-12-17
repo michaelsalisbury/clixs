@@ -279,29 +279,9 @@ __make_boot_fs_scripts(){
 		mkdir "etc/grub.d" 2> /dev/null
 		ln -s "/root/.bash_scripts.d/60_zfs" "etc/grub.d/". 2> /dev/null
 		if (( $? )); then
-			echo grub config \"etc/grub.d/60_zfs\" already linked to \"$(readlink -e "etc/grub/60_zfs")\".
+			echo soft link from \"/root/.bash_scripts.d/60_zfs\" to \"etc/grub.d/60_zfs\" already in place.
 		else
-			echo grub config \"etc/grub.d/60_zfs\" linked to \"$(readlink -e "etc/grub/60_zfs")\", successful.
-		fi
-	fi
-
-	# /etc/default/grub
-	if [ -d "etc/default" ]; then 
-		if [ -f "/root/.etc/default/grub" ]; then
-			if [ -L "etc/default/grub" ]; then
-				echo grub config \"etc/default/grub\" already linked to \"$(readlink -e "etc/default/grub")\".
-			else
-				if [ -f "etc/default/grub" ]; then
-					mv "etc/default/grub"{,.bk}
-					echo grub config \"etc/default/grub\" backed up to \"etc/default/grub.bk\".
-				else
-					echo grub config \"etc/default/grub\" does not exist so not backing up.
-				fi
-				ln -s "/root/.etc/default/grub" "etc/default/".
-				echo grub config \"etc/default/grub\" linked to \"$(readlink -e "etc/default/grub")\", successful.
-			fi
-		else
-			echo grub config target softlink missing from path \"/root/.etc/default/grub\", error creating soft link.
+			echo soft link from \"/root/.bash_scripts.d/60_zfs\" to \"etc/grub.d/60_zfs\" created.
 		fi
 	fi
 
