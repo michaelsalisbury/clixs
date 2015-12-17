@@ -12,17 +12,17 @@ function main(){
 	DST="${HOME}/.bash_scripts.d"
 	get "bash-scripts-updater-for-ubuntu.sh" +x
 
-
 	SUB="dev/.scripts/project-zfs_utils"
 	DST="${HOME}/.bash_scripts.d"
 	get "60_zfs"                    +x
 	get "my-zfs-utils.sh"           +x
 	get "setup-ubuntu.sh"           +x
+	DST="${HOME}/.bash_completion.d"
+	get "grub-mod"
 
 	SUB="dev/.scripts/bash_completion"
 	DST="${HOME}"
 	get ".bash_completion"
-	get ".bash_completion.d/grub-mod"
 	get ".bash_completion.d/vboxmanage_completion.bash"
 
 	SUB="dev/.scripts/bash_aliases"
