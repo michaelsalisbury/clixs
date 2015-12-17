@@ -292,6 +292,7 @@ __make_boot_fs_scripts(){
 }
 __make_boot_vol(){
 	__make_boot_ "$@"
+	echo hi
 }
 __make_boot_fs(){
 	__make_boot_ "$@"
