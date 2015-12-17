@@ -274,7 +274,7 @@ __make_boot_fs_zfs_utils(){
 	# /etc/fstab
 	if [ -d "etc" ]; then 
 		local ID_FS_DEV=$(< <(mount) sed -n 's|^\(.*\) on /boot type .*|\1|p')
-		. <(blkid -o full "${ID_FS_DEV}" # ID_FS_UUID ID_FS_UUID_ENC ID_FS_TYPE)
+		. <(blkid -o full "${ID_FS_DEV}") # ID_FS_UUID ID_FS_UUID_ENC ID_FS_TYPE
 		if ! [ -f "etc/fstab" ] || ! grep -q "^UUID=${ID_FS_UUID}[[:space:]]" "etc/fstab"; then
 			echo UUID=${ID_FS_UUID} /boot ${ID_FS_TYPE} defaults 0 2 >> "etc/fstab"
 		fi
