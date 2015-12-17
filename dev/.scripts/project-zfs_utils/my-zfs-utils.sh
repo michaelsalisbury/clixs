@@ -353,7 +353,7 @@ __make_boot_(){
 			(( $? )) && echo target volume \"${filesystem}\" format error, exiting. && exit 8
 			local ID_FS_UUID ID_FS_UUID_ENC ID_FS_TYPE
 			. <(blkid -o udev "$(readlink -e "/dev/zvol/${filesystem}")")
-			mkdir "/${filesystem}"
+			mkdir "/${filesystem}" 2> /dev/null
 			mount -v -t ${ID_FS_TYPE} "$(readlink -e "/dev/zvol/${filesystem}")" "/${filesystem}"
 			(( $? )) && echo target volume \"${filesystem}\" mount error, exiting. && exit 9
 			< <(get_mountinfo_entries "$(readlink -e "/dev/zvol/${filesystem}")") read x mountpoint x x x x x
