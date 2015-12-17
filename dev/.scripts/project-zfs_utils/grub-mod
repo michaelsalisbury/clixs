@@ -282,6 +282,7 @@ _my_zfs_utils () {
 					__my_zfs_list_fs
 					return
 					;;
+				make_boot_vol)
 				make_boot_fs)
 					__my_zfs_make_boot_fs
 					return

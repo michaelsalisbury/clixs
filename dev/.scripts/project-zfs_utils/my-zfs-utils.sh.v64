@@ -124,9 +124,6 @@ function do_remove_boot_fs(){
 function do_remove_fs_tree(){
 	__remove_fs_tree "$@"
 }
-function do_make_boot_vol(){
-	__make_boot_vol "$@"
-}
 function do_make_boot_fs(){
 	__make_boot_fs "$@"
 }
@@ -200,6 +197,41 @@ function get_OS(){
 }
 function get_(){
 	:
+}
+__make_boot_fs(){
+	local filesystem=${1}
+	local distro=${2,,}
+	local version=${3,,}
+	local id=${4:-dev}
+	declare -F "${FUNCNAME}_${distro}" &>/dev/null || return 1
+	# check if parent filesystem exists
+	if ! is_zfs_filesystem "${filesystem}"; then
+		echo zfs filesystem \"${filesystem}\" does not exist.  cancelling request to build fs.
+		exit 1
+	# make distro fs as required
+	elif filesystem+="/${distro}" && ! is_zfs_filesystem "${filesystem}"; then
+		zfs create "${filesystem}"
+		zfs set atime=off "${filesystem}"
+		zfs set compression=lz4 "${filesystem}"
+		filesystem+="/${version}"
+		zfs create "${filesystem}"
+	# make version fs as required
+	elif filesystem+="/${version}" && ! is_zfs_filesystem "${filesystem}"; then
+		zfs create "${filesystem}"
+		zfs set atime=off "${filesystem}"
+		zfs set compression=lz4 "${filesystem}"
+	# check to see if distro ID exists
+	elif < <(zfs list -H -o name -t filesystem -r "${filesystem}" | grep -x "${filesystem}/${id}-.*" && echo -n $'\x255') read -d $'\x255'; then
+		echo the target ID \"${id}\" already exists, cancelling request to build fs.
+		echo
+		echo List of revisions with the target ID.
+		echo "${REPLY}"
+		exit 1
+	fi
+	filesystem+="/${id}-0000-$(get_date_for_clone_filesystem_name)"
+	zfs create "${filesystem}"
+	${FUNCNAME}_${distro,,} "${filesystem}" "${@:2}"
+	__make_boot_fs_scripts "${filesystem}"
 }
 __make_boot_fs_scripts(){
 	local filesystem=${1}
@@ -276,7 +308,6 @@ __make_boot_fs_scripts(){
 	# /etc/fstab
 	if [ -d "etc" ]; then
 		if is_mounted "/boot"; then
-			local ID_FS_UUID ID_FS_UUID_ENC ID_FS_TYPE
 			local ID_FS_DEV=$(< <(mount) sed -n 's|^\(.*\) on /boot type .*|\1|p')
 			. <(blkid -o udev "${ID_FS_DEV}") # ID_FS_UUID ID_FS_UUID_ENC ID_FS_TYPE
 			if ! [ -f "etc/fstab" ] || ! grep -q "^UUID=${ID_FS_UUID}[[:space:]]\+/boot[[:space:]]" "etc/fstab"; then
@@ -290,79 +321,12 @@ __make_boot_fs_scripts(){
 		fi
 	fi
 }
-__make_boot_vol(){
-	__make_boot_ "$@"
-}
-__make_boot_fs(){
-	__make_boot_ "$@"
-}
-__make_boot_(){
-	local filesystem=${1}
-	local distro=${2,,}
-	local version=${3,,}
-	local id=${4:-dev}
-	local size=${5:-3G}
-	local mountpoint=
-	declare -F "${FUNCNAME}_${distro}" &>/dev/null || return 1
-	# check if parent filesystem exists
-	if ! is_zfs_filesystem "${filesystem}"; then
-		echo zfs filesystem \"${filesystem}\" does not exist.  cancelling request to build fs.
-		exit 1
-	# make distro fs as required
-	elif filesystem+="/${distro}" && ! is_zfs_filesystem "${filesystem}"; then
-		zfs create "${filesystem}"
-		zfs set atime=off "${filesystem}"
-		zfs set compression=lz4 "${filesystem}"
-		filesystem+="/${version}"
-		zfs create "${filesystem}"
-	# make version fs as required
-	elif filesystem+="/${version}" && ! is_zfs_filesystem "${filesystem}"; then
-		zfs create "${filesystem}"
-		zfs set atime=off "${filesystem}"
-		zfs set compression=lz4 "${filesystem}"
-	# check to see if distro ID exists
-	elif < <(zfs list -H -o name -t filesystem -r "${filesystem}" | grep -x "${filesystem}/${id}-.*" && echo -n $'\x255') read -d $'\x255'; then
-		echo the target ID \"${id}\" already exists, cancelling request to build fs.
-		echo
-		echo List of revisions with the target ID.
-		echo "${REPLY}"
-		exit 1
-	fi
-	filesystem+="/${id}-0000-$(get_date_for_clone_filesystem_name)"
-	case "${FUNCNAME[1]}" in
-		__make_boot_fs)
-			zfs create "${filesystem}"
-			(( $? )) && echo target filesystem \"${filesystem}\" create error, exiting. && exit 1
-			< <(get_mountinfo_entries "${filesystem}") read x mountpoint x x x x x
-			;;
-
-		__make_boot_vol)
-			zfs create -o refreservation=none -V ${size} "${filesystem}"
-			(( $? )) && echo target volume \"${filesystem}\" create error, exiting. && exit 2
-			< <(file "$(readlink -e "/dev/zvol/${filesystem}")") grep -q "block special"
-			(( $? )) && echo target volume \"${filesystem}\" device missing or not block special, exiting. && exit 3
-			mkfs.ext4 "$(readlink -e "/dev/zvol/${filesystem}")"
-			(( $? )) && echo target volume \"${filesystem}\" format error, exiting. && exit 4
-			local ID_FS_UUID ID_FS_UUID_ENC ID_FS_TYPE
-			. <(blkid -o udev "$(readlink -e "/dev/zvol/${filesystem}")")
-			mkdir "/${filesystem}"
-			mount -v -t ${ID_FS_TYPE} "$(readlink -e "/dev/zvol/${filesystem}")" "/${filesystem}"
-			(( $? )) && echo target volume \"${filesystem}\" mount error, exiting. && exit 5
-			< <(get_mountinfo_entries "$(readlink -e "/dev/zvol/${filesystem}")") read x mountpoint x x x x x
-			;;
-	esac
-
-	${FUNCNAME}_${distro,,} "${mountpoint}" "${@:2}"
-
-	case "${FUNCNAME[1]}" in
-		__make_boot_fs)		_make_boot_fs_scripts "${filesystem}";;
-		__make_boot_vol)	;;
-	esac
-}
 __make_boot_fs_ubuntu(){
-	local mountpoint=${1}
+	local filesystem=${1}
 	local distro=${2}
 	local version=${3}
+	local id=${4:-dev}
+	local mountpoint=$(zfs get mountpoint -H -o value "${filesystem}")
 	case "${version,,}" in
 		trusty|utopic|vivid|wily|xenial);;
 		14.04)	version='trusty';;
@@ -370,18 +334,15 @@ __make_boot_fs_ubuntu(){
 		15.04)  version='vivid';;
 		15.10)  version='wily';;
 		16.04)  version='xenial';;
-		*)		false;;
+		*)		echo ${distro} version \"${version}\" not expected.  exiting.
+				exit 1;;
 	esac
-	if (( $? )); then
-		echo ${distro} version \"${version}\" not expected.  exiting.
-		echo manually destroy filesystem or volume mounted to \"${mountpoint}\" to try again.
-		exit 1
-	elif which debootstrap &> /dev/null; then
+	if which debootstrap &> /dev/null; then
 		debootstrap ${version} "${mountpoint}"
 	else
-		echo please install debootstrap.  exiting.
-		echo manually destroy filesystem or volume mounted to \"${mountpoint}\" to try again.
-		echo 2
+		echo please install debootstrap and then try again.
+		zfs umount "${filesystem}"
+		zfs destroy "${filesystem}"
 	fi
 }
 __grub_run_menu_test(){
