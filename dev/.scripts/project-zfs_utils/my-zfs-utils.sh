@@ -269,9 +269,9 @@ __make_boot_fs_scripts(){
 			CAT
 			<<< "${TMP}" tail -n +${END}
 		) > "etc/rc.local"
-		echo etc/rc.local is configured.  manual intervention should not be needed.
+		echo rc.local @ \"etc/rc.local\" is configured.  manual intervention should not be needed.
 	else
-		echo etc/rc.local is configured.  manual intervention needed if it is not mouting fs as expected.
+		echo rc.local @ \"etc/rc.local\" is already configured.  manual intervention needed if it is not mouting fs as expected.
 	fi
 
 	# /etc/grub.d/60_zfs
@@ -309,6 +309,8 @@ __make_boot_fs_scripts(){
 	if [ -d "etc" ]; then 
 		local ID_FS_DEV=$(< <(mount) sed -n 's|^\(.*\) on /boot type .*|\1|p')
 		. <(blkid -o udev "${ID_FS_DEV}") # ID_FS_UUID ID_FS_UUID_ENC ID_FS_TYPE
+		echo ${ID_FS_DEV}
+		echo ${ID_FS_UUID}
 		if ! [ -f "etc/fstab" ] || ! grep -q "^UUID=${ID_FS_UUID}[[:space:]]\+/boot[[:space:]]" "etc/fstab"; then
 			echo UUID=${ID_FS_UUID} /boot ${ID_FS_TYPE} defaults 0 2 >> "etc/fstab"
 			echo UUID \"${ID_FS_UUID}\" configured in fstab to mount to path \"/boot\".
