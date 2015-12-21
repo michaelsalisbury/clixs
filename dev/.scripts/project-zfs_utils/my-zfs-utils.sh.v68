@@ -33,9 +33,6 @@ function do_list_all_vol(){
 function do_list_chroot_vol(){
 	__list_chroot_vol
 }
-function do_grub_set_mkcnf_hack(){
-	__grub_set_mkcnf_hack "$@"
-}
 function do_grub_get_mkcnf_hack_stat(){
 	__grub_get_mkcnf_hack_stat "$@"
 }
@@ -370,7 +367,7 @@ __make_boot_(){
 	${FUNCNAME}${distro,,} "${mountpoint}" "${@:2}"
 
 	case "${FUNCNAME[1]}" in
-		__make_boot_fs)		__make_boot_fs_scripts "${filesystem}";;
+		__make_boot_fs)		_make_boot_fs_scripts "${filesystem}";;
 		__make_boot_vol)	;;
 	esac
 }
@@ -423,40 +420,8 @@ __sed_escape_string () {
 	sed "s/\([${sed_special_chars}]\)/${sed_escape_chars}\1/g"
 
 }
-__grub_set_mkcnf_hack () {
-	:
-}
 __grub_get_mkcnf_hack_stat () {
-	local filesystem=$1
-	local headers="Filesystem\\\\/\\\\grub-mkconfig\\\\Lines\\\\Device\\\\Volume\\\\Error"
-	case $# in
-		0)	while read filesystem; do ${FUNCNAME} "${filesystem}"; done < <(get_boot_filesystems) |
-			sed "1i${headers}" |
-			column -t -s\\
-			return $?;;
-		1)	is_zfs_filesystem "${filesystem}" || return 1
-			if [ "${FUNCNAME[1]}" != "${FUNCNAME}" ]; then
-				${FUNCNAME} "${filesystem}" |
-				sed "1i${headers}" |
-				column -t -s\\
-				return $?
-			fi;;
-		*)	for filesystem in "$@"; do ${FUNCNAME} "${filesystem}"; done |
-			sed "1i${headers}" |
-			column -t -s\\
-			return $?;;
-	esac
-
-	echo -n "${filesystem}"
-	
-	local mountpoint
-	if ! < <(get_mountinfo_entries "${filesystem}") read x mountpoint x x x x x; then
-		echo \\ \\ \\ \\ \\ \\ERROR:1 fs not mounted
-		return 1
-	fi 
-
-	[ "${mountpoint}" != "/" ] && echo -n \\- || echo -n \\/
-
+	#GRUB_DEVICE="/dev/zd0"
 	local grub_mkcnf
 	local grub_mkcnf_cnt
 	local grub_mkcnf_dev
@@ -464,61 +429,56 @@ __grub_get_mkcnf_hack_stat () {
 	local grub_mkcnf_vol
 
 	# get grub-mkconfig path and fail if missing
-	if < <(chroot "${mountpoint}" which grub-mkconfig) read grub_mkcnf; then
-		echo -n "\\${grub_mkcnf}"
-		grub_mkcnf="${mountpoint}${grub_mkcnf}"
-	else
-		echo \\ \\ \\ \\ \\ERROR:2 grub-mkconfig MIA
-		return 2
+	if ! read grub_mkcnf < <(which grub-mkconfig); then
+		echo error:1
+		return 1
 	fi
 
-	# get all GRUB_DEVICE= lines from grub-mkconfig and fail if missing
-	if ! < <(grep '^[ #]*GRUB_DEVICE=' "${grub_mkcnf}" && echo -n $'\x255') read -d $'\x255' grub_mkcnf_dev; then
-		echo \\ \\ \\ \\ERROR:3 GRUB_DEVICE=\* NA
-		return 3
+	# get GRUB_DEVICE= lines from grub-mkconfig and fail if missing
+	if ! read -d $'\x255' grub_mkcnf_dev < <(grep '^[ #]*GRUB_DEVICE=' "${grub_mkcnf}" && echo -n $'\x255'); then
+		echo error:2
+		return 2
 	fi
 
 	grub_mkcnf_cnt=$(<<< "${grub_mkcnf_dev}" wc -l)
 
-	echo -n \\${grub_mkcnf_cnt}
+	grub_mkcnf_vol=$(<<< "${grub_mkcnf_dev}" grep '^[ ]*GRUB_DEVICE=')
 
-	# get active GRUB_DEVICE= lines from grub-mkconfig and fail if missing
-	if ! < <(<<< "${grub_mkcnf_dev}" grep '^[ ]*GRUB_DEVICE=' && echo -n $'\x255') read -d $'\x255' grub_mkcnf_vol; then
-		echo \\ \\ \\ERROR:4 GRUB_DEVICE=\* NA
-		return 4
-	fi
-
-	# fail if more than one GRUB_DEVICE= line exists
-	if  (( $(<<< "${grub_mkcnf_vol}" wc -l) > 1 )); then
-		echo \\ \\ \\ERROR:5 GRUB_DEVICE=\* \!= 1
-		return 5
+	# fail if more or less than one GRUB_DEVICE= line exists
+	if (( $(<<< "${grub_mkcnf_vol}" wc -l) != 1 )); then
+		echo error:3
+		return 3
 	fi
 
 	# get value of GRUB_DEVICE and fail if empty
-	if ! < <(<<< "${grub_mkcnf_vol}" sed -n "s|^[^=]\+=[\"']*||;s|[\"']*$||;/^$/!p")  read grub_mkcnf_zd; then
-		echo \\ \\ \\ERROR:6 GRUB_DEVICE ==  NULL
-		return 6
+	if ! read grub_mkcnf_zd < <(<<< "${grub_mkcnf_vol}" sed "s|^[^=]\+=[\"']*||;s|[\"']*$||"); then
+		echo error:4
+		return 4
 	fi
 
 	# fail if GRUB_DEVICE is not a staticly assigned block device
-	if [ -b "${grub_mkcnf_zd}" ]; then
-		echo -n "\\${grub_mkcnf_zd}"
-	else
-		echo \\ \\ \\ERROR:7 GRUB_DEVICE != [dev]
-		return 7
+	if ! [ -b "${grub_mkcnf_zd}" ]; then
+		echo error:5
+		return 5
 	fi
 
 	# get volume and fail if not zfs
-	if < <(< <(find /dev/zvol/* -exec echo -en '{}=' ';' -exec readlink -e '{}' ';') sed -n "s|=${grub_mkcnf_zd}$||p") read grub_mkcnf_vol; then
+	if read grub_mkcnf_vol < <(< <(find /dev/zvol/* -exec echo -en '{}=' ';' -exec readlink -e '{}' ';') sed -n "s|=${grub_mkcnf_zd}$||p"); then
 		grub_mkcnf_vol=${grub_mkcnf_vol#/dev/zvol/}
-	elif ! < <(zfs list -t volume -H -o name "${grub_mkcnf_zd#/dev/zvol/}" 2> /dev/null) read grub_mkcnf_vol; then
-		echo \\ \\ERROR:8 GRUB_DEVICE != [vol]
-		return 8
+	elif ! read grub_mkcnf_vol < <(zfs list -t volume -H -o name "${grub_mkcnf_zd#/dev/zvol/}" 2> /dev/null); then
+		echo error:6
+		return 6
 	fi
 
-	echo -n "\\${grub_mkcnf_vol}"
 
-	echo
+
+
+
+
+	echo "${grub_mkcnf}"
+	echo "${grub_mkcnf_dev}"
+	echo "${grub_mkcnf_zd}"
+	echo "${grub_mkcnf_vol}"
 }
 __grub_list_menuentries_raw () {
 	cat <<-AWK | awk -F "['\"]" -f <(cat) /boot/grub/grub.cfg | __sed_escape_string

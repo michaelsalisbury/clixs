@@ -33,9 +33,6 @@ function do_list_all_vol(){
 function do_list_chroot_vol(){
 	__list_chroot_vol
 }
-function do_grub_set_mkcnf_hack(){
-	__grub_set_mkcnf_hack "$@"
-}
 function do_grub_get_mkcnf_hack_stat(){
 	__grub_get_mkcnf_hack_stat "$@"
 }
@@ -422,9 +419,6 @@ __sed_escape_string () {
 	local sed_escape_chars=$(count=${count//[^[:digit:]]/} < <(printf %$(( count * 2 ))s) sed "s/./${sed_escape_chars}/g")
 	sed "s/\([${sed_special_chars}]\)/${sed_escape_chars}\1/g"
 
-}
-__grub_set_mkcnf_hack () {
-	:
 }
 __grub_get_mkcnf_hack_stat () {
 	local filesystem=$1

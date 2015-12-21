@@ -33,9 +33,6 @@ function do_list_all_vol(){
 function do_list_chroot_vol(){
 	__list_chroot_vol
 }
-function do_grub_set_mkcnf_hack(){
-	__grub_set_mkcnf_hack "$@"
-}
 function do_grub_get_mkcnf_hack_stat(){
 	__grub_get_mkcnf_hack_stat "$@"
 }
@@ -423,9 +420,6 @@ __sed_escape_string () {
 	sed "s/\([${sed_special_chars}]\)/${sed_escape_chars}\1/g"
 
 }
-__grub_set_mkcnf_hack () {
-	:
-}
 __grub_get_mkcnf_hack_stat () {
 	local filesystem=$1
 	local headers="Filesystem\\\\/\\\\grub-mkconfig\\\\Lines\\\\Device\\\\Volume\\\\Error"
@@ -519,6 +513,12 @@ __grub_get_mkcnf_hack_stat () {
 	echo -n "\\${grub_mkcnf_vol}"
 
 	echo
+	return
+
+	echo "${grub_mkcnf}"
+	echo "${grub_mkcnf_dev}"
+	echo "${grub_mkcnf_zd}"
+	echo "${grub_mkcnf_vol}"
 }
 __grub_list_menuentries_raw () {
 	cat <<-AWK | awk -F "['\"]" -f <(cat) /boot/grub/grub.cfg | __sed_escape_string
