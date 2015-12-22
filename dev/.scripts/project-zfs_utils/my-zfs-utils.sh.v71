@@ -451,37 +451,10 @@ __grub_run_mkcnf_hack () {
 			q*)		return 1;;
 			*)		continue;;
 		esac
-		while read filesystem; do
-			echo -n processing filesystem \"${filesystem}\"...
+		while read filesystem; do	
 
-			local mountpoint
-			if < <(get_mountinfo_entries "${filesystem}") read x mountpoint x x x x x; then
-				echo -n "${mountpoint}"...
-			else
-				echo ERROR:1 not mounted
-				continue
-			fi
+			echo "${filesystem}"
 
-			local grub_mkcnf
-			local grub_mkcnf_cnt
-			local grub_mkcnf_dev
-			local grub_mkcnf_zd
-			local grub_mkcnf_vol
-
-			# get grub-mkconfig path and fail if missing
-			if < <(chroot "${mountpoint}" which grub-mkconfig) read grub_mkcnf; then
-				echo -n "${grub_mkcnf}"...
-				grub_mkcnf="${mountpoint}${grub_mkcnf}"
-			else
-				echo ERROR:2 grub-mkconfig MIA
-				continue
-			fi
-
-			
-
-
-
-			echo
 		done <<< "${filesystems}"
 		echo
 	done
