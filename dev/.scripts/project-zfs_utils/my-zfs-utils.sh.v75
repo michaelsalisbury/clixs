@@ -150,7 +150,6 @@ function sync_users(){
 	local filesystem
 	local    user
 	local -A users
-	local    uid_min=500
 	local    uid
 	local -A uids
 	local    gid
@@ -186,7 +185,7 @@ function sync_users(){
 			elif [ "${users[${user%%:*}]}" != "${user}" ]; then
 				echo "CONFLICT::${user%%:*}@${filesystem}...${mountpoint}"
 			fi
-		done < <(awk -vMIN=${uid_min} -F: '{if($3==0||($3>=MIN&&$3!=65534))print}' "${mountpoint}/etc/passwd")
+		done < <(awk -F: '{if($3==0||($3>=1000&&$3!=65534))print}' "${mountpoint}/etc/passwd")
 
 		echo
 
@@ -198,26 +197,9 @@ function sync_users(){
 				echo "CONFLICT::${group%%:*}@${filesystem}...${mountpoint}"
 			fi
 
-		done < <(awk -vMIN=${uid_min} -F: '{if($3>=MIN&&$3!=65534)print}' "${mountpoint}/etc/group")
+		done < <(awk -F: '{if($3>=1000&&$3!=65534)print}' "${mountpoint}/etc/group")
 
 		echo
-
-		while read user; do
-			while read shadow; do
-				if ! (( ${#shadows[${shadow%%:*}]} )); then
-					shadows[${shadow%%:*}]=${shadow}
-					echo "__USER__::${shadow%:${shadow#*:*:}}::"
-				elif [ "${shadows[${shadow%%:*}]%:${shadows[${user%%:*}]#*:*:}}" != "${user%:${user#*:*:}}" ]; then
-					:
-				fi
-
-
-				#echo __HASH__::${user}::${hash}
-				#grep "^${user}:" "${mountpoint}/etc/shadow"
-				#awk -vUSER=${user} -F: '/"^"USER":"/{print}'
-			done < <(awk -vUSER=${user} -F: '$0 ~ "^"USER":"{print}' "${mountpoint}/etc/shadow")
-		done < <(printf "%s\n" "${!users[@]}")
-
 
 		# shadow
 
