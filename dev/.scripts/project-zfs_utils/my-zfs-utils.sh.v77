@@ -157,6 +157,7 @@ function sync_users(){
 	local    user_uid_column_width
 	local    user_gid_column_width
 	local    user_home_column_width
+	local    user_headers="Users UID GID Home"
 	local -A users
 	local -A user_conflicts
 	local    uid_min=500
@@ -175,15 +176,13 @@ function sync_users(){
 	local -A mountpoints
 	local    master_filesystem=$(get_booted_root_filesystem)
 	local    IFS=${IFS}
-	local    column
-	local    column_format
-	local    column_headers=( Users UID GID Home {A..Z} )
-	#local    column_headers_empty=( "${column_headers[@]//?/.}") 
-	local    column_headers_empty=( "${column_headers[@]//?/ }") 
-
+	local    cnt
 	# get mountpoints
 	filesystems=()
 	while read filesystems[${#filesystems[@]}]; do
+		#if < <(get_mountinfo_entries "${filesystems[@]: -1}") read x mountpoint x x x x x; then
+		#	mountpoints[${filesystems[@]: -1}]=${mountpoint}
+		#fi
 		< <(get_mountinfo_entries "${filesystems[@]: -1}") read x mountpoint x x x x x && mountpoints[${filesystems[@]: -1}]=${mountpoint}
 	done < <(echo "${master_filesystem}"; < <(< <(get_boot_filesystems) sort) grep -v -x "${master_filesystem}")
 
@@ -243,6 +242,8 @@ function sync_users(){
 	#done < <(echo "${master_filesystem}"; < <(< <(printf "%s\n" "${!mountpoints[@]}") sort) grep -v -x "${master_filesystem}")
 	done < <(printf "%s\n" "${filesystems[@]}")
 
+
+
 	echo
 	echo
 
@@ -253,29 +254,30 @@ function sync_users(){
 		(( ${#home} > ${#user_home_column_width} )) && user_home_column_width=${home}
 		(( ${#user} > ${#user_name_column_width} )) && user_name_column_width=${user}
 	done < <(< <(< <(< <(printf "%s\n" "${users[@]}") sort -n -t: -k3) cut -d: -f1,3,4,6) tr : \ )
-	column_format="%-${#user_name_column_width}s %-${#user_uid_column_width}s %-${#user_gid_column_width}s %-${#user_home_column_width}s"
-	#user_headers=$(printf "%-$(( ${#user_name_column_width} +2 ))s%-$(( ${#user_uid_column_width} +2 ))s%-$(( ${#user_gid_column_width} +2 ))s%-$(( ${#user_home_column_width} +2 ))s" ${user_headers})
+	user_headers=$(printf "%-$(( ${#user_name_column_width} +2 ))s%-$(( ${#user_uid_column_width} +2 ))s%-$(( ${#user_gid_column_width} +2 ))s%-$(( ${#user_home_column_width} +2 ))s" ${user_headers})
 
 	# print chart header
-	for column in ${!filesystems[@]}; do
-		column_format+=" | %-10s"
-		#printf "${column_format}\n" "${column_headers_empty[@]:0:column+4}" "${column}::${filesystems[column]}"
-		printf "${column_format}\n" "${column_headers_empty[@]:0:column+4}" "${filesystems[column]}"
-	done
-	printf -v row "${column_format}\n" "${column_headers[@]:0:column+4}" "${filesystems[column]}"
-	echo -e "${U}${B}${row}${b}${u}"
+	while read filesystem; do
+		filesystem_columns+="${filesystem_columns+        }|"
+			echo "${user_headers//?/ }${user_column_width//?/ }${filesystem_columns}${filesystem}"
+	done < <(printf "%s\n" "${filesystems[@]}")
+	#done < <(echo "${master_filesystem}"; < <(< <(printf "%s\n" "${!mountpoints[@]}") sort) grep -v -x "${master_filesystem}")
+	
+			echo -e "${U}${B}${user_headers}${b}${user_column_width//?/ }${filesystem_columns}${filesystem}${u}"
+
 
 
 	while read user uid gid home; do
-		#printf "%-$(( ${#user_name_column_width} +2 ))s%-$(( ${#user_uid_column_width} +2 ))s%-$(( ${#user_gid_column_width} +2 ))s%-$(( ${#user_home_column_width} +2 ))s" \
-		#	"${user}" "${uid}" "${gid}" "${home}"
+		printf "%-$(( ${#user_name_column_width} +2 ))s%-$(( ${#user_uid_column_width} +2 ))s%-$(( ${#user_gid_column_width} +2 ))s%-$(( ${#user_home_column_width} +2 ))s" \
+			"${user}" "${uid}" "${gid}" "${home}"
 		#echo -n "${user%%:*}"
+		
 		while read filesystem; do
 			:
 
 
 		done < <(echo "${master_filesystem}"; < <(< <(printf "%s\n" "${!mountpoints[@]}") sort) grep -v -x "${master_filesystem}")
-		printf "${column_format}\n" "${user}" "${uid}" "${gid}" "${home}"
+		echo
 	done < <(< <(< <(< <(printf "%s\n" "${users[@]}") sort -n -t: -k3) cut -d: -f1,3,4,6) tr : \ )
 
 
