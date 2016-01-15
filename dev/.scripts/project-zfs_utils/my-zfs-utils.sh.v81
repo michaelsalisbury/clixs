@@ -327,8 +327,8 @@ function sync_users(){
 	# if A-Z was typed and no username starts with the selected capitol letter
 	elif [[ "${REPLY}" =~ ^[A-Z]$ ]] && ! [[ "$(printf "%.1s" "${users[@]}")" =~ "${REPLY}" ]]; then
 		# if less than 26 bootable filesystems are listed test for valid column letter
-		if (( ${#filesystems[@]} < 26 )) && (( ${#filesystems[@]} > 36#${REPLY} - 10 )); then
-			master_filesystem=${filesystems[$(( 36#${REPLY} - 10 ))]}
+		if (( ${#filesystems[@]} < 26 )) && (( ${#filesystems[@]} > $(printf "%d" \'${REPLY}) - 65 )) ; then
+			master_filesystem=${filesystems[$(printf "%d" \'${REPLY}) - 65]}
 		fi 
 	else
 		# echo the first character we typed
@@ -345,8 +345,7 @@ function sync_users(){
 		if [[ "${REPLY}" =~ ^[0-9]+$ ]]; then
 			id_min=${REPLY}
 		# if we typed all capitol letters and they do corespond to a column (wow greater than 26)
-		elif [[ "${REPLY}" =~ ^[A-Z]+$ ]] && $(( ${#filesystems[@]} >= $(convert_alpha_to_int ${REPLY}) )); then
-			
+		elif [[ "${REPLY}" =~ ^[A-Z]+$ ]]; then
 			# and they don't conflict with a username
 			:
 			# else throw error and refresh list
@@ -369,14 +368,25 @@ function sync_users(){
 
 }
 function convert_alpha_to_int(){
+	#a=AC;v=0; p=0; d=${#a}; for ((d-- ;d>=0; d--)); do
+	#let v+=$(( ( 36#${a:$d:1} - 9 ) * 26**p)) ;
+	#let p+=1; echo $v;
+
 	local ALPHA=$1
 	local POWER=0
 	local VALUE=0
 	local DIGIT=${#ALPHA}
 	for (( DIGIT-- ; DIGIT >= 0 ; DIGIT-- )); do
-		let VALUE+=$(( ( 36#${ALPHA:$DIGIT:1} - 9 ) * 26**POWER++ ))
+		let VALUE+=$(( ( 36#${ALPHA:$DIGIT:1} - 9 ) * 26**POWER ))
+		let POWER+=1
 	done
 	echo ${VALUE}
+	return
+	for d in $(< <(<<< "$a" sed 's/\(.\)/\1 /g') rev) ; do
+		let v+=$(( ( 36#$d - 9 ) * 26**p))
+		let p+=1
+	done
+	echo $v
 }
 function is_zfs_volume(){
 	local filesystem="${1#/dev/zvol/}"
