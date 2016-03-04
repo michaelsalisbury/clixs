@@ -75,15 +75,33 @@ function _update(){
 	fi
 
 	# take snapshot
-	name=$(zfs_snapshot)
+	zfs_snapshot
+
+	# get estimated send size
+	size=$(zfs send -nv -i "${inc_snapshot}" "${name}" 2>&1 | awk 'NR>1{gsub(/\.[0-9]*/,"",$NF); print $NF}')
 
 	# replicate
-	zfs_replication "${name}" "${dst}" "${inc_snapshot}"
+	zfs send -I "${inc_snapshot}" "${name}" |
+	pv -b -p -t -r -s ${size} |
+	zfs receive "${dst}"
 
 	# clean old replication snapshots (this fails and cleans the wrong snapshots if no data is transfered due to no change)
 	#zfs list -H -o name -t snapshot -r -d 1 "${src}" "${dst}" |
 	#sed "\|${name##*@}$|d;\|@${snapshot_id}|!d" |
 	#xargs -i@ zfs destroy -v "@"
+}
+function zfs_snapshot_size(){
+	local snapshot=$1
+	local 
+	zfs send -nv -i "${snapshot}" "${name}" 2>&1 |
+	awk 'NR>1{gsub(/\.[0-9]*/,"",$NF); print $NF}'
+}
+function zfs_snapshot(){
+	tmp_snapshot="${src}@${snapshot_id}${RANDOM}"
+	zfs snapshot "${tmp_snapshot}"
+	tmp_creation=$(zfs list -p -H -o creation "${tmp_snapshot}")
+	inc_snapshot="${src}@${snapshot_id}${tmp_creation}"
+	zfs rename "${tmp_snapshot}" "${inc_snapshot}"
 }
 function _copy(){
 	local creation tmp_snapshot inc_snapshot size
@@ -101,37 +119,24 @@ function _copy(){
 	else
 		# take snapshot
 		echo WARN\  :: snapshot for \"${src}\" does not exist, rectifying
-		inc_snapshot=$(zfs_snapshot)	
+		tmp_snapshot="${src}@${snapshot_id}${RANDOM}"
+		zfs snapshot "${tmp_snapshot}"
+		tmp_creation=$(zfs list -p -H -o creation "${tmp_snapshot}")
+		inc_snapshot="${src}@${snapshot_id}${tmp_creation}"
+		zfs rename "${tmp_snapshot}" "${inc_snapshot}"
 	fi
 
+	# get estimated send size
+	size=$(zfs send -nv "${inc_snapshot}" 2>&1 | awk 'NR>1{gsub(/\.[0-9]*/,"",$NF); print $NF}')
+	echo "tmp_snapshot :: ${tmp_snapshot}"
+	echo "tmp_creation :: ${tmp_creation}"
+	echo "inc_snapshot :: ${inc_snapshot}"
+	echo "        size :: ${size}"
 	# replicate
-	zfs_replication "${inc_snapshot}" "${dst}"
-
+	zfs send "${inc_snapshot}" |
+	pv -b -p -t -r -s ${size} |
+	zfs receive "${dst}"
 	# recurse
 	_update "${src}" "${dst}"
-}
-function zfs_replicate(){
-	local snapshot=$1
-	local snapshot_destination=$2
-	local snapshot_inc=$3
-	local snapshot_size=$(zfs_snapshot_size "${snapshot}" "${snapshot_inc}")
-	zfs send ${snapshot_inc:+-I} "${snapshot_inc}" "${snapshot}" |
-		pv -b -p -t -r -s ${snapshot_size} |
-		zfs receive "${snapshot_destination}"
-}
-function zfs_snapshot_size(){
-	local snapshot=$1
-	local snapshot_inc=$2
-	zfs send -nv ${snapshot_inc:+-i} "${snapshot_inc}" "${snapshot}" 2>&1 |
-	awk 'NR>1{gsub(/\.[0-9]*/,"",$NF); print $NF}')
-}
-function zfs_snapshot(){
-	local snapshot_src=${src}
-	local snapshot_desc=${snapshot_id}
-	local snapshot="${snapshot_src}@${snapshot_desc}${RANDOM}"
-	zfs snapshot "${snapshot}"
-	local snapshot_time=$(zfs list -p -H -o creation "${snapshot}")
-	zfs rename "${snapshot}" "${snapshot_src}@${snapshot_desc}${snapshot_time}"
-	echo "${snapshot_src}@${snapshot_desc}${snapshot_time}"
 }
 main "$@"
